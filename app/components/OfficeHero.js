@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
 
-const poster = "/sculpture/office-poster.webp";
-const mp4 = "/sculpture/office-loop.mp4";
-const webm = "/sculpture/office-loop.webm";
+const poster = "/sculpture/dayos-dreamina-poster.webp";
+const mp4 = "/sculpture/dayos-dreamina-loop.mp4";
+const webm = "/sculpture/dayos-dreamina-loop.webm";
 
 function attachFilm(element) {
   if (!element.hasAttribute("src")) {
@@ -123,7 +123,7 @@ function OfficeFilm() {
           className="film-poster"
           src={poster}
           fetchPriority="high"
-          alt="The ONERUB emblem in speckled stone, black resin and wood, assembled in three dimensions."
+          alt="An interlocking ONERUB tower of stone, dark panels and wood, with green, yellow and pink geometric blocks."
         />
         <video
           className={loaded && !failed ? "film-loop ready" : "film-loop"}
