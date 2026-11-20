@@ -551,7 +551,8 @@ export default function Home() {
             <div className="section-aside">
               <p>Every employee, ranked by accepted work.</p>
               <span className="mint-tag">
-                <Users size={14} /> {stats?.employees ?? "—"} team members
+                <Users size={14} /> {stats?.employees ?? "—"}{" "}
+                {stats?.employees === 1 ? "team member" : "team members"}
               </span>
             </div>
           </div>

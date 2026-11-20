@@ -61,7 +61,6 @@ export default function OfficeNav({ action, onAction }) {
       </nav>
       <button
         className="button dark header-action"
-        aria-label={action}
         onClick={() => {
           setOpen(false);
           onAction();
