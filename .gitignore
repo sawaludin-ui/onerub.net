@@ -1,0 +1,8 @@
+node_modules/
+.next/
+.vercel/
+.local/
+.env*
+!.env.example
+coverage/
+artifacts/

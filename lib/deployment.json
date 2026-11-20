@@ -1,0 +1,14 @@
+{
+  "chainId": 56,
+  "address": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+  "reviewer": "0x607cF25614065179a9238705E03E6590C082F56d",
+  "registry": "0x60b9262456de011f7d15a54cdd8c48baaa8b022f",
+  "blockNumber": 134688633,
+  "deployer": "0x9e67788fbF44c0ADd9C918E86F03F4334A6AD76E",
+  "transactionHash": "0xad8fbd250debef7c455a2cc8a30926f288d488ca3be8c762c36f0898eb5d6fe7",
+  "deployedWib": "2026-11-20 18:39:16 WIB",
+  "gasUsed": "3808714",
+  "gasPriceWei": "50000000",
+  "costBNB": "0.0001904357",
+  "compiler": "0.8.39+commit.ce47f2c8.Emscripten.clang"
+}

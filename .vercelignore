@@ -1,0 +1,7 @@
+.git
+.local
+node_modules
+.next
+artifacts
+tests
+public/reference/dayos-reference.jpg
