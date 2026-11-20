@@ -16,7 +16,7 @@ Reviewer: `ferta.ai` / `0x607cF25614065179a9238705E03E6590C082F56d`
 
 Source: https://github.com/sawaludin-ui/onerub.net
 
-BscScan verification: **Source Code Verified — Exact Match**, observed on 20 November 2026 at approximately 18:49 WIB:
+BscScan verification: **Source Code Verified — Exact Match**, observed on 20 November 2026 (WIB):
 https://bscscan.com/address/0x7d7A4B8f27838aca993d6C2c086031301ee33A9C#code
 
 Sourcify verification also returned an exact match for creation and runtime bytecode. The source verification was forwarded automatically from Sourcify to BscScan.
