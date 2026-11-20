@@ -1,38 +1,32 @@
 import fs from "node:fs";
-import { Wallet, JsonRpcProvider, formatEther, Contract } from "ethers";
-const secret = JSON.parse(
-  fs.readFileSync("D:/NXR/secrets/agentopia-oracle.json", "utf8"),
-);
-const wallet = new Wallet(secret.privateKey);
-if (
-  secret.address &&
-  secret.address.toLowerCase() !== wallet.address.toLowerCase()
-)
-  throw Error("Stored wallet address does not match signing key");
+import { JsonRpcProvider, formatEther, Contract, isAddress } from "ethers";
+const deployment = JSON.parse(fs.readFileSync("lib/deployment.json", "utf8"));
+const address = process.env.ONERUB_DEPLOYER_ADDRESS || deployment.deployer;
+if (!isAddress(address)) throw Error("A public deployer address is required for the preflight.");
 const provider = new JsonRpcProvider("https://bsc-rpc.publicnode.com", 56, {
   staticNetwork: true,
 });
 try {
   const [balance, fee, block, identity] = await Promise.all([
-    provider.getBalance(wallet.address),
+    provider.getBalance(address),
     provider.getFeeData(),
     provider.getBlockNumber(),
     new Contract(
-      "0x60b9262456de011f7d15a54cdd8c48baaa8b022f",
+      deployment.registry,
       [
         "function balanceOf(address) view returns(uint256)",
         "function handleOf(address) view returns(string)",
       ],
       provider,
-    ).handleOf("0x607cF25614065179a9238705E03E6590C082F56d"),
+    ).handleOf(deployment.reviewer),
   ]);
   console.log(
     JSON.stringify({
-      deployer: wallet.address,
+      deployer: address,
       balanceBNB: formatEther(balance),
       gasPriceWei: fee.gasPrice?.toString(),
       block,
-      reviewer: "0x607cF25614065179a9238705E03E6590C082F56d",
+      reviewer: deployment.reviewer,
       reviewerHandle: identity + ".ai",
     }),
   );

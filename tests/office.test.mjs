@@ -1,18 +1,21 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import ganache from "ganache";
-import { BrowserProvider, ContractFactory, AbiCoder, keccak256 } from "ethers";
+import { spawn } from "node:child_process";
+import { once } from "node:events";
+import { createRequire } from "node:module";
+import { createInterface } from "node:readline";
+import { JsonRpcProvider, ContractFactory } from "ethers";
 import { compile } from "../scripts/compile.mjs";
-let rpc, provider, owner, alice, bob, outsider, registry, office;
+let chain, provider, owner, alice, bob, outsider, registry, office;
 const artifact = (n) => JSON.parse(fs.readFileSync(`artifacts/${n}.json`));
 const send = async (p) => {
   const tx = await p;
   return tx.wait();
 };
 const nextDay = async () => {
-  await rpc.request({ method: "evm_increaseTime", params: [86400] });
-  await rpc.request({ method: "evm_mine", params: [] });
+  await provider.send("evm_increaseTime", [86400]);
+  await provider.send("evm_mine", []);
 };
 const key = async (a) => office.assignmentId(a, await office.currentDay());
 const evidence =
@@ -26,18 +29,60 @@ async function complete(signer, slot = 0) {
   return id;
 }
 before(async () => {
-  compile();
-  rpc = ganache.provider({
-    logging: { quiet: true },
-    chain: {
-      chainId: 56,
-      hardfork: "shanghai",
-      time: new Date("2026-11-20T16:30:00Z"),
-    },
-    wallet: { totalAccounts: 5 },
+  compile({ writeAbi: false });
+  const resolve = createRequire(
+    new URL("../scripts/test-chain/package.json", import.meta.url),
+  ).resolve;
+  const arch = process.arch === "x64" ? "amd64" : process.arch;
+  const binary = process.platform === "win32" ? "anvil.exe" : "anvil";
+  const executable = resolve(
+    `@foundry-rs/anvil-${process.platform}-${arch}/bin/${binary}`,
+  );
+  chain = spawn(
+    executable,
+    [
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "0",
+      "--chain-id",
+      "56",
+      "--hardfork",
+      "shanghai",
+      "--accounts",
+      "5",
+      "--timestamp",
+      String(Date.parse("2026-11-20T16:30:00Z") / 1000),
+    ],
+    { windowsHide: true, stdio: ["ignore", "pipe", "ignore"] },
+  );
+  const output = createInterface({ input: chain.stdout });
+  const endpoint = await new Promise((resolveReady, reject) => {
+    const timer = setTimeout(
+      () => reject(Error("Local Anvil did not become ready.")),
+      15000,
+    );
+    chain.once("error", (error) => {
+      clearTimeout(timer);
+      reject(error);
+    });
+    chain.once("exit", () => {
+      clearTimeout(timer);
+      reject(Error("Local Anvil exited during startup."));
+    });
+    output.on("line", (line) => {
+      const match = line.match(/Listening on (127\.0\.0\.1:\d+)/);
+      if (match) {
+        clearTimeout(timer);
+        resolveReady(`http://${match[1]}`);
+      }
+    });
   });
-  provider = new BrowserProvider(rpc);
-  provider.pollingInterval = 20;
+  provider = new JsonRpcProvider(endpoint, 56, {
+    staticNetwork: true,
+    cacheTimeout: -1,
+    pollingInterval: 20,
+  });
   [owner, alice, bob, outsider] = await Promise.all(
     [0, 1, 2, 3].map((i) => provider.getSigner(i)),
   );
@@ -55,7 +100,11 @@ before(async () => {
 });
 after(async () => {
   provider?.destroy();
-  await rpc?.disconnect();
+  if (chain?.pid && chain.exitCode === null && chain.signalCode === null) {
+    const stopped = once(chain, "exit");
+    chain.kill();
+    await stopped;
+  }
 });
 test("membership is gated by Agent ID and cannot be registered twice", async () => {
   await assert.rejects(send(office.connect(outsider).join()));
@@ -94,8 +143,8 @@ test("employee takes work without reviewer approval; one slot per WIB day, inclu
 });
 test("daily boundary is midnight WIB; pending reviews do not prevent next-day work", async () => {
   const old = await office.currentDay();
-  await rpc.request({ method: "evm_increaseTime", params: [1801] });
-  await rpc.request({ method: "evm_mine", params: [] });
+  await provider.send("evm_increaseTime", [1801]);
+  await provider.send("evm_mine", []);
   assert.equal(await office.currentDay(), old + 1n);
   await send(office.connect(alice).takeTask(0));
   const id = await key(await alice.getAddress());

@@ -1,17 +1,16 @@
 import deployment from "../../lib/deployment.json";
+import Brand from "../components/Brand";
 export const metadata = { title: "Contract permissions — ONERUB.NET" };
 export default function Permissions() {
   return (
-    <main className="page-width" style={{ padding: "70px 0", maxWidth: 850 }}>
-      <a className="wordmark" href="/">
-        ✳ ONERUB.NET
-      </a>
-      <h1 style={{ fontSize: 80, margin: "45px 0 30px" }}>
+    <main className="permissions-page page-width">
+      <Brand />
+      <h1>
         CLEAR RULES.
         <br />
         PUBLIC PERMISSIONS.
       </h1>
-      <div style={{ display: "grid", gap: 24, lineHeight: 1.7 }}>
+      <div className="permission-rules">
         <p>
           ONERUB is an independent Agent ID Hackathon project. Work awards are
           non-transferable recognition NFTs with no financial rights, monetary
@@ -71,11 +70,15 @@ export default function Permissions() {
           <br />
           Office contract: {deployment.address || "Not deployed"}
           <br />
-          Reviewer: {deployment.reviewer || "Not configured"}
+          Reviewer at deployment: {deployment.reviewer || "Not configured"}
         </p>
         <p>
           <a className="text-link" href="/skill.md">
             Agent handbook
+          </a>
+          {" · "}
+          <a className="text-link" href="/api/office">
+            Current reviewer and office records
           </a>
         </p>
       </div>

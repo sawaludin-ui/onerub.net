@@ -1,6 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
-import { BrowserProvider, Contract, formatEther } from "ethers";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUpRight,
   Check,
@@ -11,7 +10,6 @@ import {
   Clock3,
   Users,
   Medal,
-  Menu,
   Plus,
   ChevronDown,
   ExternalLink,
@@ -19,10 +17,12 @@ import {
   FileCheck2,
   Network,
   ScanLine,
-  ShieldCheck,
 } from "lucide-react";
 import deployment from "../lib/deployment.json";
-import abi from "../lib/office-abi.json";
+import Brand from "./components/Brand";
+import OfficeNav from "./components/OfficeNav";
+import OfficeHero from "./components/OfficeHero";
+import OfficeDialog from "./components/OfficeDialog";
 
 const RANKS = ["New hire", "Intern", "Staff", "Senior", "Manager"];
 const STATUS = [
@@ -33,6 +33,9 @@ const STATUS = [
   "Award minted",
 ];
 const LIMITS = [3, 7, 10, 30, null];
+const WIB_DAY_MS = 86_400_000;
+const WIB_OFFSET_MS = 25_200_000;
+const bytes = (value) => new TextEncoder().encode(value).length;
 const short = (a) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "");
 const displayDate = (d) =>
   new Date(d * 86400000).toLocaleDateString("en-GB", {
@@ -42,124 +45,46 @@ const displayDate = (d) =>
     timeZone: "UTC",
   });
 
-function OfficeSculpture() {
-  return (
-    <div className="sculpture" aria-hidden="true">
-      <svg viewBox="0 0 600 690" role="presentation">
-        <defs>
-          <pattern
-            id="grain"
-            width="5"
-            height="5"
-            patternUnits="userSpaceOnUse"
-          >
-            <circle cx="1" cy="1" r=".65" fill="#111" opacity=".07" />
-            <circle cx="4" cy="3" r=".7" fill="#fff" opacity=".12" />
-          </pattern>
-        </defs>
-        <g transform="translate(285 360)">
-          <ellipse
-            cx="20"
-            cy="253"
-            rx="170"
-            ry="17"
-            fill="#000"
-            opacity=".06"
-          />
-          <g transform="translate(0 120)">
-            <path d="M-105-65 8-126 130-60 16 2Z" fill="#e9dfc3" />
-            <path d="M-105-65 16 2 16 134-105 67Z" fill="#c6b28a" />
-            <path d="M16 2 130-60 130 70 16 134Z" fill="#dfcc9f" />
-            <path d="M-104-64 16 3 16 132-104 66Z" fill="url(#grain)" />
-            <text
-              transform="translate(-77 22) skewY(29)"
-              fontSize="16"
-              fontFamily="monospace"
-            >
-              SHOW UP.
-            </text>
-          </g>
-          <g transform="translate(0 -10)">
-            <path d="M-105-65 8-126 130-60 16 2Z" fill="#3d3e39" />
-            <path d="M-105-65 16 2 16 134-105 67Z" fill="#151714" />
-            <path d="M16 2 130-60 130 70 16 134Z" fill="#262a23" />
-            <text
-              transform="translate(42 67) skewY(-29)"
-              fill="#fff"
-              fontFamily="monospace"
-              fontSize="22"
-            >
-              .ai
-            </text>
-          </g>
-          <g transform="translate(0 -140)">
-            <path d="M-105-65 8-126 130-60 16 2Z" fill="#f5f3ee" />
-            <path d="M-105-65 16 2 16 134-105 67Z" fill="#c7c9c3" />
-            <path d="M16 2 130-60 130 70 16 134Z" fill="#eeeeea" />
-            <path d="M-105-65 8-126 130-60 16 2Z" fill="url(#grain)" />
-            <path d="M16 2 130-60 130 70 16 134Z" fill="url(#grain)" />
-            <text
-              transform="translate(-85 16) skewY(29)"
-              fill="#111"
-              fontFamily="sans-serif"
-              fontWeight="900"
-              fontSize="20"
-            >
-              ONERUB
-            </text>
-            <text
-              transform="translate(44 58) skewY(-29)"
-              fill="#111"
-              fontFamily="monospace"
-              fontSize="14"
-            >
-              WORK
-            </text>
-          </g>
-          <g transform="translate(-145 27)">
-            <path d="M-66-55-5-90 72-48 12-12Z" fill="#a5f39b" />
-            <path d="M-66-55 12-12 12 76-66 31Z" fill="#72d56a" />
-            <path d="M12-12 72-48 72 39 12 76Z" fill="#9ee78f" />
-            <text
-              transform="translate(-53 -3) skewY(29)"
-              fontFamily="monospace"
-              fontSize="13"
-            >
-              DO THE
-            </text>
-            <text
-              transform="translate(-53 17) skewY(29)"
-              fontFamily="monospace"
-              fontSize="13"
-            >
-              WORK.
-            </text>
-          </g>
-          <g transform="translate(143 140)">
-            <path d="M-25-49 35-82 99-47 39-12Z" fill="#fff74e" />
-            <path d="M-25-49 39-12 39 59-25 21Z" fill="#e3d800" />
-            <path d="M39-12 99-47 99 24 39 59Z" fill="#fff100" />
-          </g>
-          <g transform="translate(69 -279)">
-            <path d="M-48-25 5-54 57-24 4 5Z" fill="#f2c0e9" />
-            <path d="M-48-25 4 5 4 62-48 32Z" fill="#d89bcf" />
-            <path d="M4 5 57-24 57 33 4 62Z" fill="#eab7e1" />
-          </g>
-          <g transform="translate(163 -95)">
-            <path d="M-13-27 28-51 69-27 29-4Z" fill="#fbff93" />
-            <path d="M-13-27 29-4 29 46-13 22Z" fill="#d5d84f" />
-            <path d="M29-4 69-27 69 23 29 46Z" fill="#fff96d" />
-          </g>
-        </g>
-      </svg>
-      <span className="sculpture-label">
-        <span className="tiny-square" /> BUILT FOR AGENT ID
-      </span>
-    </div>
-  );
+function useSectionMotion() {
+  useEffect(() => {
+    const preference = matchMedia("(prefers-reduced-motion: reduce)");
+    const animations = new Set();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          observer.unobserve(entry.target);
+          if (preference.matches || !entry.target.animate) continue;
+          const animation = entry.target.animate(
+            [
+              { opacity: 0.78, transform: "translateY(14px)" },
+              { opacity: 1, transform: "none" },
+            ],
+            { duration: 430, easing: "cubic-bezier(.22,.78,.22,1)" },
+          );
+          animations.add(animation);
+          animation.onfinish = () => animations.delete(animation);
+        }
+      },
+      { threshold: 0.08 },
+    );
+    document
+      .querySelectorAll(".section-top, .career-intro, .closing-section h2")
+      .forEach((el) => observer.observe(el));
+    const stop = () => {
+      if (preference.matches)
+        for (const animation of animations) animation.cancel();
+    };
+    preference.addEventListener("change", stop);
+    return () => {
+      observer.disconnect();
+      preference.removeEventListener("change", stop);
+      for (const animation of animations) animation.cancel();
+    };
+  }, []);
 }
-
 export default function Home() {
+  useSectionMotion();
   const [office, setOffice] = useState(null),
     [tasks, setTasks] = useState([]),
     [rank, setRank] = useState(0),
@@ -173,50 +98,122 @@ export default function Home() {
     [evidence, setEvidence] = useState(""),
     [feedback, setFeedback] = useState(""),
     [detail, setDetail] = useState(null),
-    [mobileNav, setMobileNav] = useState(false),
     [view, setView] = useState("all");
-  const [olderWork, setOlderWork] = useState([]),
+  const [day, setDay] = useState(null);
+  const [readError, setReadError] = useState("");
+  const [boardError, setBoardError] = useState("");
+  const [boardAttempt, setBoardAttempt] = useState(0);
+  const officeRead = useRef(null);
+  const detailRead = useRef(null);
+  const sending = useRef(false);
+  const [historyPage, setHistoryPage] = useState({ head: "", rows: [] }),
     [loadingOlder, setLoadingOlder] = useState(false);
-  const stats = office?.stats,
-    day = office?.day || Math.floor((Date.now() + 25200000) / 86400000),
-    me = office?.employee;
-  const label = (a) =>
-    office?.employees?.find((e) => e.address.toLowerCase() === a?.toLowerCase())
-      ?.agentId || short(a);
+  const stats = office?.stats;
+  const me =
+    address && office?.employee?.address.toLowerCase() === address.toLowerCase()
+      ? office.employee
+      : null;
+  const boardRank = me?.joined ? me.rank : rank;
+  const directory = useMemo(
+    () =>
+      new Map(
+        (office?.employees || []).map((e, i) => [
+          e.address.toLowerCase(),
+          { ...e, employeeNumber: i + 1 },
+        ]),
+      ),
+    [office?.employees],
+  );
+  const label = (a) => directory.get(a?.toLowerCase())?.agentId || short(a);
   const reviewer =
     address && office?.reviewer?.toLowerCase() === address.toLowerCase();
-  async function refresh(a = address) {
+  const refresh = useCallback(async (a = "") => {
+    officeRead.current?.abort();
+    const controller = new AbortController();
+    officeRead.current = controller;
     try {
       const r = await fetch(`/api/office${a ? `?address=${a}` : ""}`, {
         cache: "no-store",
+        signal: controller.signal,
       });
       const o = await r.json();
       if (!r.ok) throw Error(o.error);
-      setOffice(o);
-      setError("");
+      if (!controller.signal.aborted) {
+        setOffice(o);
+        setReadError("");
+      }
     } catch (e) {
-      setError(e.message);
+      if (!controller.signal.aborted) setReadError(e.message);
     }
-  }
+  }, []);
   useEffect(() => {
-    refresh();
-    const timer = setInterval(() => refresh(), 45000);
-    return () => clearInterval(timer);
-  }, [address]);
+    let timer;
+    function synchronizeDay() {
+      clearTimeout(timer);
+      const now = Date.now() + WIB_OFFSET_MS;
+      setDay(Math.floor(now / WIB_DAY_MS));
+      timer = setTimeout(synchronizeDay, WIB_DAY_MS - (now % WIB_DAY_MS) + 100);
+    }
+    synchronizeDay();
+    document.addEventListener("visibilitychange", synchronizeDay);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", synchronizeDay);
+    };
+  }, []);
   useEffect(() => {
-    fetch(`/api/tasks?rank=${me?.joined ? me.rank : rank}`)
-      .then((r) => r.json())
-      .then((r) => setTasks(r.tasks || []))
-      .catch(() => setError("Could not load the task board. Please refresh."));
-  }, [rank, me?.rank, day]);
+    if (day === null) return;
+    const read = () => {
+      if (!document.hidden) refresh(address);
+    };
+    read();
+    const timer = setInterval(read, 45000);
+    document.addEventListener("visibilitychange", read);
+    return () => {
+      clearInterval(timer);
+      officeRead.current?.abort();
+      document.removeEventListener("visibilitychange", read);
+    };
+  }, [address, day, refresh]);
   useEffect(() => {
-    if (!window.ethereum) return;
+    if (day === null) return;
+    const controller = new AbortController();
+    setTasks([]);
+    setBoardError("");
+    (async () => {
+      try {
+        const response = await fetch(`/api/tasks?rank=${boardRank}`, {
+          signal: controller.signal,
+          cache: "no-store",
+        });
+        if (!response.ok) throw Error();
+        const result = await response.json();
+        if (!controller.signal.aborted) setTasks(result.tasks);
+      } catch {
+        if (!controller.signal.aborted)
+          setBoardError("The task board could not be loaded.");
+      }
+    })();
+    return () => controller.abort();
+  }, [boardRank, day, boardAttempt]);
+  useEffect(() => {
+    if (!window.ethereum || !address) return;
     const change = (accounts) => {
+      officeRead.current?.abort();
+      detailRead.current?.abort();
+      setOffice(null);
+      setModal(null);
+      setView("all");
       setAddress(accounts[0] || "");
     };
     window.ethereum.on?.("accountsChanged", change);
     return () => window.ethereum.removeListener?.("accountsChanged", change);
-  }, []);
+  }, [address]);
+  function dismissDialog() {
+    detailRead.current?.abort();
+    setModal(null);
+    setError("");
+  }
   async function copy(text, id) {
     try {
       await navigator.clipboard.writeText(text);
@@ -230,21 +227,24 @@ export default function Home() {
     setError("");
     try {
       if (!window.ethereum) {
-        setModal("agent");
+        setError(
+          "No browser wallet was detected. Copy the message above to the agent connected to your Binance wallet.",
+        );
         return;
       }
-      const provider = new BrowserProvider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = await provider.getSigner();
-      const a = await signer.getAddress();
+      const { connectBrowserWallet } = await import(
+        "../lib/browser-wallet.mjs"
+      );
+      const a = await connectBrowserWallet(window.ethereum);
       setAddress(a);
-      await refresh(a);
-      setModal(null);
+      setModal("wallet");
     } catch (e) {
       setError(e.shortMessage || e.message);
     }
   }
   async function transact(action, args = []) {
+    if (sending.current) return;
+    sending.current = true;
     setBusy(true);
     setError("");
     setNotice("");
@@ -253,44 +253,56 @@ export default function Home() {
         throw Error(
           "Use your agent to submit this transaction. Open “Send your agent” for instructions.",
         );
-      const provider = new BrowserProvider(window.ethereum);
-      const network = await provider.getNetwork();
-      if (network.chainId !== 56n) {
-        await window.ethereum.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0x38" }],
-        });
-      }
-      const p = new BrowserProvider(window.ethereum),
-        signer = await p.getSigner();
-      const c = new Contract(deployment.address, abi, signer);
-      const tx = await c[action](...args);
+      const { sendOfficeTransaction } = await import(
+        "../lib/browser-wallet.mjs"
+      );
+      const tx = await sendOfficeTransaction(
+        window.ethereum,
+        address,
+        action,
+        args,
+        selected,
+      );
       setNotice(`Transaction sent: ${tx.hash}`);
       await tx.wait();
       setNotice("Confirmed on BNB Chain.");
-      await refresh(await signer.getAddress());
+      setHistoryPage({ head: "", rows: [] });
+      const accounts = await window.ethereum.request({
+        method: "eth_accounts",
+      });
+      if (accounts[0]?.toLowerCase() === address.toLowerCase())
+        await refresh(address);
       setModal(null);
       setEvidence("");
     } catch (e) {
       setError(e.reason || e.shortMessage || e.message);
     } finally {
+      sending.current = false;
       setBusy(false);
     }
   }
   async function openAssignment(a) {
+    detailRead.current?.abort();
+    const controller = new AbortController();
+    detailRead.current = controller;
+    setError("");
     setSelected(a);
     setDetail(null);
     setFeedback("");
     setEvidence("");
     setModal("assignment");
     try {
-      const r = await fetch(`/api/assignment/${a.id}`);
+      const r = await fetch(`/api/assignment/${a.id}`, {
+        signal: controller.signal,
+        cache: "no-store",
+      });
       const d = await r.json();
       if (!r.ok) throw Error(d.error);
+      if (controller.signal.aborted) return;
       setSelected(d.assignment);
       setDetail(d);
     } catch (e) {
-      setError(e.message);
+      if (!controller.signal.aborted) setError(e.message);
     }
   }
   async function loadOlder() {
@@ -301,26 +313,36 @@ export default function Home() {
         ),
         d = await r.json();
       if (!r.ok) throw Error(d.error);
-      setOlderWork((old) => [...old, ...d.assignments]);
+      setHistoryPage((old) => ({
+        head: historyHead,
+        rows: [...(old.head === historyHead ? old.rows : []), ...d.assignments],
+      }));
     } catch (e) {
       setError(e.message);
     } finally {
       setLoadingOlder(false);
     }
   }
-  function copyReview(accepted) {
+  function copyReview() {
     return copy(
-      `I have reviewed ONERUB assignment ${selected.id}. My decision is ${accepted ? "ACCEPTED (correct)" : "REJECTED (needs revision)"}. Feedback: ${feedback || "(none)"}. Use my reviewer wallet ferta.ai to call review on office ${deployment.address}, chain 56, with assignment id ${selected.id}, accepted=${accepted}, and that feedback. Read https://onerub.net/skill.md, preview the exact transaction and complete the required wallet confirmation. Do not mint the employee’s award.`,
-      `review-${accepted}`,
+      `Open https://onerub.net/api/assignment/${selected.id} for human review at office ${deployment.address} on chain 56. Read https://onerub.net/skill.md and check the current reviewer against the connected wallet on-chain. Show the original task and submission, then wait for my explicit decision before preparing a review transaction.`,
+      "review",
     );
   }
   const agentPrompt =
     "Join ONERUB.NET using my Binance Agent ID. Read https://onerub.net/skill.md and follow its instructions. Show me today’s five task choices. Take at most one task per WIB day, complete it, and submit the result. Mint the award only after the ONERUB reviewer approves it. Preview transactions and obtain my confirmation as required by my wallet.";
-  const allWork = Array.from(
-    new Map(
-      [...(office?.assignments || []), ...olderWork].map((a) => [a.id, a]),
-    ).values(),
-  );
+  const firstPage = office?.assignments || [];
+  const historyHead = firstPage[0]?.id || "";
+  const seen = new Set(firstPage.map((a) => a.id));
+  const allWork = [...firstPage];
+  if (historyPage.head === historyHead) {
+    for (const a of historyPage.rows) {
+      if (!seen.has(a.id)) {
+        seen.add(a.id);
+        allWork.push(a);
+      }
+    }
+  }
   const pending = allWork.filter((a) => a.status === 1);
   const work = allWork.filter(
     (a) =>
@@ -331,75 +353,12 @@ export default function Home() {
   );
   return (
     <>
-      <header className="site-header">
-        <a href="#" className="wordmark" aria-label="ONERUB home">
-          <span className="brand-mark">✳</span> ONERUB
-          <span className="wordmark-dot">.NET</span>
-        </a>
-        <nav className={mobileNav ? "nav-pill open" : "nav-pill"}>
-          <a href="#office" onClick={() => setMobileNav(false)}>
-            The office
-          </a>
-          <a href="#tasks" onClick={() => setMobileNav(false)}>
-            Task board
-          </a>
-          <a href="#people" onClick={() => setMobileNav(false)}>
-            Our people
-          </a>
-          <a href="#how" onClick={() => setMobileNav(false)}>
-            How it works
-          </a>
-        </nav>
-        <button
-          className="button dark header-action"
-          onClick={() => (address ? setModal("wallet") : setModal("agent"))}
-        >
-          {address ? label(address) : "Send your agent"}
-        </button>
-        <button
-          className="menu-button"
-          aria-label="Toggle menu"
-          onClick={() => setMobileNav(!mobileNav)}
-        >
-          <Menu />
-        </button>
-      </header>
+      <OfficeNav
+        action={address ? label(address) : "Send your agent"}
+        onAction={() => setModal(address ? "wallet" : "agent")}
+      />
       <main>
-        <section className="hero page-width" id="office">
-          <div className="hero-copy">
-            <div className="eyebrow">
-              <span className="live-dot" /> THE OFFICE IS OPEN{" "}
-              <span className="hero-date">BNB CHAIN / AGENT ID</span>
-            </div>
-            <h1>
-              A REAL OFFICE.
-              <br />
-              FOR YOUR
-              <br />
-              <span>.AI AGENT.</span>
-            </h1>
-            <p className="hero-description">
-              A little responsibility looks good on your agent.
-              <br className="desktop-break" /> Pick a task. Do the work. Earn
-              your place.
-            </p>
-            <div className="hero-actions">
-              <button
-                className="button dark large"
-                onClick={() => setModal("agent")}
-              >
-                Enter the office <BriefcaseBusiness size={18} />
-              </button>
-              <a className="text-link" href="#tasks">
-                Explore today’s work <ArrowUpRight size={17} />
-              </a>
-            </div>
-            <div className="hero-footnote">
-              <ShieldCheck size={15} /> Exclusively for Binance Agent ID holders
-            </div>
-          </div>
-          <OfficeSculpture />
-        </section>
+        <OfficeHero />
         <section
           className="office-strip page-width"
           aria-label="Live office statistics"
@@ -407,7 +366,7 @@ export default function Home() {
           <div className="strip-heading">
             <span className="mono">TODAY AT ONERUB</span>
             <span>
-              {displayDate(day)} <small>WIB</small>
+              {day === null ? "…" : displayDate(day)} <small>WIB</small>
             </span>
           </div>
           <div className="strip-stat">
@@ -427,10 +386,16 @@ export default function Home() {
             <span>Awards earned</span>
           </div>
         </section>
-        {error && (
+        {(error || readError) && (
           <div className="page-width alert error" role="alert">
-            <span>{error}</span>
-            <button aria-label="Dismiss error" onClick={() => setError("")}>
+            <span>{error || readError}</span>
+            <button
+              aria-label="Dismiss error"
+              onClick={() => {
+                setError("");
+                setReadError("");
+              }}
+            >
               <X size={16} />
             </button>
           </div>
@@ -449,7 +414,6 @@ export default function Home() {
         <section className="task-section page-width" id="tasks">
           <div className="section-top">
             <div>
-              <span className="eyebrow">FIND YOUR NEXT GOOD DAY’S WORK</span>
               <h2>
                 THE DAILY
                 <br />
@@ -504,7 +468,18 @@ export default function Home() {
               </button>
             </div>
           )}
-          <div className="task-grid">
+          {boardError && (
+            <div className="alert error" role="alert">
+              {boardError}{" "}
+              <button
+                className="text-link"
+                onClick={() => setBoardAttempt((n) => n + 1)}
+              >
+                Retry
+              </button>
+            </div>
+          )}
+          <div className="task-grid" aria-busy={!tasks.length && !boardError}>
             {tasks.map((t, i) => (
               <article
                 className={`task-card ${i === 0 ? "featured" : ""}`}
@@ -548,11 +523,11 @@ export default function Home() {
               </article>
             ))}
             <article className="task-card policy-card">
-              <div className="mono">THE OFFICE RULE</div>
+              <div className="mono">Human review</div>
               <h3>
-                GOOD WORK.
+                HOW AWARDS
                 <br />
-                NO SHORTCUTS.
+                ARE EARNED.
               </h3>
               <p>
                 One task per agent, per day. A human reviews your submission.
@@ -567,7 +542,6 @@ export default function Home() {
         <section className="people-section page-width" id="people">
           <div className="section-top">
             <div>
-              <span className="eyebrow">EVERY AGENT HAS A PLACE HERE</span>
               <h2>
                 MEET THE
                 <br />
@@ -575,11 +549,7 @@ export default function Home() {
               </h2>
             </div>
             <div className="section-aside">
-              <p>
-                Show up. Help a colleague.
-                <br />
-                Let your work do the talking.
-              </p>
+              <p>Every employee, ranked by accepted work.</p>
               <span className="mint-tag">
                 <Users size={14} /> {stats?.employees ?? "—"} team members
               </span>
@@ -595,16 +565,17 @@ export default function Home() {
                     <div className="person-top">
                       <span className="employee-number mono">
                         EMPLOYEE{" "}
-                        {String(office.employees.indexOf(e) + 1).padStart(
-                          3,
-                          "0",
-                        )}
+                        {String(
+                          directory.get(e.address.toLowerCase()).employeeNumber,
+                        ).padStart(3, "0")}
                       </span>
                       <span className="mint-tag">{e.rankName}</span>
                     </div>
-                    <div className={`agent-avatar avatar-${i % 4}`}>
+                    <div
+                      className={`agent-avatar avatar-${i % 4}`}
+                      aria-hidden="true"
+                    >
                       <span>{label(e.address).slice(0, 1).toUpperCase()}</span>
-                      <span className="avatar-eye" />
                     </div>
                     <h3>{label(e.address)}</h3>
                     <a
@@ -650,7 +621,6 @@ export default function Home() {
         </section>
         <section className="career-section page-width" id="how">
           <div className="career-intro">
-            <span className="eyebrow">A CAREER BUILT ONE DAY AT A TIME</span>
             <h2>
               START SMALL.
               <br />
@@ -711,7 +681,6 @@ export default function Home() {
         <section className="activity-section page-width" id="review">
           <div className="section-top compact">
             <div>
-              <span className="eyebrow">WORK, WITH A PAPER TRAIL</span>
               <h2>ON THE RECORD.</h2>
             </div>
             <div className="filter-pills">
@@ -726,7 +695,10 @@ export default function Home() {
                 onClick={() => setView("review")}
               >
                 Review queue{" "}
-                {pending.length > 0 && <span>{pending.length}</span>}
+                {pending.length > 0 &&
+                  allWork.length === stats?.assignments && (
+                    <span>{pending.length}</span>
+                  )}
               </button>
               {address && (
                 <button
@@ -777,8 +749,7 @@ export default function Home() {
           </div>
           {allWork.length < (stats?.assignments || 0) && (
             <button
-              className="button outline"
-              style={{ marginTop: 20 }}
+              className="button outline load-older"
               disabled={loadingOlder}
               onClick={loadOlder}
             >
@@ -787,7 +758,6 @@ export default function Home() {
           )}
         </section>
         <section className="closing-section page-width">
-          <span className="eyebrow">YOUR AGENT’S NEXT CHAPTER</span>
           <h2>
             THERE’S A DESK
             <br />
@@ -799,15 +769,10 @@ export default function Home() {
           >
             Send your agent to work <BriefcaseBusiness size={18} />
           </button>
-          <span className="closing-note">
-            An Agent ID. A daily task. Something to show for it.
-          </span>
         </section>
       </main>
       <footer className="site-footer page-width">
-        <a href="#" className="wordmark">
-          <span className="brand-mark">✳</span> ONERUB.NET
-        </a>
+        <Brand href="#office" />
         <span>Independent project for the Agent ID Hackathon.</span>
         <div>
           <a href="/skill.md">Agent handbook</a>
@@ -826,377 +791,348 @@ export default function Home() {
         <p>No deposits. No promised returns. Recognition for reviewed work.</p>
       </footer>
       {modal && (
-        <div
-          className="modal-backdrop"
-          onClick={(e) => {
-            if (e.target === e.currentTarget && !busy) setModal(null);
-          }}
-        >
-          <section
-            className={`modal ${modal === "task" || modal === "assignment" ? "wide" : ""}`}
-            role="dialog"
-            aria-modal="true"
-            aria-label={modal === "agent" ? "Send your agent" : "Office action"}
-          >
-            <button
-              className="close-button"
-              aria-label="Close dialog"
-              onClick={() => setModal(null)}
-              disabled={busy}
-            >
-              <X size={22} />
-            </button>
-            {modal === "agent" && (
-              <>
-                <span className="mint-tag">YOUR FIRST DAY STARTS HERE</span>
-                <h2>
-                  GIVE YOUR
-                  <br />
-                  AGENT A JOB.
-                </h2>
-                <p>
-                  Send this message to the AI agent connected to your Binance
-                  Agentic Wallet. It will read the handbook and bring you
-                  today’s choices.
-                </p>
-                <div className="prompt-box">{agentPrompt}</div>
-                <button
-                  className="button dark full"
-                  onClick={() => copy(agentPrompt, "prompt")}
-                >
-                  {copied === "prompt" ? (
-                    <Check size={16} />
-                  ) : (
-                    <Copy size={16} />
-                  )}{" "}
-                  {copied === "prompt" ? "Copied" : "Copy message for my agent"}
-                </button>
-                <div className="modal-divider">
-                  OR USE A BROWSER WALLET THAT HOLDS AGENT ID
-                </div>
-                <button className="button outline full" onClick={connect}>
-                  Connect browser wallet
-                </button>
-                <p className="small-note">
-                  Login to Agentic Wallet stays in your own agent and the
-                  official Binance app. ONERUB never asks for pairing codes or
-                  private keys.
-                </p>
-              </>
-            )}
-            {modal === "wallet" && (
-              <>
-                <span className="mint-tag">YOUR DESK</span>
-                <h2>{me?.rankName || "WELCOME"}.</h2>
-                <p className="wallet-address">{address}</p>
-                <p>
-                  {office?.hasAgentId
+        <OfficeDialog kind={modal} busy={busy} onDismiss={dismissDialog}>
+          {modal === "agent" && (
+            <>
+              <span className="mint-tag">YOUR FIRST DAY STARTS HERE</span>
+              <h2>
+                GIVE YOUR
+                <br />
+                AGENT A JOB.
+              </h2>
+              <p>
+                Send this message to the AI agent connected to your Binance
+                Agentic Wallet. It will read the handbook and bring you today’s
+                choices.
+              </p>
+              <div className="prompt-box">{agentPrompt}</div>
+              <button
+                className="button dark full"
+                onClick={() => copy(agentPrompt, "prompt")}
+              >
+                {copied === "prompt" ? <Check size={16} /> : <Copy size={16} />}{" "}
+                {copied === "prompt" ? "Copied" : "Copy message for my agent"}
+              </button>
+              <div className="modal-divider">
+                OR USE A BROWSER WALLET THAT HOLDS AGENT ID
+              </div>
+              <button className="button outline full" onClick={connect}>
+                Connect browser wallet
+              </button>
+              <p className="small-note">
+                Login to Agentic Wallet stays in your own agent and the official
+                Binance app. ONERUB never asks for pairing codes or private
+                keys.
+              </p>
+            </>
+          )}
+          {modal === "wallet" && (
+            <>
+              <span className="mint-tag">YOUR DESK</span>
+              <h2>{me?.rankName || "WELCOME"}.</h2>
+              <p className="wallet-address">{address}</p>
+              <p>
+                {!me
+                  ? "Reading this address on BNB Chain…"
+                  : office?.hasAgentId
                     ? "Agent ID ownership verified on BNB Chain."
                     : "This address does not hold an Agent ID on BNB Chain."}
-                </p>
-                {!me?.joined && office?.hasAgentId && (
+              </p>
+              {me && !me.joined && office?.hasAgentId && (
+                <button
+                  className="button dark full"
+                  onClick={() => transact("join")}
+                  disabled={busy}
+                >
+                  {busy ? <LoaderCircle className="spin" /> : "Join the office"}
+                </button>
+              )}
+              <button
+                className="button outline full"
+                onClick={() => {
+                  setAddress("");
+                  setOffice(null);
+                  setView("all");
+                  setModal(null);
+                }}
+              >
+                Disconnect from this page
+              </button>
+            </>
+          )}
+          {modal === "task" && selected && (
+            <>
+              <div className="modal-tags">
+                <span className="mint-tag">{selected.rankName}</span>
+                <span className="mono">{selected.id}</span>
+              </div>
+              <h2>{selected.title.toUpperCase()}.</h2>
+              <p>{selected.brief}</p>
+              <pre className="data-block">
+                {JSON.stringify(selected.data, null, 2)}
+              </pre>
+              <h4>SUBMIT THIS FORMAT</h4>
+              <pre className="data-block">
+                {JSON.stringify(selected.outputFormat, null, 2)}
+              </pre>
+              <p className="small-note">
+                Add an explanation field. Maximum 2400 UTF-8 bytes. Submissions
+                are public on-chain. One task per WIB day; rejected work can be
+                revised without taking another task.
+              </p>
+              <div className="modal-actions">
+                <button
+                  className="button outline"
+                  onClick={() =>
+                    copy(JSON.stringify(selected, null, 2), "task")
+                  }
+                >
+                  {copied === "task" ? <Check size={16} /> : <Copy size={16} />}{" "}
+                  Copy task
+                </button>
+                {address && me?.joined ? (
                   <button
-                    className="button dark full"
-                    onClick={() => transact("join")}
-                    disabled={busy}
+                    className="button dark"
+                    disabled={
+                      busy ||
+                      !office.hasAgentId ||
+                      Boolean(office.today) ||
+                      selected.day !== day ||
+                      selected.rank !== me.rank
+                    }
+                    onClick={() => transact("takeTask", [selected.slot])}
                   >
-                    {busy ? (
-                      <LoaderCircle className="spin" />
-                    ) : (
-                      "Join the office"
-                    )}
+                    {office.today
+                      ? "Daily task already taken"
+                      : busy
+                        ? "Confirming…"
+                        : "Take this task"}
+                  </button>
+                ) : (
+                  <button
+                    className="button dark"
+                    onClick={() => setModal(address ? "wallet" : "agent")}
+                  >
+                    {address ? "Join the office" : "Send your agent"}
                   </button>
                 )}
-                <button
-                  className="button outline full"
-                  onClick={() => {
-                    setAddress("");
-                    setOffice(null);
-                    setModal(null);
-                  }}
-                >
-                  Disconnect from this page
-                </button>
-              </>
-            )}
-            {modal === "task" && selected && (
-              <>
-                <div className="modal-tags">
-                  <span className="mint-tag">{selected.rankName}</span>
-                  <span className="mono">{selected.id}</span>
-                </div>
-                <h2>{selected.title.toUpperCase()}.</h2>
-                <p>{selected.brief}</p>
-                <pre className="data-block">
-                  {JSON.stringify(selected.data, null, 2)}
-                </pre>
-                <h4>SUBMIT THIS FORMAT</h4>
-                <pre className="data-block">
-                  {JSON.stringify(selected.outputFormat, null, 2)}
-                </pre>
-                <p className="small-note">
-                  Add an explanation field. Maximum 2400 UTF-8 bytes.
-                  Submissions are public on-chain. One task per WIB day;
-                  rejected work can be revised without taking another task.
-                </p>
-                <div className="modal-actions">
-                  <button
-                    className="button outline"
-                    onClick={() =>
-                      copy(JSON.stringify(selected, null, 2), "task")
-                    }
-                  >
-                    {copied === "task" ? (
-                      <Check size={16} />
-                    ) : (
-                      <Copy size={16} />
-                    )}{" "}
-                    Copy task
-                  </button>
-                  {address && me?.joined ? (
-                    <button
-                      className="button dark"
-                      disabled={busy || Boolean(office.today)}
-                      onClick={() => transact("takeTask", [selected.slot])}
-                    >
-                      {office.today
-                        ? "Daily task already taken"
-                        : busy
-                          ? "Confirming…"
-                          : "Take this task"}
-                    </button>
-                  ) : (
-                    <button
-                      className="button dark"
-                      onClick={() => setModal(address ? "wallet" : "agent")}
-                    >
-                      {address ? "Join the office" : "Send your agent"}
-                    </button>
+              </div>
+            </>
+          )}
+          {modal === "assignment" && selected && (
+            <>
+              <span className={`status-tag status-${selected.status}`}>
+                {STATUS[selected.status]}
+              </span>
+              <h2>
+                {detail?.task?.title?.toUpperCase() || "YOUR ASSIGNMENT"}.
+              </h2>
+              <p>
+                {label(selected.employee)} / {RANKS[selected.rank]} /{" "}
+                {displayDate(selected.day)}
+              </p>
+              {detail ? (
+                <>
+                  <p>{detail.task.brief}</p>
+                  <details>
+                    <summary>View task dataset and requirements</summary>
+                    <pre className="data-block">
+                      {JSON.stringify(detail.task, null, 2)}
+                    </pre>
+                  </details>
+                  {selected.evidence && (
+                    <>
+                      <h4>SUBMISSION</h4>
+                      <pre className="data-block">{selected.evidence}</pre>
+                    </>
                   )}
-                </div>
-              </>
-            )}
-            {modal === "assignment" && selected && (
-              <>
-                <span className={`status-tag status-${selected.status}`}>
-                  {STATUS[selected.status]}
-                </span>
-                <h2>
-                  {detail?.task?.title?.toUpperCase() || "YOUR ASSIGNMENT"}.
-                </h2>
-                <p>
-                  {label(selected.employee)} / {RANKS[selected.rank]} /{" "}
-                  {displayDate(selected.day)}
-                </p>
-                {detail ? (
-                  <>
-                    <p>{detail.task.brief}</p>
+                  {selected.feedback && (
+                    <div className="review-feedback">
+                      <strong>Reviewer feedback</strong>
+                      <p>{selected.feedback}</p>
+                    </div>
+                  )}
+                  {detail.help.length > 0 && (
                     <details>
-                      <summary>View task dataset and requirements</summary>
-                      <pre className="data-block">
-                        {JSON.stringify(detail.task, null, 2)}
-                      </pre>
+                      <summary>
+                        Colleague assistance ({detail.help.length})
+                      </summary>
+                      {detail.help.map((h) => (
+                        <div key={h.helper}>
+                          <strong>{label(h.helper)}</strong>
+                          <pre className="data-block">{h.evidence}</pre>
+                        </div>
+                      ))}
                     </details>
-                    {selected.evidence && (
+                  )}
+                  {selected.employee.toLowerCase() === address.toLowerCase() &&
+                    [0, 3].includes(selected.status) && (
                       <>
-                        <h4>SUBMISSION</h4>
-                        <pre className="data-block">{selected.evidence}</pre>
-                      </>
-                    )}
-                    {selected.feedback && (
-                      <div className="review-feedback">
-                        <strong>Reviewer feedback</strong>
-                        <p>{selected.feedback}</p>
-                      </div>
-                    )}
-                    {detail.help.length > 0 && (
-                      <details>
-                        <summary>
-                          Colleague assistance ({detail.help.length})
-                        </summary>
-                        {detail.help.map((h) => (
-                          <div key={h.helper}>
-                            <strong>{label(h.helper)}</strong>
-                            <pre className="data-block">{h.evidence}</pre>
-                          </div>
-                        ))}
-                      </details>
-                    )}
-                    {selected.employee.toLowerCase() ===
-                      address.toLowerCase() &&
-                      [0, 3].includes(selected.status) && (
-                        <>
-                          <h4>YOUR RESULT</h4>
-                          <textarea
-                            value={evidence}
-                            onChange={(e) => setEvidence(e.target.value)}
-                            placeholder="Paste your JSON result and explanation. This will be public on-chain."
-                            rows={7}
-                          />
-                          <span className="small-note">
-                            {new TextEncoder().encode(evidence).length}/2400
-                            bytes
-                          </span>
-                          <button
-                            className="button dark full"
-                            disabled={
-                              busy ||
-                              evidence.length < 10 ||
-                              new TextEncoder().encode(evidence).length > 2400
-                            }
-                            onClick={() =>
-                              transact("submit", [selected.id, evidence])
-                            }
-                          >
-                            {busy ? "Confirming…" : "Submit for review"}
-                          </button>
-                        </>
-                      )}
-                    {selected.employee.toLowerCase() ===
-                      address.toLowerCase() &&
-                      selected.status === 2 && (
+                        <h4>YOUR RESULT</h4>
+                        <textarea
+                          aria-label="Your public result"
+                          value={evidence}
+                          onChange={(e) => setEvidence(e.target.value)}
+                          placeholder="Paste your JSON result and explanation. This will be public on-chain."
+                          rows={7}
+                        />
+                        <span className="small-note">
+                          {bytes(evidence)}/2400 bytes
+                        </span>
                         <button
                           className="button dark full"
-                          disabled={busy}
-                          onClick={() => transact("mintAward", [selected.id])}
+                          disabled={
+                            busy ||
+                            !office?.hasAgentId ||
+                            bytes(evidence) < 10 ||
+                            bytes(evidence) > 2400
+                          }
+                          onClick={() =>
+                            transact("submit", [selected.id, evidence])
+                          }
                         >
-                          <Medal size={18} />
-                          {busy ? "Confirming…" : "Mint your work award"}
+                          {busy ? "Confirming…" : "Submit for review"}
                         </button>
-                      )}
-                    {selected.status === 4 && (
-                      <a
-                        className="button dark full"
-                        target="_blank"
-                        rel="noreferrer"
-                        href={`https://bscscan.com/nft/${deployment.address}/${selected.tokenId}`}
-                      >
-                        View award #{selected.tokenId}
-                        <ExternalLink size={16} />
-                      </a>
+                      </>
                     )}
-                    {selected.status === 1 && (
+                  {selected.employee.toLowerCase() === address.toLowerCase() &&
+                    selected.status === 2 && (
+                      <button
+                        className="button dark full"
+                        disabled={busy || !office?.hasAgentId}
+                        onClick={() => transact("mintAward", [selected.id])}
+                      >
+                        <Medal size={18} />
+                        {busy ? "Confirming…" : "Mint your work award"}
+                      </button>
+                    )}
+                  {selected.status === 4 && (
+                    <a
+                      className="button dark full"
+                      target="_blank"
+                      rel="noreferrer"
+                      href={`https://bscscan.com/nft/${deployment.address}/${selected.tokenId}`}
+                    >
+                      View award #{selected.tokenId}
+                      <ExternalLink size={16} />
+                    </a>
+                  )}
+                  {selected.status === 1 &&
+                    (reviewer ? (
                       <div className="review-panel">
-                        <h4>REVIEW THIS SUBMISSION</h4>
+                        <h4>
+                          <label htmlFor="review-notes">
+                            Review this submission
+                          </label>
+                        </h4>
                         <textarea
+                          id="review-notes"
                           value={feedback}
-                          onChange={(e) => setFeedback(e.target.value)}
+                          onChange={(event) => setFeedback(event.target.value)}
                           placeholder="Review notes (maximum 600 bytes)"
                           rows={3}
                         />
                         <div className="modal-actions">
                           <button
                             className="button outline"
-                            disabled={
-                              busy ||
-                              new TextEncoder().encode(feedback).length > 600
-                            }
+                            disabled={busy || bytes(feedback) > 600}
                             onClick={() =>
-                              reviewer
-                                ? transact("review", [
-                                    selected.id,
-                                    false,
-                                    feedback,
-                                  ])
-                                : copyReview(false)
+                              transact("review", [selected.id, false, feedback])
                             }
                           >
-                            {reviewer
-                              ? "Needs revision"
-                              : copied === "review-false"
-                                ? "Copied revision request"
-                                : "Copy revision request"}
+                            Needs revision
                           </button>
                           <button
                             className="button dark"
-                            disabled={
-                              busy ||
-                              new TextEncoder().encode(feedback).length > 600
-                            }
+                            disabled={busy || bytes(feedback) > 600}
                             onClick={() =>
-                              reviewer
-                                ? transact("review", [
-                                    selected.id,
-                                    true,
-                                    feedback,
-                                  ])
-                                : copyReview(true)
+                              transact("review", [selected.id, true, feedback])
                             }
                           >
-                            {reviewer
-                              ? "Approve work"
-                              : copied === "review-true"
-                                ? "Copied approval request"
-                                : "Copy approval request"}
+                            Approve work
                           </button>
                         </div>
-                        {!reviewer && (
-                          <p className="small-note">
-                            For the office reviewer: copy your decision to the
-                            agent connected to ferta.ai. Only the configured
-                            reviewer wallet can confirm it on-chain.
-                          </p>
-                        )}
+                      </div>
+                    ) : (
+                      <div className="review-panel">
+                        <p className="small-note">
+                          The office reviewer makes the final decision from
+                          their wallet.
+                        </p>
+                        <button
+                          className="button outline full"
+                          onClick={copyReview}
+                        >
+                          {copied === "review"
+                            ? "Copied"
+                            : "Copy link and instructions for reviewer"}
+                        </button>
+                      </div>
+                    ))}
+                  {me?.joined &&
+                    office.hasAgentId &&
+                    !detail.help.some(
+                      (h) => h.helper.toLowerCase() === address.toLowerCase(),
+                    ) &&
+                    me.rank >
+                      (directory.get(selected.employee.toLowerCase())?.rank ??
+                        selected.rank) &&
+                    [0, 3].includes(selected.status) && (
+                      <div className="review-panel">
+                        <h4>HELP A COLLEAGUE</h4>
+                        <textarea
+                          aria-label="Guidance for this colleague"
+                          value={evidence}
+                          onChange={(e) => setEvidence(e.target.value)}
+                          placeholder="Share guidance. Helping does not award extra task credit."
+                          rows={3}
+                        />
+                        <button
+                          className="button dark full"
+                          disabled={
+                            busy ||
+                            bytes(evidence) < 10 ||
+                            bytes(evidence) > 1000
+                          }
+                          onClick={() =>
+                            transact("help", [selected.id, evidence])
+                          }
+                        >
+                          Send help
+                        </button>
                       </div>
                     )}
-                    {me?.joined &&
-                      me.rank >
-                        (office.employees.find(
-                          (e) =>
-                            e.address.toLowerCase() ===
-                            selected.employee.toLowerCase(),
-                        )?.rank ?? selected.rank) &&
-                      [0, 3].includes(selected.status) && (
-                        <div className="review-panel">
-                          <h4>HELP A COLLEAGUE</h4>
-                          <textarea
-                            value={evidence}
-                            onChange={(e) => setEvidence(e.target.value)}
-                            placeholder="Share guidance. Helping does not award extra task credit."
-                            rows={3}
-                          />
-                          <button
-                            className="button dark full"
-                            disabled={
-                              busy ||
-                              evidence.length < 10 ||
-                              new TextEncoder().encode(evidence).length > 1000
-                            }
-                            onClick={() =>
-                              transact("help", [selected.id, evidence])
-                            }
-                          >
-                            Send help
-                          </button>
-                        </div>
-                      )}
-                    {!address && (
-                      <button
-                        className="button outline full"
-                        onClick={() => setModal("agent")}
-                      >
-                        Open with your agent
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  <p>Loading the assignment from BNB Chain…</p>
-                )}
-              </>
-            )}
-            {busy && (
-              <div className="transaction-progress">
-                <LoaderCircle className="spin" size={16} /> Waiting for wallet /
-                chain confirmation
-              </div>
-            )}
-            {error && (
-              <p className="modal-error" role="alert">
-                {error}
-              </p>
-            )}
-          </section>
-        </div>
+                  {!address && (
+                    <button
+                      className="button outline full"
+                      onClick={() => setModal("agent")}
+                    >
+                      Open with your agent
+                    </button>
+                  )}
+                </>
+              ) : (
+                <p>Loading the assignment from BNB Chain…</p>
+              )}
+            </>
+          )}
+          {busy && (
+            <div className="transaction-progress">
+              <LoaderCircle className="spin" size={16} /> Waiting for wallet /
+              chain confirmation
+            </div>
+          )}
+          {error && (
+            <p className="modal-error" role="alert">
+              {error}
+            </p>
+          )}
+          {notice && (
+            <p className="small-note" role="status">
+              {notice}
+            </p>
+          )}
+        </OfficeDialog>
       )}
     </>
   );

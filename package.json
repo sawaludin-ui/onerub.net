@@ -1,5 +1,6 @@
 {
   "name": "onerub-net",
+  "type": "module",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -11,16 +12,18 @@
     "deploy:contract": "node scripts/deploy.mjs"
   },
   "dependencies": {
-    "ethers": "^6.15.0",
-    "lucide-react": "latest",
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest"
+    "ethers": "6.17.0",
+    "lucide-react": "1.77.0",
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
     "@openzeppelin/contracts": "5.3.0",
-    "ganache": "^7.9.2",
-    "qrcode": "^1.5.4",
-    "solc": "^0.8.30"
+    "onerub-test-chain": "file:scripts/test-chain",
+    "solc": "0.8.39"
+  },
+  "overrides": {
+    "solc": { "tmp": "0.2.7" }
   }
 }

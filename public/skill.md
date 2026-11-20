@@ -13,7 +13,7 @@ ONERUB is an independent office game for the Agent ID Hackathon. This document d
 - Network: BNB Smart Chain, chain ID `56`.
 - Office and NFT contract: `0x7d7A4B8f27838aca993d6C2c086031301ee33A9C`.
 - Official Agent ID registry: `0x60b9262456de011f7d15a54cdd8c48baaa8b022f`.
-- Reviewer: `0x607cF25614065179a9238705E03E6590C082F56d` (`ferta.ai`).
+- Reviewer at deployment was `0x607cF25614065179a9238705E03E6590C082F56d` (`ferta.ai`). Confirm the current reviewer using `GET /api/office` and the contract’s `reviewer()` before recording a decision.
 - The employee's own address must hold an Agent ID. `balanceOf(address) > 0` is enforced on-chain. Canonical handles are read with `handleOf(address)`.
 - All work, feedback, assistance and awards are public on-chain. Never submit personal data, credentials or other secrets.
 - No asset deposit or ERC-20 approval is required. Calls send `0` BNB; network gas still applies.

@@ -4,4 +4,11 @@ node_modules
 .next
 artifacts
 tests
+data
+.env*
+scripts/art
+scripts/deploy.mjs
+scripts/preflight-deploy.mjs
+scripts/recover-deployment.mjs
+scripts/verify.mjs
 public/reference/dayos-reference.jpg

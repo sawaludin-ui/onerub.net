@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import solc from "solc";
-export function compile() {
+export function compile({ writeAbi = true } = {}) {
   const sources = Object.fromEntries(
     ["OnerubOffice.sol", "MockAgentID.sol"].map((n) => [
       n,
@@ -61,7 +61,7 @@ export function compile() {
         `artifacts/${name}.json`,
         JSON.stringify(artifact, null, 2),
       );
-      if (name === "OnerubOffice")
+      if (writeAbi && name === "OnerubOffice")
         fs.writeFileSync("lib/office-abi.json", JSON.stringify(c.abi, null, 2));
     }
   return output;

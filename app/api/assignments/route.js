@@ -1,26 +1,22 @@
 import { readChain, assignmentView } from "../../../lib/chain.mjs";
+import { integerParam } from "../../../lib/request-validation.mjs";
 export const dynamic = "force-dynamic";
 export async function GET(req) {
   const p = new URL(req.url).searchParams,
-    offset = Number(p.get("offset") || 0),
-    limit = Number(p.get("limit") || 30);
-  if (
-    !Number.isInteger(offset) ||
-    offset < 0 ||
-    !Number.isInteger(limit) ||
-    limit < 1 ||
-    limit > 50
-  )
+    offset = integerParam(p, "offset", 0, 0, Number.MAX_SAFE_INTEGER),
+    limit = integerParam(p, "limit", 30, 1, 50);
+  if (offset === null || limit === null)
     return Response.json(
       { error: "offset must be nonnegative and limit 1-50" },
       { status: 400 },
     );
   try {
     return Response.json(
-      await readChain(async (c) => {
+      await readChain(async (c, provider) => {
+        const call = { blockTag: await provider.getBlockNumber() };
         const [total, page] = await Promise.all([
-          c.assignmentCount(),
-          c.getRecentAssignments(offset, limit),
+          c.assignmentCount(call),
+          c.getRecentAssignments(offset, limit, call),
         ]);
         return {
           assignments: page[0].map((id, i) => assignmentView(id, page[1][i])),

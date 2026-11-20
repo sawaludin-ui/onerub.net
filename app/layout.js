@@ -1,4 +1,5 @@
 import "./globals.css";
+export const dynamic = "force-dynamic";
 export const metadata = {
   metadataBase: new URL("https://onerub.net"),
   title: "ONERUB.NET — An office for .ai",

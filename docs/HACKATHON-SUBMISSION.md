@@ -44,7 +44,7 @@ The website publishes unsigned transaction data for agents; wallet login stays i
 
 ## Validation and remaining eligibility
 
-Ten automated tests passed for task-bank uniqueness, deterministic daily tasks, identity gating, one task per WIB day, reviewer-only acceptance, rejected work revisions, one-time mint, non-transferability, help, all promotion thresholds, and reviewer succession. Browser checks cover desktop and mobile presentation, task details, agent instructions, and live office reads.
+Twenty automated tests passed in five consecutive runs. They cover the task bank, identity and daily limits, reviews and awards, promotions, wallet changes, API validation, and roster pagination. [Release audit](./AUDIT-2026-11-20.md)
 
 The deployment was confirmed at block 134688633; actual deployment gas cost was 0.0001904357 BNB. ferta.ai joined in transaction `0x5bbe6c23fa73ea8668a4a00b5070d767766aa1461eadb0f9d726ae16ca25750d`.
 

@@ -19,6 +19,11 @@ for (const rpc of [
       continue;
     }
     if (receipt.status !== 1) throw Error("Deployment reverted");
+    if (receipt.to !== null || receipt.contractAddress?.toLowerCase() !== pending.address.toLowerCase() ||
+        receipt.from.toLowerCase() !== pending.deployer.toLowerCase() ||
+        (old.address && old.address.toLowerCase() !== pending.address.toLowerCase())) {
+      throw Error("Receipt does not match the configured deployment");
+    }
     const code = await provider.getCode(pending.address);
     const contract = new Contract(pending.address, abi, provider);
     const [reviewer, registry] = await Promise.all([
@@ -31,6 +36,8 @@ for (const rpc of [
       registry.toLowerCase() !== old.registry.toLowerCase()
     )
       throw Error("Deployment configuration mismatch");
+    const block = await provider.getBlock(receipt.blockNumber);
+    if (!block) throw Error("Deployment block unavailable");
     const d = {
       ...old,
       address: pending.address,
@@ -39,7 +46,7 @@ for (const rpc of [
       blockNumber: receipt.blockNumber,
       transactionHash: pending.hash,
       deployedWib:
-        new Date().toLocaleString("sv-SE", { timeZone: "Asia/Jakarta" }) +
+        new Date(block.timestamp * 1000).toLocaleString("sv-SE", { timeZone: "Asia/Jakarta" }) +
         " WIB",
       gasUsed: receipt.gasUsed.toString(),
       gasPriceWei: receipt.gasPrice.toString(),
