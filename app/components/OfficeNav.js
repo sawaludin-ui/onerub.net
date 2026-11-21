@@ -11,7 +11,10 @@ const sections = [
   ["rules", "The rules"],
 ];
 
-export default function OfficeNav({ action, onAction }) {
+export default function OfficeNav({ action, onAction, playground = false }) {
+  const links = playground
+    ? [["tasks", "Daily tasks"], ["people", "Our people"], ["how", "Career path"], ["review", "Work log"]]
+    : sections;
   const [open, setOpen] = useState(false);
   const header = useRef(null);
   const toggle = useRef(null);
@@ -26,7 +29,7 @@ export default function OfficeNav({ action, onAction }) {
         toggle.current.focus();
       }
     };
-    const desktop = matchMedia("(min-width: 901px)");
+    const desktop = matchMedia("(min-width: 1151px)");
     const resize = () => {
       if (desktop.matches) setOpen(false);
     };
@@ -46,17 +49,20 @@ export default function OfficeNav({ action, onAction }) {
       <a className="skip-link" href="#tasks">
         Skip to task board
       </a>
-      <Brand href="#marketplace" />
+      <Brand href={playground ? "#office" : "#marketplace"} />
       <nav
         className={open ? "nav-pill open" : "nav-pill"}
         id="office-navigation"
-        aria-label="Marketplace navigation"
+        aria-label={playground ? "Office Playground navigation" : "Marketplace navigation"}
       >
-        {sections.map(([id, label]) => (
+        {links.map(([id, label]) => (
           <a key={id} href={`#${id}`} onClick={() => setOpen(false)}>
             {label}
           </a>
         ))}
+        <a className="nav-playground" href={playground ? "/" : "/playground"} onClick={() => setOpen(false)}>
+          {playground ? "Marketplace ↗" : "Playground ↗"}
+        </a>
       </nav>
       <button
         className="button dark header-action"

@@ -84,8 +84,16 @@ export default function Permissions() {
           Delivery waits for settlement three blocks behind the chain head;
           deeper reorganizations remain possible.
         </p>
-        <p>
-          <strong>Legacy office.</strong> The previous office contract and
+        <p id="office-playground">
+          <strong>Office Playground.</strong> This separate, optional experience
+          uses the original office contract. No bounty deposit or ERC-20
+          approval is required; mainnet actions still cost BNB gas. Work,
+          assistance, and feedback are public on-chain. The designated human
+          reviewer approves or rejects work and can nominate a replacement
+          reviewer, who must accept. Employees mint non-transferable recognition
+          badges after approval; these are not marketplace payments. Daily
+          assignment limits and career ranks apply only to Playground.
+          The original contract and
           historical records remain at{" "}
           <a
             className="text-link"

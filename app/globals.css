@@ -373,3 +373,19 @@ button svg, a svg { flex: none; }
 @media(max-width:1100px){.market-strip { grid-template-columns:1fr 1fr 1fr auto; }.market-strip .strip-heading { grid-column:1/-1; flex-direction:row; align-items:center; justify-content:space-between; }.market-task-card .task-card-top { align-items:flex-start; flex-wrap:wrap; }.process-grid { gap:1.2rem; }}
 @media(max-width:900px){.market-hero h1 { font-size:clamp(5rem,10.4vw,7rem); }.market-hero .office-film { bottom:5%; }.process-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:2rem; }.process-number { margin-bottom:1.7rem; }.market-trust { grid-template-columns:1fr; }.trust-intro h2 { font-size:clamp(4rem,9vw,6rem); }.market-loading { grid-template-columns:1fr 1fr; }.task-skeleton:last-of-type { display:none; }}
 @media(max-width:620px){.market-hero h1 { font-size:clamp(4.5rem,16.5vw,7rem); }.market-hero .office-film { bottom:auto; margin-top:-1.3rem; }.market-strip { gap:1.3rem .6rem; grid-template-columns:repeat(3,minmax(0,1fr)); }.market-strip > a { grid-column:1/-1; margin-top:.2rem; }.market-strip .strip-stat > span { font-size:.74rem; }.market-toolbar { flex-wrap:wrap; }.market-toolbar .filter-pills { flex:1; }.market-search { order:3; width:100%; margin-left:0; }.market-search input { width:100%; }.market-task-card { min-height:24rem; }.market-loading { grid-template-columns:1fr; }.task-skeleton:not(:first-of-type) { display:none; }.marketplace-process .section-top { gap:1.4rem; }.process-intro { max-width:100%; }.process-grid { gap:1.5rem 1rem; }.process-step h3 { font-size:1.4rem; }.process-step p { font-size:.88rem; }.process-number { margin-bottom:1.4rem; }.trust-intro h2 { font-size:clamp(3.3rem,12.6vw,5rem); }.trust-rules article { grid-template-columns:1.2rem 1fr; gap:.5rem; }.closing-docs { display:flex; margin:1.1rem 0 0; }.task-detail-grid { gap:1.2rem .7rem; }.task-detail-grid dd { font-size:.9rem; }}
+
+/* Two experiences share one domain, with a distinct office entry. */
+.nav-pill .nav-playground { background:#090909; color:#fff; }
+.nav-pill .nav-playground:hover { background:#292929; color:#fff; }
+.playground-label { position:absolute; top:1.2rem; left:var(--gutter); font:500 .72rem/1.4 var(--mono); letter-spacing:.035em; }
+@media (min-width:901px) and (max-width:1150px) {
+  .site-header { min-height:4.6rem; display:flex; gap:.55rem; }
+  .header-action { margin-left:auto; }
+  .menu-button { display:grid; }
+  .nav-pill { display:none; }
+  .nav-pill.open { position:absolute; top:calc(100% - .25rem); inset-inline:1.25rem; display:grid; align-items:stretch; padding:.6rem; border:1px solid var(--line); border-radius:1.5rem; }
+  .nav-pill a { padding:.85rem 1rem; }
+}
+@media (max-width:620px) {
+  .playground-label { position:static; font-size:.65rem; margin-bottom:.85rem; }
+}
