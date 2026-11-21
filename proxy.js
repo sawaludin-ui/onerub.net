@@ -10,7 +10,7 @@ export function proxy(request) {
     development
       ? "style-src 'self' 'unsafe-inline'"
       : `style-src 'self' 'nonce-${nonce}'`,
-    development ? "connect-src 'self' ws: wss:" : "connect-src 'self'",
+    development ? "connect-src 'self' blob: ws: wss:" : "connect-src 'self' blob:",
     "img-src 'self' data: blob:",
     "font-src 'self'",
     "media-src 'self'",

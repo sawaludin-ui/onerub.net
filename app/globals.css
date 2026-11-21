@@ -98,13 +98,17 @@ button svg, a svg { flex: none; }
 }
 .film-media {
   width: 100%; height: 100%; position: relative;
-  transform: translate3d(var(--drift-x, 0px), var(--drift-y, 0px), 0);
-  transition: transform 650ms var(--ease);
-  mask-image: linear-gradient(to bottom, #000 0% 84%, transparent 97%);
 }
 .film-poster, .film-loop { display: block; width: 100%; height: 100%; object-fit: contain; }
+.film-poster.hidden { visibility: hidden; }
+.film-source { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .film-loop { position: absolute; inset: 0; opacity: 0; }
 .film-loop.ready { opacity: 1; }
+.sculpture-canvas { touch-action: pan-y; cursor: grab; }
+.sculpture-canvas:active { cursor: grabbing; }
+.scene-preview { display: grid; place-items: center; min-height: 100svh; }
+.scene-preview .office-film { position: relative; inset: auto; width: min(90vw, 46rem); margin: 0; }
+.scene-preview p { font-family: var(--mono); font-size: .8rem; }
 .film-control { position: absolute; z-index: 1; right: max(13%, 4rem); bottom: 7%; background: #f3f3f3; border: 1px solid #c6c6c6; transition: background-color 180ms, transform 180ms; }
 .office-strip { display: grid; grid-template-columns: 1.25fr repeat(4, 1fr); gap: 1rem; align-items: end; padding: 1.65rem 0 2rem; border-block: 1px solid var(--line); }
 .strip-heading, .strip-stat { display: flex; flex-direction: column; align-items: flex-start; gap: .3rem; }
@@ -303,3 +307,5 @@ button svg, a svg { flex: none; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .film-media { transform: none; }
 }
+
+.sculpture-status { position:absolute; inset:0; display:grid; place-items:center; font-size:.8rem; }
