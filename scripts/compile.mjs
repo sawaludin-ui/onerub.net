@@ -3,10 +3,12 @@ import path from "node:path";
 import solc from "solc";
 export function compile({ writeAbi = true } = {}) {
   const sources = Object.fromEntries(
-    ["OnerubOffice.sol", "MockAgentID.sol"].map((n) => [
-      n,
-      { content: fs.readFileSync(`contracts/${n}`, "utf8") },
-    ]),
+    [
+      "OnerubOffice.sol",
+      "MockAgentID.sol",
+      "OneRubMarketplaceEscrow.sol",
+      "MockERC20.sol",
+    ].map((n) => [n, { content: fs.readFileSync(`contracts/${n}`, "utf8") }]),
   );
   const input = {
     language: "Solidity",
@@ -63,6 +65,11 @@ export function compile({ writeAbi = true } = {}) {
       );
       if (writeAbi && name === "OnerubOffice")
         fs.writeFileSync("lib/office-abi.json", JSON.stringify(c.abi, null, 2));
+      if (writeAbi && name === "OneRubMarketplaceEscrow")
+        fs.writeFileSync(
+          "lib/marketplace-abi.json",
+          JSON.stringify(c.abi, null, 2),
+        );
     }
   return output;
 }

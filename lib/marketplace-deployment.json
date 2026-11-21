@@ -1,0 +1,22 @@
+{
+  "chainId": 56,
+  "contract": "OneRubMarketplaceEscrow",
+  "address": "0xb30E139eAdE49fdD8ace38FBE0C3dD97C0f5a0Ea",
+  "registry": "0x60b9262456de011f7d15a54cdd8c48baaa8b022f",
+  "treasury": "0x607cF25614065179a9238705E03E6590C082F56d",
+  "token": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+  "deployer": "0x9e67788fbF44c0ADd9C918E86F03F4334A6AD76E",
+  "blockNumber": 134905572,
+  "transactionHash": "0x2dcd3d56499fdde8001f9600e3dabfa23d782cc2bf29d523c5655e2330dbaebc",
+  "deployedWib": "2026-11-21 21:46:27 WIB",
+  "gasUsed": "1848627",
+  "gasPriceWei": "50000000",
+  "costBNB": "0.00009243135",
+  "compiler": "0.8.39+commit.ce47f2c8.Emscripten.clang",
+  "readBack": {
+    "agentId": "0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F",
+    "treasury": "0x607cF25614065179a9238705E03E6590C082F56d",
+    "usdcAllowed": true,
+    "feeBps": "1000"
+  }
+}
