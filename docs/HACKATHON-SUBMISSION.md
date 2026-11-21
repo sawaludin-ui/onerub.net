@@ -1,53 +1,37 @@
-# ONERUB.NET — submission materials
+# ONERUB.NET — marketplace submission draft
 
-Project name: **ONERUB.NET**
+This prepares materials; it is not proof that an entry was submitted or accepted.
 
-Website: https://onerub.net
+Website https://onerub.net. Repository https://github.com/sawaludin-ui/onerub.net.
+Chain BNB Smart Chain (56).
+Participating marketplace escrow: 0xb30E139eAdE49fdD8ace38FBE0C3dD97C0f5a0Ea.
+Deployment transaction: 0x2dcd3d56499fdde8001f9600e3dabfa23d782cc2bf29d523c5655e2330dbaebc (block134905572).
+Explorer: https://bscscan.com/address/0xb30E139eAdE49fdD8ace38FBE0C3dD97C0f5a0Ea#code.
 
-Network: BNB Smart Chain (56)
+## Product
 
-Participating application and award NFT contract:
-`0x7d7A4B8f27838aca993d6C2c086031301ee33A9C`
+Agent ID holders operate as requester and worker. Requester funds a task in escrow. Workers privately submit encrypted artifacts and commit envelope hashes on-chain. A delegated hosted evaluator compares complete artifacts against an immutable rubric, returning only a winner and bounded score. Requester selects via wallet-authorized contract call. Settlement pays 90% to winner and10% to treasury. Delivery checks confirmed settlement and releases only the winning artifact to authorized requester/winner.
 
-Deployment transaction:
-`0xad8fbd250debef7c455a2cc8a30926f288d488ca3be8c762c36f0898eb5d6fe7`
+The application checks registry ownership for private signed APIs and the contract checks eligibility at creation/submission. Agent ID is bound to task creator, submission signer and payout destination. API-only requests do not constitute on-chain participation. No claim that wallet ownership proves autonomous AI control.
 
-Reviewer: `ferta.ai` / `0x607cF25614065179a9238705E03E6590C082F56d`
+## Demonstration evidence
 
-Source: https://github.com/sawaludin-ui/onerub.net
+- Deployed escrow was independently read back: receipt success, code7726bytes, fee1000bps, nextTaskId1 at prior inspection.
+- Automated local Anvil E2E covers task create/fund, two encrypted submissions, commitments, bounded choice, 90/10 settlement, winner-only delivery and loser denial.
+- A separate synthetic integration passed against real private Redis and real AI Gateway with chain execution isolated to local Anvil. These are NOT real mainnet earnings or participants.
+- No funded mainnet marketplace task or eligible-participant threshold is claimed by this draft. The old office demo is separate legacy activity.
 
-BscScan verification: **Source Code Verified — Exact Match**, observed on 20 November 2026 (WIB):
-https://bscscan.com/address/0x7d7A4B8f27838aca993d6C2c086031301ee33A9C#code
+## Mainnet demo still to record
 
-Sourcify verification also returned an exact match for creation and runtime bytecode. The source verification was forwarded automatically from Sourcify to BscScan.
+With authorized funded requester and at least two independent Agent ID workers: create/fund, register rubric, upload privately, commit on-chain, evaluate after deadline, authorize selection, verify payout receipts, retrieve winner artifact. Record transaction hashes and only nonprivate evidence. Do not publish losing submissions.
 
-Agent handbook: https://onerub.net/skill.md
+## Limits to disclose
 
-Permissions: https://onerub.net/permissions
+Trusted application/key administrators, storage and model provider; no TEE/host-proof isolation. Existing immutable escrow permits direct requester selection without evaluator receipt or artifact availability checks. Service caps20committed workers per task, requires2valid artifacts, supports UTF-8 text/Markdown/JSON up to512KiB each and750000combined bytes. Invalid/missing artifacts are excluded. No quality arbitration; review timeout permits requester refund. Owner can change treasury and token whitelist. Three-block delivery confirmation is not absolute finality. No independent audit claim.
 
-## Agent ID use
+## Eligibility
 
-ONERUB turns an Agent ID into an employee identity in an on-chain office game. The official registry's balanceOf check is enforced by the contract for joining, taking work, submitting, helping and minting. Canonical employee names are read with handleOf(address). Agent ID is therefore part of the core access and contribution flow.
+Check the current official rules before submission: https://www.binance.com/en/support/announcement/detail/95f5dbe0ea674a48a739b59e046648bf.
+The Innovation Award threshold is at least30Agent ID holder addresses interacting with participating contracts during the submission period; it is not a universal30-address requirement for every award. Do not claim it is met. Submission deadline from the announcement:9December2026,15:00WIB. Submit all participating contract addresses and explain which belong to the current product; do not automatically combine legacy usage with new escrow usage.
 
-Each rank receives five daily choices from a bank of 5,000 unique task datasets. An employee may take only one task per WIB calendar day without administrator approval. Higher ranks may help lower ranks without earning additional task credit. A human reviewer accepts or rejects submissions; an employee can mint a non-transferable recognition NFT only after approval. Correct work advances a career with stage counters that reset on promotion.
-
-The website publishes unsigned transaction data for agents; wallet login stays in the employee's own agent and official Binance app. No wallet sessions or private keys are collected by ONERUB. The app has no deposits, ERC-20 approvals, token sales, trading, or promised investment returns.
-
-## Demonstration
-
-1. Open the website and inspect five daily task choices.
-2. Send the published handbook to an agent connected to an Agent ID-holding wallet.
-3. Join, take one task, and submit a public result.
-4. The reviewer inspects the result and confirms accepted/rejected on-chain.
-5. If accepted, the employee mints the award from its own wallet.
-6. A second task on the same WIB day and a second mint for the same work are rejected on-chain.
-
-## Validation and remaining eligibility
-
-Twenty automated tests passed in five consecutive runs. They cover the task bank, identity and daily limits, reviews and awards, promotions, wallet changes, API validation, and roster pagination. [Release audit](./AUDIT-2026-11-20.md)
-
-The deployment was confirmed at block 134688633; actual deployment gas cost was 0.0001904357 BNB. ferta.ai joined in transaction `0x5bbe6c23fa73ea8668a4a00b5070d767766aa1461eadb0f9d726ae16ca25750d`.
-
-The Innovation Award requires at least 30 real Agent ID holder addresses interacting during the submission period. Only one has been confirmed as of the initial release. Do not claim this threshold is met. No artificial account registrations or activity inflation are used.
-
-The submission deadline is **9 December 2026 at 15:00 WIB**. This file prepares the materials; it does not mean the project has been submitted or accepted by Binance.
+No website QR/pairing login, collection of wallet secrets, bypassing wallet confirmations, promised returns or fabricated/sybil interactions.

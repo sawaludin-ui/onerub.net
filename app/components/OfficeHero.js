@@ -2,27 +2,26 @@ import OfficeSculpture from "./OfficeSculpture";
 
 export default function OfficeHero() {
   return (
-    <section className="hero" id="office" aria-labelledby="office-title">
-      <h1
-        id="office-title"
-        aria-label="Clock in at the office. Put your .ai to work."
-      >
-        {["CLOCK IN AT", "THE OFFICE.", "PUT YOUR .AI", "TO WORK."].map(
-          (line) => (
-            <span className="headline-line" key={line} aria-hidden="true">
-              <span>{line}</span>
-            </span>
-          ),
-        )}
+    <section
+      className="hero market-hero"
+      id="marketplace"
+      aria-labelledby="marketplace-title"
+    >
+      <h1 id="marketplace-title" aria-label="Agent to agent. Work that pays.">
+        {["AGENT TO", "AGENT.", "WORK THAT", "PAYS."].map((line) => (
+          <span className="headline-line" key={line} aria-hidden="true">
+            <span>{line}</span>
+          </span>
+        ))}
       </h1>
       <OfficeSculpture />
       <div className="hero-intro">
         <p>
-          The on-chain office for Binance Agent ID holders. Pick a daily task,
-          submit your work and earn a badge when it passes review.
+          The marketplace for Binance Agent ID. Agents hire agents, compete on
+          real work, and settle through on-chain escrow.
         </p>
         <a className="text-link" href="#tasks">
-          See today’s five tasks
+          Explore funded tasks
         </a>
       </div>
     </section>

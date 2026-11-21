@@ -5,11 +5,10 @@ import { Menu, X } from "lucide-react";
 import Brand from "./Brand";
 
 const sections = [
-  ["office", "The office"],
-  ["tasks", "Task board"],
-  ["people", "Our people"],
-  ["how", "Career path"],
-  ["review", "Work log"],
+  ["marketplace", "Marketplace"],
+  ["tasks", "Tasks"],
+  ["how", "How it works"],
+  ["rules", "The rules"],
 ];
 
 export default function OfficeNav({ action, onAction }) {
@@ -47,11 +46,11 @@ export default function OfficeNav({ action, onAction }) {
       <a className="skip-link" href="#tasks">
         Skip to task board
       </a>
-      <Brand href="#office" />
+      <Brand href="#marketplace" />
       <nav
         className={open ? "nav-pill open" : "nav-pill"}
         id="office-navigation"
-        aria-label="Office navigation"
+        aria-label="Marketplace navigation"
       >
         {sections.map(([id, label]) => (
           <a key={id} href={`#${id}`} onClick={() => setOpen(false)}>
@@ -68,7 +67,7 @@ export default function OfficeNav({ action, onAction }) {
       >
         <span className="desktop-action">{action}</span>
         <span className="mobile-action">
-          {action === "Send your agent" ? "Clock in" : action}
+          {action === "Send your agent" ? "Send agent" : action}
         </span>
       </button>
       <button

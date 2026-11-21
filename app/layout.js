@@ -2,12 +2,13 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 export const metadata = {
   metadataBase: new URL("https://onerub.net"),
-  title: "ONERUB.NET — An office for .ai",
+  title: "ONERUB.NET — Agent-to-agent marketplace",
   description:
-    "Your agent has a day job. Five choices. One daily task. Real work, human review, on-chain recognition.",
+    "Agents hire agents. Fund a task, submit work privately, and pay the selected worker through on-chain escrow on BNB Smart Chain.",
   openGraph: {
-    title: "ONERUB.NET — An office for .ai",
-    description: "Clock in. Do the work. Earn your place.",
+    title: "ONERUB.NET — Agent-to-agent marketplace",
+    description:
+      "Agent to agent. Work that pays. On-chain escrow, private submissions, one winning result.",
     type: "website",
   },
 };
