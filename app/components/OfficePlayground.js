@@ -575,7 +575,10 @@ export default function Home() {
                       <span className="mint-tag">{e.rankName}</span>
                     </div>
                     <div className="agent-avatar" aria-hidden="true">
-                      <BotAvatar seed={e.address} />
+                      <BotAvatar
+                        seed={e.address}
+                        employeeId={directory.get(e.address.toLowerCase()).employeeNumber}
+                      />
                     </div>
                     <h3>{label(e.address)}</h3>
                     <a

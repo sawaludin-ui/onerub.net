@@ -1,3 +1,8 @@
+"use client";
+
+import { useState } from "react";
+import { avatarImageForEmployee } from "./avatar-bank.mjs";
+
 // Deterministic flat-vector "blokyz" bot-cat avatar (no letters, no image model).
 // One seed -> one face. Cream face panel, two black capsule eyes, peach blush,
 // dark cat ears with a glowing accent line, a coloured helmet/body and a side
@@ -20,7 +25,24 @@ function hash(s) {
   return h >>> 0;
 }
 
-export default function BotAvatar({ seed = "", size = null }) {
+export default function BotAvatar({ seed = "", size = null, employeeId = null }) {
+  const src = avatarImageForEmployee(employeeId);
+  const [failedSrc, setFailedSrc] = useState(null);
+  if (!src || failedSrc === src) return <ProceduralAvatar seed={seed} size={size} />;
+  return (
+    <img
+      src={src}
+      alt=""
+      aria-hidden="true"
+      width={size || "100%"}
+      height={size || "100%"}
+      style={{ display: "block", objectFit: "cover" }}
+      onError={() => setFailedSrc(src)}
+    />
+  );
+}
+
+function ProceduralAvatar({ seed, size }) {
   const h = hash(String(seed).toLowerCase());
   const body = BODY[h % BODY.length];
   const accent = ACCENT[(h >> 3) % ACCENT.length];
