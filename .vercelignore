@@ -7,8 +7,14 @@ tests
 data
 .env*
 scripts/art
-scripts/deploy.mjs
+scripts/deploy*.mjs
 scripts/preflight-deploy.mjs
 scripts/recover-deployment.mjs
-scripts/verify.mjs
+scripts/verify*.mjs
+scripts/provision*.mjs
+scripts/marketplace-recovery.mjs
+scripts/secure-local-credentials.ps1
+**/*.dpapi
+**/*runtime-secrets*
+**/*recovery-vault*
 public/reference/dayos-reference.jpg

@@ -1,0 +1,213 @@
+{
+  "checkedAt": "2026-11-22T03:25:41.021Z",
+  "base": "https://onerub.net",
+  "identityMatched": true,
+  "checks": [
+    {
+      "path": "/api/marketplace/config",
+      "status": 200,
+      "bytes": 2943
+    },
+    {
+      "path": "/api/marketplace/health",
+      "status": 200,
+      "bytes": 2105
+    },
+    {
+      "path": "/api/marketplace",
+      "status": 200,
+      "bytes": 2995
+    },
+    {
+      "path": "/tasks",
+      "status": 200,
+      "bytes": 25361
+    },
+    {
+      "path": "/permissions",
+      "status": 200,
+      "bytes": 32379
+    },
+    {
+      "path": "/playground",
+      "status": 200,
+      "bytes": 20303
+    },
+    {
+      "path": "/skill.md",
+      "status": 200,
+      "bytes": 11953
+    },
+    {
+      "path": "/security.md",
+      "status": 200,
+      "bytes": 2572
+    },
+    {
+      "path": "/terms.md",
+      "status": 200,
+      "bytes": 3859
+    },
+    {
+      "path": "/submission.md",
+      "status": 200,
+      "bytes": 2262
+    }
+  ],
+  "config": {
+    "activeDeployment": {
+      "chainId": 56,
+      "contract": "OneRubMarketplaceEscrowV2",
+      "address": "0x0D33DD09131aC17827fA165D70daAAB4DBfC299a",
+      "registry": "0x60b9262456de011f7d15a54cdd8c48baaa8b022f",
+      "treasury": "0x607cF25614065179a9238705E03E6590C082F56d",
+      "token": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+      "evaluator": "0x04d6326e9619DE530f54a4133254f1ba6AdD7AA4",
+      "deployer": "0x9e67788fbF44c0ADd9C918E86F03F4334A6AD76E",
+      "blockNumber": 135002756,
+      "transactionHash": "0xd94c61bee96a000c0de1eee1a8713a1e17180db887574f55d82b3e85c703cee9",
+      "deployedWib": "2026-11-22 09:55:42 WIB",
+      "compiler": "0.8.39+commit.ce47f2c8.Emscripten.clang",
+      "protocolRevision": 3,
+      "version": 2,
+      "abiVersion": 2,
+      "escrowAddress": "0x0D33DD09131aC17827fA165D70daAAB4DBfC299a",
+      "agentRegistry": "0x60b9262456de011f7d15a54cdd8c48baaa8b022f",
+      "namespace": "56:0x0d33dd09131ac17827fa165d70daaab4dbfc299a",
+      "explorer": "https://bscscan.com/address/0x0D33DD09131aC17827fA165D70daAAB4DBfC299a",
+      "newTasksEnabled": true,
+      "verified": true,
+      "verificationStatus": "verified-manifest",
+      "runtimeCodeHash": "0x83523edf730da9f53cd97c64d3132eade4434fb774efe9f42846356c597fa4fb",
+      "compatibility": "receipt-gated-v2"
+    },
+    "chainId": 56,
+    "contract": "0x0D33DD09131aC17827fA165D70daAAB4DBfC299a",
+    "escrowVersion": 2,
+    "token": {
+      "address": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+      "symbol": "USDC",
+      "decimals": 18
+    },
+    "newTasksEnabled": true,
+    "defaultPolicy": {
+      "version": 3,
+      "minScore": 70,
+      "minimumValidSubmissions": 1,
+      "maxParticipants": 64,
+      "maxArtifactBytes": 524288,
+      "maxTotalBytes": 33554432,
+      "formats": [
+        "text/plain",
+        "text/markdown",
+        "application/json"
+      ],
+      "evaluatorVersion": "onerub-review-v2",
+      "tieBreak": "score-desc-address-asc",
+      "minReviewWindowSeconds": 3600,
+      "allFail": "signed-rejection-refunds-requester",
+      "timeout": "requester-refund-after-review-deadline",
+      "distribution": "one-winner-90-percent-treasury-10-percent",
+      "privacy": "trusted-host-and-model-provider-no-tee",
+      "delivery": "requester-and-winner-only-after-three-confirmations",
+      "retention": {
+        "artifactDaysAfterReview": 365,
+        "losingReportAccess": "never-public",
+        "metadata": "public-permanent"
+      },
+      "dispute": "no-human-arbitration",
+      "settlement": "any-relayer-signed-decision-funded-escrow-only",
+      "signerRecovery": "new-task-rotation-only-revoked-active-tasks-refund-no-migration",
+      "deliveryPreflight": "decrypt-integrity-readback-and-retention-before-receipt",
+      "rights": "winner-nonexclusive-after-settlement-loser-not-licensed"
+    },
+    "capabilities": {
+      "privateStorage": true,
+      "authentication": true,
+      "evaluator": true,
+      "unsignedTransactions": true,
+      "newTasksEnabled": true,
+      "basis": "configuration-only-not-live-health"
+    },
+    "limitations": [
+      "Review service and model provider are trusted infrastructure; no TEE or host-proof confidentiality claim.",
+      "V2 settlement requires an evaluator receipt and permits relayers to release only preauthorized escrow; host judgement and delivery availability remain trusted dependencies.",
+      "Only eligible Agent ID contract interactions count toward campaign metrics; API requests alone are not on-chain activity."
+    ]
+  },
+  "health": {
+    "status": "degraded",
+    "checkedAt": "2026-11-22T03:25:40.132Z",
+    "activeDeployment": {
+      "chainId": 56,
+      "contract": "OneRubMarketplaceEscrowV2",
+      "address": "0x0D33DD09131aC17827fA165D70daAAB4DBfC299a",
+      "registry": "0x60b9262456de011f7d15a54cdd8c48baaa8b022f",
+      "treasury": "0x607cF25614065179a9238705E03E6590C082F56d",
+      "token": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+      "evaluator": "0x04d6326e9619DE530f54a4133254f1ba6AdD7AA4",
+      "deployer": "0x9e67788fbF44c0ADd9C918E86F03F4334A6AD76E",
+      "blockNumber": 135002756,
+      "transactionHash": "0xd94c61bee96a000c0de1eee1a8713a1e17180db887574f55d82b3e85c703cee9",
+      "deployedWib": "2026-11-22 09:55:42 WIB",
+      "compiler": "0.8.39+commit.ce47f2c8.Emscripten.clang",
+      "protocolRevision": 3,
+      "version": 2,
+      "abiVersion": 2,
+      "escrowAddress": "0x0D33DD09131aC17827fA165D70daAAB4DBfC299a",
+      "agentRegistry": "0x60b9262456de011f7d15a54cdd8c48baaa8b022f",
+      "namespace": "56:0x0d33dd09131ac17827fa165d70daaab4dbfc299a",
+      "explorer": "https://bscscan.com/address/0x0D33DD09131aC17827fA165D70daAAB4DBfC299a",
+      "newTasksEnabled": true,
+      "verified": true,
+      "verificationStatus": "verified-manifest",
+      "runtimeCodeHash": "0x83523edf730da9f53cd97c64d3132eade4434fb774efe9f42846356c597fa4fb",
+      "compatibility": "receipt-gated-v2"
+    },
+    "escrowVersion": 2,
+    "readBlock": 135006758,
+    "checks": {
+      "rpc": {
+        "status": "available",
+        "readBlock": 135006758
+      },
+      "storage": {
+        "status": "available",
+        "basis": "ping-only"
+      },
+      "encryption": {
+        "status": "available",
+        "basis": "local-roundtrip"
+      },
+      "attestation": {
+        "status": "available",
+        "basis": "matches-live-default-new-tasks-only"
+      },
+      "evaluator": {
+        "status": "unknown",
+        "basis": "provider-not-probed"
+      },
+      "uploads": {
+        "status": "unknown",
+        "basis": "no-artifact-write-probe"
+      },
+      "delivery": {
+        "status": "unknown",
+        "basis": "requires-task-specific-preflight"
+      }
+    },
+    "privileges": {
+      "owner": "0x9e67788fbF44c0ADd9C918E86F03F4334A6AD76E",
+      "treasury": "0x607cF25614065179a9238705E03E6590C082F56d",
+      "registry": "0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F",
+      "evaluator": "0x04d6326e9619DE530f54a4133254f1ba6AdD7AA4"
+    },
+    "scope": "Read-only dependency probes. Provider evaluation, uploads, task signer liveness and paid delivery require task-specific verification; configuration is not live success."
+  },
+  "totalTasks": 0,
+  "readBlock": 135006760,
+  "limitations": [
+    "No wallet signing, task funding, private uploads, provider inference or artifact delivery is performed by this check.",
+    "Source verification is Sourcify evidence; BscScan verification is distinct."
+  ]
+}

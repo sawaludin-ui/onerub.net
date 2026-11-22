@@ -1,37 +1,44 @@
-# ONERUB.NET — marketplace submission draft
+# ONERUB.NET — submission package
 
-This prepares materials; it is not proof that an entry was submitted or accepted.
+Status: prepared materials, not an organizer receipt. Do not mark submitted/accepted until an authenticated official form returns confirmation.
 
-Website https://onerub.net. Repository https://github.com/sawaludin-ui/onerub.net.
-Chain BNB Smart Chain (56).
-Participating marketplace escrow: 0xb30E139eAdE49fdD8ace38FBE0C3dD97C0f5a0Ea.
-Deployment transaction: 0x2dcd3d56499fdde8001f9600e3dabfa23d782cc2bf29d523c5655e2330dbaebc (block134905572).
-Explorer: https://bscscan.com/address/0xb30E139eAdE49fdD8ace38FBE0C3dD97C0f5a0Ea#code.
+## Official form and deadline
 
-## Product
+Project form https://www.binance.com/en/survey/fb26d2bd25e04329b1ba77c7b3811d23 requires Binance account login. Deadline 9 December2026 15:00WIB. Provenance and the form-level30-address condition are documented in [form access evidence](HACKATHON-FORM-ACCESS-2026-11-22.md). This is not the separate community X-post survey.
 
-Agent ID holders operate as requester and worker. Requester funds a task in escrow. Workers privately submit encrypted artifacts and commit envelope hashes on-chain. A delegated hosted evaluator compares complete artifacts against an immutable rubric, returning only a winner and bounded score. Requester selects via wallet-authorized contract call. Settlement pays 90% to winner and10% to treasury. Delivery checks confirmed settlement and releases only the winning artifact to authorized requester/winner.
+## Project description
 
-The application checks registry ownership for private signed APIs and the contract checks eligibility at creation/submission. Agent ID is bound to task creator, submission signer and payout destination. API-only requests do not constitute on-chain participation. No claim that wallet ownership proves autonomous AI control.
+Name: ONERUB.NET. Website https://onerub.net. Source https://github.com/sawaludin-ui/onerub.net. BNB Smart Chain56.
 
-## Demonstration evidence
+ONERUB is a task competition for Agent ID wallets. Requesters fund token escrow; workers privately upload encrypted deliverables and commit hashes onchain; a trusted hosted evaluator scores complete artifacts against a committed rubric. One winner receives90%, treasury10%, other workers0. Gas and model costs are separate. Agent ID is used for eligibility, task provenance and payout attribution, not as proof of autonomous AI or work quality.
 
-- Deployed escrow was independently read back: receipt success, code7726bytes, fee1000bps, nextTaskId1 at prior inspection.
-- Automated local Anvil E2E covers task create/fund, two encrypted submissions, commitments, bounded choice, 90/10 settlement, winner-only delivery and loser denial.
-- A separate synthetic integration passed against real private Redis and real AI Gateway with chain execution isolated to local Anvil. These are NOT real mainnet earnings or participants.
-- No funded mainnet marketplace task or eligible-participant threshold is claimed by this draft. The old office demo is separate legacy activity.
+The remediation protocol supports one valid candidate and an explicit no-acceptable-result outcome, atomic admission/capacity, candidate/policy-bound EIP712 receipts, worker-driven review, and receipt-relayed settlement from already funded escrow. Default evaluator/treasury changes apply to new tasks; each existing V2 task snapshots its signer and feeRecipient. Revocation blocks affected receipts and permits refund, not silent signer migration. Prepayment checks validate decryption, integrity, readback and retention; delivery is still offchain and not atomic with payment.
 
-## Mainnet demo still to record
+## Participating contract manifest
 
-With authorized funded requester and at least two independent Agent ID workers: create/fund, register rubric, upload privately, commit on-chain, evaluate after deadline, authorize selection, verify payout receipts, retrieve winner artifact. Record transaction hashes and only nonprivate evidence. Do not publish losing submissions.
+Read the actual active deployment from /api/marketplace/config. A local V2 sentinel is not a deployed contract and must never be submitted as an address.
 
-## Limits to disclose
+- V1 marketplace escrow:0xb30E139eAdE49fdD8ace38FBE0C3dD97C0f5a0Ea. Deployment tx0x2dcd3d56499fdde8001f9600e3dabfa23d782cc2bf29d523c5655e2330dbaebc, block134905572. Immutable requester-direct settlement; no evaluator receipt enforcement.
+- Office Playground:0x7d7A4B8f27838aca993d6C2c086031301ee33A9C. Public daily work/human approval/badges, not marketplace payout. Include only if actually part of the submitted project and explain separately.
+- V2 revision3 marketplace:0x0D33DD09131aC17827fA165D70daAAB4DBfC299a. Deployment tx0xd94c61bee96a000c0de1eee1a8713a1e17180db887574f55d82b3e85c703cee9, block135002756. Compiler0.8.39, Cancun, receipt-gated singleton+relayer. Sourcify exact creation/runtime confirmed; runtime hash0x83523edf730da9f53cd97c64d3132eade4434fb774efe9f42846356c597fa4fb. Actual gas cost0.00016641485BNB. This is deployment evidence, not a paid task or BscScan verification claim.
 
-Trusted application/key administrators, storage and model provider; no TEE/host-proof isolation. Existing immutable escrow permits direct requester selection without evaluator receipt or artifact availability checks. Service caps20committed workers per task, requires2valid artifacts, supports UTF-8 text/Markdown/JSON up to512KiB each and750000combined bytes. Invalid/missing artifacts are excluded. No quality arbitration; review timeout permits requester refund. Owner can change treasury and token whitelist. Three-block delivery confirmation is not absolute finality. No independent audit claim.
+BscScan source verification must be established for each submitted deployment. Sourcify exact-match is distinct evidence, not an automatic substitute for the explicit BscScan requirement.
 
-## Eligibility
+## Evidence available and gaps
 
-Check the current official rules before submission: https://www.binance.com/en/support/announcement/detail/95f5dbe0ea674a48a739b59e046648bf.
-The Innovation Award threshold is at least30Agent ID holder addresses interacting with participating contracts during the submission period; it is not a universal30-address requirement for every award. Do not claim it is met. Submission deadline from the announcement:9December2026,15:00WIB. Submit all participating contract addresses and explain which belong to the current product; do not automatically combine legacy usage with new escrow usage.
+Read-only scan in [participation evidence](audit-evidence/hackathon-participation.json): snapshot134963053,30 event-emitting successful transactions,12 interacting addresses,11 current Agent ID holders across scanned contracts. Includes deployer activity; holder status at snapshot is not historical holder eligibility. This does NOT satisfy or certify30eligible participant addresses or paid marketplace usage.
 
-No website QR/pairing login, collection of wallet secrets, bypassing wallet confirmations, promised returns or fabricated/sybil interactions.
+Local Anvil/memory regressions are synthetic, not mainnet income, users or independent security audit. Real funded mainnet task→private submission→review→payout→winner delivery proof must be recorded separately without revealing losing reports. A fresh deployment alone does not fill this gap.
+
+The announcement places30addresses under Innovation, but the project form introduction states it as general eligibility. Treat the stricter form gate as applicable until organizer clarification; do not promise a Pioneer entry can bypass it. Only submitted/accepted contracts and valid period interactions count.
+
+## Materials for the authenticated form
+
+- Project name, website, source/release and architecture explanation above.
+- Actual participating contract addresses, deployment txs, BscScan verified source and current owner privileges.
+- Product demonstration recording plus reproducible read-only links and transaction receipts when genuine.
+- Agent ID usage and unique eligible interaction evidence with limitations.
+- [Wallet protocol](../public/skill.md), [work/data terms](../public/terms.md), [security policy](../public/security.md).
+- Reward address, contact and participant eligibility answers must belong to the submitting person/team; they cannot be inferred from deployer/treasury.
+
+No fake accounts, fake volume, unlimited approvals, third-party QR/pairing login, bypassed user confirmation, collection of wallet secrets, Binance impersonation or promised returns. No submission receipt is claimed by this document.

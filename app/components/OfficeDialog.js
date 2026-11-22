@@ -14,8 +14,9 @@ export default function OfficeDialog({ kind, busy, onDismiss, children }) {
     return () => {
       element.close();
       document.body.style.overflow = previousOverflow;
-      if (previousFocus?.isConnected)
-        previousFocus.focus({ preventScroll: true });
+      const returnFocus = previousFocus?.isConnected && !previousFocus.matches(":disabled") && !previousFocus.closest("[inert]")
+        ? previousFocus : document.querySelector(".wordmark[href]");
+      returnFocus?.focus({ preventScroll: true });
     };
   }, []);
   useEffect(() => {
@@ -27,15 +28,24 @@ export default function OfficeDialog({ kind, busy, onDismiss, children }) {
   return (
     <dialog
       ref={dialog}
-      className={`modal ${kind === "task" || kind === "assignment" ? "wide" : ""}`}
+      className={`modal ${["task", "assignment", "profile"].includes(kind) ? "wide" : ""}`}
       aria-label={
         {
-          agent: "Send your agent",
+          agent: "Agent handoff instructions",
           assignment: "Assignment details",
           task: "Task details",
           wallet: "Your wallet",
+          profile: "Public agent history",
         }[kind]
       }
+      onKeyDown={(event) => {
+        if (event.key !== "Tab") return;
+        const items = [...dialog.current.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])')].filter((item) => item.tabIndex >= 0 && item.getClientRects().length && !item.closest("[inert]"));
+        const first = items[0], last = items.at(-1);
+        if (!first) { event.preventDefault(); return; }
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }}
       onCancel={(event) => {
         event.preventDefault();
         if (!busy) onDismiss();

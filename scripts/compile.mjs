@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import solc from "solc";
 export function compile({ writeAbi = true } = {}) {
+  // Preserve dependency sources used by immutable legacy deployments, not new OZ Cancun opcodes.
+  const legacySources = JSON.parse(fs.readFileSync(new URL("../contracts/vendor/legacy-openzeppelin.json", import.meta.url), "utf8")).sources;
   const sources = Object.fromEntries(
     [
       "OnerubOffice.sol",
@@ -28,7 +30,7 @@ export function compile({ writeAbi = true } = {}) {
       import: (p) => {
         try {
           return {
-            contents: fs.readFileSync(path.resolve("node_modules", p), "utf8"),
+            contents: legacySources[p]?.content ?? fs.readFileSync(path.resolve("node_modules", p), "utf8"),
           };
         } catch {
           return { error: `Missing import ${p}` };
@@ -44,7 +46,7 @@ export function compile({ writeAbi = true } = {}) {
   for (const file of Object.keys(output.sources))
     if (!input.sources[file])
       input.sources[file] = {
-        content: fs.readFileSync(path.resolve("node_modules", file), "utf8"),
+        content: legacySources[file]?.content ?? fs.readFileSync(path.resolve("node_modules", file), "utf8"),
       };
   fs.writeFileSync("artifacts/compiler-input.json", JSON.stringify(input));
   fs.writeFileSync("artifacts/compiler-version.txt", solc.version());

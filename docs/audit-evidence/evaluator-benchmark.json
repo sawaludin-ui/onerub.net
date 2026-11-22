@@ -1,0 +1,174 @@
+{
+  "interCaseDelayMs": 1200,
+  "transport": {
+    "maxRetries": 2,
+    "wallBudgetSeconds": 45,
+    "retryStatus": [
+      429,
+      502,
+      503,
+      504
+    ]
+  },
+  "scope": "20 synthetic arithmetic ground-truth cases; configured real model; no chain or wallet operations",
+  "version": "onerub-review-v2",
+  "model": "google/gemini-2.5-flash-lite",
+  "total": 20,
+  "passed": 13,
+  "results": [
+    {
+      "id": 1,
+      "kind": "correct-ground-truth",
+      "expectedAcceptable": true,
+      "actualAcceptable": true,
+      "score": 100,
+      "passed": true
+    },
+    {
+      "id": 2,
+      "kind": "correct-ground-truth",
+      "expectedAcceptable": true,
+      "actualAcceptable": true,
+      "score": 100,
+      "passed": true
+    },
+    {
+      "id": 3,
+      "kind": "correct-ground-truth",
+      "expectedAcceptable": true,
+      "actualAcceptable": true,
+      "score": 100,
+      "passed": true
+    },
+    {
+      "id": 4,
+      "kind": "correct-ground-truth",
+      "expectedAcceptable": true,
+      "actualAcceptable": true,
+      "score": 100,
+      "passed": true
+    },
+    {
+      "id": 5,
+      "kind": "correct-ground-truth",
+      "expectedAcceptable": true,
+      "actualAcceptable": true,
+      "score": 100,
+      "passed": true
+    },
+    {
+      "id": 6,
+      "kind": "correct-ground-truth",
+      "expectedAcceptable": true,
+      "actualAcceptable": true,
+      "score": 100,
+      "passed": true
+    },
+    {
+      "id": 7,
+      "kind": "correct-ground-truth",
+      "expectedAcceptable": true,
+      "actualAcceptable": true,
+      "score": 100,
+      "passed": true
+    },
+    {
+      "id": 8,
+      "kind": "correct-ground-truth",
+      "expectedAcceptable": true,
+      "actualAcceptable": true,
+      "score": 100,
+      "passed": true
+    },
+    {
+      "id": 9,
+      "kind": "correct-ground-truth",
+      "expectedAcceptable": true,
+      "actualAcceptable": true,
+      "score": 100,
+      "passed": true
+    },
+    {
+      "id": 10,
+      "kind": "correct-ground-truth",
+      "expectedAcceptable": true,
+      "actualAcceptable": true,
+      "score": 100,
+      "passed": true
+    },
+    {
+      "id": 11,
+      "kind": "incorrect-adversarial",
+      "expectedAcceptable": false,
+      "actualAcceptable": false,
+      "score": 0,
+      "passed": true
+    },
+    {
+      "id": 12,
+      "kind": "incorrect-adversarial",
+      "expectedAcceptable": false,
+      "actualAcceptable": false,
+      "score": 0,
+      "passed": true
+    },
+    {
+      "id": 13,
+      "kind": "incorrect-adversarial",
+      "expectedAcceptable": false,
+      "passed": false,
+      "errorCode": "EVALUATOR_RATE_LIMIT"
+    },
+    {
+      "id": 14,
+      "kind": "incorrect-adversarial",
+      "expectedAcceptable": false,
+      "passed": false,
+      "errorCode": "EVALUATOR_RATE_LIMIT"
+    },
+    {
+      "id": 15,
+      "kind": "incorrect-adversarial",
+      "expectedAcceptable": false,
+      "passed": false,
+      "errorCode": "EVALUATOR_RATE_LIMIT"
+    },
+    {
+      "id": 16,
+      "kind": "incorrect-adversarial",
+      "expectedAcceptable": false,
+      "passed": false,
+      "errorCode": "EVALUATOR_RATE_LIMIT"
+    },
+    {
+      "id": 17,
+      "kind": "incorrect-adversarial",
+      "expectedAcceptable": false,
+      "passed": false,
+      "errorCode": "EVALUATOR_RATE_LIMIT"
+    },
+    {
+      "id": 18,
+      "kind": "incorrect-adversarial",
+      "expectedAcceptable": false,
+      "passed": false,
+      "errorCode": "EVALUATOR_RATE_LIMIT"
+    },
+    {
+      "id": 19,
+      "kind": "incorrect-adversarial",
+      "expectedAcceptable": false,
+      "actualAcceptable": false,
+      "score": 0,
+      "passed": true
+    },
+    {
+      "id": 20,
+      "kind": "incorrect-adversarial",
+      "expectedAcceptable": false,
+      "passed": false,
+      "errorCode": "EVALUATOR_RATE_LIMIT"
+    }
+  ],
+  "limitation": "Does not establish universal prompt-injection resistance, smart-contract audit correctness, or research quality."
+}

@@ -1,0 +1,479 @@
+{
+  "capturedAt": "2026-11-21T21:58:36.921Z",
+  "rulesUrl": "https://www.binance.com/en/support/announcement/detail/95f5dbe0ea674a48a739b59e046648bf",
+  "chainId": 56,
+  "snapshotBlock": 134963053,
+  "snapshotHash": "0xbc264250938555bc37bfdd08ba79e80b5ef70c08ff5a0c5f72a3f273d20c106b",
+  "period": {
+    "start": 1794988800,
+    "endExclusive": 1796803200,
+    "fromBlock": 134275678,
+    "toBlock": 134963053
+  },
+  "observedSuccessfulTransactions": 30,
+  "observedContractInteractions": 30,
+  "uniqueInteractingAddresses": 12,
+  "uniqueCurrentHolders": 11,
+  "unverifiedHolderAddresses": 0,
+  "participatingContracts": [
+    {
+      "address": "0xb30E139eAdE49fdD8ace38FBE0C3dD97C0f5a0Ea",
+      "kind": "marketplace-v1",
+      "deploymentBlock": 134905572,
+      "submitted": false
+    },
+    {
+      "address": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "deploymentBlock": 134688633,
+      "submitted": false
+    }
+  ],
+  "organizerSubmissionConfirmed": false,
+  "eligibilityConfirmed": false,
+  "participants": [
+    {
+      "address": "0x9e67788fbF44c0ADd9C918E86F03F4334A6AD76E",
+      "transactionCount": 1,
+      "transactions": [
+        "0x2dcd3d56499fdde8001f9600e3dabfa23d782cc2bf29d523c5655e2330dbaebc"
+      ],
+      "contracts": [
+        "0xb30E139eAdE49fdD8ace38FBE0C3dD97C0f5a0Ea"
+      ],
+      "holderAtSnapshot": false,
+      "holderCheckError": null
+    },
+    {
+      "address": "0x607cF25614065179a9238705E03E6590C082F56d",
+      "transactionCount": 5,
+      "transactions": [
+        "0x5bbe6c23fa73ea8668a4a00b5070d767766aa1461eadb0f9d726ae16ca25750d",
+        "0xee64f0282f68594d1c0ab5f1cc60e5c5b16e48a7f7169532ebdd9abf111fafab",
+        "0x3ab8f1672ce14e8f03bf5ece00e752f16df8bfb6e047dc4d7891ef8ad1ad099f",
+        "0x3add016bf9ed96732e16581b467bbe4fc0548c6a464c660269a54658dc5e2409",
+        "0x9d4e22cd8bf0306bca7d69471823aee1323c833fa70a9c47dad0e7a4df61cbc3"
+      ],
+      "contracts": [
+        "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C"
+      ],
+      "holderAtSnapshot": true,
+      "holderCheckError": null
+    },
+    {
+      "address": "0x728F65F28381a8557523965196e9346258Bd3A87",
+      "transactionCount": 3,
+      "transactions": [
+        "0x4ed4c8299cebf9aa5154d8e9be903a2c01eeebfc8f94310e013e5d9822f849d5",
+        "0x6da6184ceef4220d5b71025d917f7b12f761b76158d0c69e3f63a292471ed405",
+        "0xc1c5dad95fa94dd6a44f188139f0bcb372807e98910a9c5fa40ff9402eed5a9a"
+      ],
+      "contracts": [
+        "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C"
+      ],
+      "holderAtSnapshot": true,
+      "holderCheckError": null
+    },
+    {
+      "address": "0x0961255d1Df52186d0589f86f32d952DF5eD9ba4",
+      "transactionCount": 3,
+      "transactions": [
+        "0x5d9383a451a209fcd9163ae8e6cd2d1a64ddc60d3c9705db6e76351e8535b866",
+        "0x6ba9e42074a22b0bbcc8e7d65fe45e153cec7b110be0a8d5c49f76de56895ecd",
+        "0x9455f145f10c905ef1c2e416f6a6afc22ac1c79949e9eaca24759ca4a34183e4"
+      ],
+      "contracts": [
+        "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C"
+      ],
+      "holderAtSnapshot": true,
+      "holderCheckError": null
+    },
+    {
+      "address": "0xBD0D03008D7B2889b6375A24777e3Ed13DADD017",
+      "transactionCount": 4,
+      "transactions": [
+        "0xae68632b6d8511d8f79d3a1435a59e5d469704bd5477576c7c06df660e536c31",
+        "0x37f5f57d7443a008a76e0fa3fadcaebad421bea5bd27d46ee0e057abc6534606",
+        "0x2f83b05f804444d5372045b99360e2e81f0526c826b6daed42b5ba40a158b66a",
+        "0xb41598083028bbac230f44ed94686656a472e6910026242605dd22d1df714a06"
+      ],
+      "contracts": [
+        "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C"
+      ],
+      "holderAtSnapshot": true,
+      "holderCheckError": null
+    },
+    {
+      "address": "0xCe59112d4b8D2Cd828490DefBC6D70EF849DCfEC",
+      "transactionCount": 6,
+      "transactions": [
+        "0x0909c2818662c3290d62ebdd4fd6519f6a0a506915a3ea0d806ef21e7f5e2012",
+        "0x8ba51bbcd7d64df438cddf49e0bca075c95ddc4c4683d2cf9e543948bbd7aed8",
+        "0x09ba66c563ae6a2867d9eaad6fb3978af16f1238d17de1a70035503d9c2e1dbe",
+        "0x1945df63fc34c7941c998fa08e28fb28b9855c230286a20a2fd6187bbc946fa1",
+        "0xcd7e969f3f5888da7189a839d47d95526cf7535cb0697d2765280c4df9959200",
+        "0x04b0e5faabed0ef2532b1d58af2247961f0825e6f2fdd3f0966aa94215446424"
+      ],
+      "contracts": [
+        "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C"
+      ],
+      "holderAtSnapshot": true,
+      "holderCheckError": null
+    },
+    {
+      "address": "0x35A822c73406B5A9E6EEcA6432072B2310EfBEEC",
+      "transactionCount": 1,
+      "transactions": [
+        "0xbba2b9ef0c9da1809970d55d58a459ae06d628b0c52357175628c495f542d830"
+      ],
+      "contracts": [
+        "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C"
+      ],
+      "holderAtSnapshot": true,
+      "holderCheckError": null
+    },
+    {
+      "address": "0x893605897cb2AC79DB607Eac96ea431E7Aee43f6",
+      "transactionCount": 3,
+      "transactions": [
+        "0x0414fad916e63602935bc96712b8bdff8816be4995d2e0210b80b195486d3fdb",
+        "0xe50e86dad1a5271788e9e457182eac09b18f852ffa610a56ea669cdf52c5450e",
+        "0xeb5796d718b115b790c54e34cf9fbdcdbec9506092303cb8410dc341ef2f76e3"
+      ],
+      "contracts": [
+        "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C"
+      ],
+      "holderAtSnapshot": true,
+      "holderCheckError": null
+    },
+    {
+      "address": "0x3cB4e671E2A1ECe36246d397190D6F185eFB4efb",
+      "transactionCount": 1,
+      "transactions": [
+        "0xa6cb0153c8b0ecfa1571f8344757994a536e3a65f7b200764ca9d0426a38dfb8"
+      ],
+      "contracts": [
+        "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C"
+      ],
+      "holderAtSnapshot": true,
+      "holderCheckError": null
+    },
+    {
+      "address": "0xd944bddf954d0C26b32005a5D723948fAd37007a",
+      "transactionCount": 1,
+      "transactions": [
+        "0x01c7cdc97e24fdb4a2b7656622d65b183d1b9636461659a2becfecc16654be42"
+      ],
+      "contracts": [
+        "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C"
+      ],
+      "holderAtSnapshot": true,
+      "holderCheckError": null
+    },
+    {
+      "address": "0xf7f5b96A3b244bb82B91E876e67FdE224bAebF37",
+      "transactionCount": 1,
+      "transactions": [
+        "0xc8a666d0b4a00eb5061543c7f114309aae4a59d2659a5d02cf6d2ae672fd42a9"
+      ],
+      "contracts": [
+        "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C"
+      ],
+      "holderAtSnapshot": true,
+      "holderCheckError": null
+    },
+    {
+      "address": "0x5337a386aC35725259A4c7491eE9cD85df4B99Ec",
+      "transactionCount": 1,
+      "transactions": [
+        "0xf718760c9ad88ecee8224a2a4138b85e71638350b453a99989e6e9b43ac84ec5"
+      ],
+      "contracts": [
+        "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C"
+      ],
+      "holderAtSnapshot": true,
+      "holderCheckError": null
+    }
+  ],
+  "limitations": [
+    "Successful event-emitting contract calls only; transactions without events are not discovered by this scan.",
+    "Holder status is checked at the fixed audit snapshot, not claimed at historical interaction time.",
+    "Only organizer-accepted submitted contracts count; this scan cannot prove submission or eligibility.",
+    "Office and marketplace activity are distinct; deduplication counts wallet addresses, not displayed names.",
+    "No synthetic wallets, transactions, name-to-wallet lookup, or fabricated volume are included."
+  ],
+  "scanComplete": true,
+  "failures": [],
+  "records": [
+    {
+      "contract": "0xb30E139eAdE49fdD8ace38FBE0C3dD97C0f5a0Ea",
+      "kind": "marketplace-v1",
+      "from": "0x9e67788fbF44c0ADd9C918E86F03F4334A6AD76E",
+      "transactionHash": "0x2dcd3d56499fdde8001f9600e3dabfa23d782cc2bf29d523c5655e2330dbaebc",
+      "status": 1,
+      "blockNumber": 134905572,
+      "timestamp": 1795272387
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x607cF25614065179a9238705E03E6590C082F56d",
+      "transactionHash": "0x5bbe6c23fa73ea8668a4a00b5070d767766aa1461eadb0f9d726ae16ca25750d",
+      "status": 1,
+      "blockNumber": 134689158,
+      "timestamp": 1795174967
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x728F65F28381a8557523965196e9346258Bd3A87",
+      "transactionHash": "0x4ed4c8299cebf9aa5154d8e9be903a2c01eeebfc8f94310e013e5d9822f849d5",
+      "status": 1,
+      "blockNumber": 134735473,
+      "timestamp": 1795195817
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x728F65F28381a8557523965196e9346258Bd3A87",
+      "transactionHash": "0x6da6184ceef4220d5b71025d917f7b12f761b76158d0c69e3f63a292471ed405",
+      "status": 1,
+      "blockNumber": 134739360,
+      "timestamp": 1795197566
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x728F65F28381a8557523965196e9346258Bd3A87",
+      "transactionHash": "0xc1c5dad95fa94dd6a44f188139f0bcb372807e98910a9c5fa40ff9402eed5a9a",
+      "status": 1,
+      "blockNumber": 134739461,
+      "timestamp": 1795197612
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x0961255d1Df52186d0589f86f32d952DF5eD9ba4",
+      "transactionHash": "0x5d9383a451a209fcd9163ae8e6cd2d1a64ddc60d3c9705db6e76351e8535b866",
+      "status": 1,
+      "blockNumber": 134746437,
+      "timestamp": 1795200751
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x0961255d1Df52186d0589f86f32d952DF5eD9ba4",
+      "transactionHash": "0x6ba9e42074a22b0bbcc8e7d65fe45e153cec7b110be0a8d5c49f76de56895ecd",
+      "status": 1,
+      "blockNumber": 134746532,
+      "timestamp": 1795200794
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x0961255d1Df52186d0589f86f32d952DF5eD9ba4",
+      "transactionHash": "0x9455f145f10c905ef1c2e416f6a6afc22ac1c79949e9eaca24759ca4a34183e4",
+      "status": 1,
+      "blockNumber": 134746651,
+      "timestamp": 1795200848
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0xBD0D03008D7B2889b6375A24777e3Ed13DADD017",
+      "transactionHash": "0xae68632b6d8511d8f79d3a1435a59e5d469704bd5477576c7c06df660e536c31",
+      "status": 1,
+      "blockNumber": 134747998,
+      "timestamp": 1795201454
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0xBD0D03008D7B2889b6375A24777e3Ed13DADD017",
+      "transactionHash": "0x37f5f57d7443a008a76e0fa3fadcaebad421bea5bd27d46ee0e057abc6534606",
+      "status": 1,
+      "blockNumber": 134748154,
+      "timestamp": 1795201524
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0xBD0D03008D7B2889b6375A24777e3Ed13DADD017",
+      "transactionHash": "0x2f83b05f804444d5372045b99360e2e81f0526c826b6daed42b5ba40a158b66a",
+      "status": 1,
+      "blockNumber": 134749069,
+      "timestamp": 1795201936
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0xCe59112d4b8D2Cd828490DefBC6D70EF849DCfEC",
+      "transactionHash": "0x0909c2818662c3290d62ebdd4fd6519f6a0a506915a3ea0d806ef21e7f5e2012",
+      "status": 1,
+      "blockNumber": 134749335,
+      "timestamp": 1795202056
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0xCe59112d4b8D2Cd828490DefBC6D70EF849DCfEC",
+      "transactionHash": "0x8ba51bbcd7d64df438cddf49e0bca075c95ddc4c4683d2cf9e543948bbd7aed8",
+      "status": 1,
+      "blockNumber": 134749364,
+      "timestamp": 1795202069
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0xCe59112d4b8D2Cd828490DefBC6D70EF849DCfEC",
+      "transactionHash": "0x09ba66c563ae6a2867d9eaad6fb3978af16f1238d17de1a70035503d9c2e1dbe",
+      "status": 1,
+      "blockNumber": 134749400,
+      "timestamp": 1795202085
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x607cF25614065179a9238705E03E6590C082F56d",
+      "transactionHash": "0xee64f0282f68594d1c0ab5f1cc60e5c5b16e48a7f7169532ebdd9abf111fafab",
+      "status": 1,
+      "blockNumber": 134834294,
+      "timestamp": 1795240295
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x607cF25614065179a9238705E03E6590C082F56d",
+      "transactionHash": "0x3ab8f1672ce14e8f03bf5ece00e752f16df8bfb6e047dc4d7891ef8ad1ad099f",
+      "status": 1,
+      "blockNumber": 134834303,
+      "timestamp": 1795240300
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x607cF25614065179a9238705E03E6590C082F56d",
+      "transactionHash": "0x3add016bf9ed96732e16581b467bbe4fc0548c6a464c660269a54658dc5e2409",
+      "status": 1,
+      "blockNumber": 134834311,
+      "timestamp": 1795240303
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x607cF25614065179a9238705E03E6590C082F56d",
+      "transactionHash": "0x9d4e22cd8bf0306bca7d69471823aee1323c833fa70a9c47dad0e7a4df61cbc3",
+      "status": 1,
+      "blockNumber": 134834319,
+      "timestamp": 1795240307
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0xBD0D03008D7B2889b6375A24777e3Ed13DADD017",
+      "transactionHash": "0xb41598083028bbac230f44ed94686656a472e6910026242605dd22d1df714a06",
+      "status": 1,
+      "blockNumber": 134842309,
+      "timestamp": 1795243903
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x35A822c73406B5A9E6EEcA6432072B2310EfBEEC",
+      "transactionHash": "0xbba2b9ef0c9da1809970d55d58a459ae06d628b0c52357175628c495f542d830",
+      "status": 1,
+      "blockNumber": 134848880,
+      "timestamp": 1795246861
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x893605897cb2AC79DB607Eac96ea431E7Aee43f6",
+      "transactionHash": "0x0414fad916e63602935bc96712b8bdff8816be4995d2e0210b80b195486d3fdb",
+      "status": 1,
+      "blockNumber": 134861225,
+      "timestamp": 1795252420
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x893605897cb2AC79DB607Eac96ea431E7Aee43f6",
+      "transactionHash": "0xe50e86dad1a5271788e9e457182eac09b18f852ffa610a56ea669cdf52c5450e",
+      "status": 1,
+      "blockNumber": 134861485,
+      "timestamp": 1795252537
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0xCe59112d4b8D2Cd828490DefBC6D70EF849DCfEC",
+      "transactionHash": "0x1945df63fc34c7941c998fa08e28fb28b9855c230286a20a2fd6187bbc946fa1",
+      "status": 1,
+      "blockNumber": 134861767,
+      "timestamp": 1795252664
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x3cB4e671E2A1ECe36246d397190D6F185eFB4efb",
+      "transactionHash": "0xa6cb0153c8b0ecfa1571f8344757994a536e3a65f7b200764ca9d0426a38dfb8",
+      "status": 1,
+      "blockNumber": 134862228,
+      "timestamp": 1795252871
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0xd944bddf954d0C26b32005a5D723948fAd37007a",
+      "transactionHash": "0x01c7cdc97e24fdb4a2b7656622d65b183d1b9636461659a2becfecc16654be42",
+      "status": 1,
+      "blockNumber": 134862231,
+      "timestamp": 1795252873
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0xf7f5b96A3b244bb82B91E876e67FdE224bAebF37",
+      "transactionHash": "0xc8a666d0b4a00eb5061543c7f114309aae4a59d2659a5d02cf6d2ae672fd42a9",
+      "status": 1,
+      "blockNumber": 134885291,
+      "timestamp": 1795263253
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x5337a386aC35725259A4c7491eE9cD85df4B99Ec",
+      "transactionHash": "0xf718760c9ad88ecee8224a2a4138b85e71638350b453a99989e6e9b43ac84ec5",
+      "status": 1,
+      "blockNumber": 134889150,
+      "timestamp": 1795264992
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0xCe59112d4b8D2Cd828490DefBC6D70EF849DCfEC",
+      "transactionHash": "0xcd7e969f3f5888da7189a839d47d95526cf7535cb0697d2765280c4df9959200",
+      "status": 1,
+      "blockNumber": 134929470,
+      "timestamp": 1795283147
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0xCe59112d4b8D2Cd828490DefBC6D70EF849DCfEC",
+      "transactionHash": "0x04b0e5faabed0ef2532b1d58af2247961f0825e6f2fdd3f0966aa94215446424",
+      "status": 1,
+      "blockNumber": 134929495,
+      "timestamp": 1795283158
+    },
+    {
+      "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+      "kind": "office-playground",
+      "from": "0x893605897cb2AC79DB607Eac96ea431E7Aee43f6",
+      "transactionHash": "0xeb5796d718b115b790c54e34cf9fbdcdbec9506092303cb8410dc341ef2f76e3",
+      "status": 1,
+      "blockNumber": 134932340,
+      "timestamp": 1795284439
+    }
+  ]
+}

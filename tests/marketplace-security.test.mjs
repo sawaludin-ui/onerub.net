@@ -141,6 +141,7 @@ function deliveryFixture() {
     mimeType: "text/markdown",
     encrypted,
     plaintextHash: keccak256(bytes),
+    size: bytes.length,
     contentHash: hash(encrypted),
     artifactPtrHash: hash("private-pointer"),
   };

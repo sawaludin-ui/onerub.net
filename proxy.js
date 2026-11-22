@@ -27,4 +27,4 @@ export function proxy(request) {
   return response;
 }
 
-export const config = { matcher: ["/", "/permissions", "/playground"] };
+export const config = { matcher: ["/", "/permissions", "/playground", "/tasks/:path*"] };

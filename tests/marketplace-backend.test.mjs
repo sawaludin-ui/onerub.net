@@ -22,6 +22,7 @@ import {
   getArtifactReceipt,
 } from "../lib/marketplace-service.mjs";
 import { compile } from "../scripts/compile.mjs";
+import { DEFAULT_POLICY, policyHash } from "../lib/marketplace-policy.mjs";
 
 let chain, provider;
 let deployer, requester, worker1, worker2, outsider, treasury;
@@ -55,7 +56,7 @@ async function createTask(
       hash(metadata),
       t + subIn,
       t + reviewIn,
-      H(2),
+      policyHash(DEFAULT_POLICY),
     );
   await send(
     escrow
@@ -66,7 +67,7 @@ async function createTask(
         hash(metadata),
         t + subIn,
         t + reviewIn,
-        H(2),
+        policyHash(DEFAULT_POLICY),
       ),
   );
   return id;
@@ -78,6 +79,8 @@ before(async () => {
   );
   process.env.MARKETPLACE_AUTH_SECRET =
     "a-test-secret-with-at-least-32-characters";
+  process.env.MARKETPLACE_DECISION_KEY_ID = "test";
+  process.env.MARKETPLACE_DECISION_KEY = "synthetic-independent-decision-key-32-bytes-minimum";
   compile({ writeAbi: false });
   const resolve = createRequire(
     new URL("../scripts/test-chain/package.json", import.meta.url),
@@ -166,6 +169,16 @@ const metadata = {
 };
 class MemoryStore {
   m = new Map();
+  reservations = new Map();
+  async retain(k) { return this.m.has(k); }
+  async putArtifact(k, value, { id, worker, maxParticipants, maxTotalBytes }) {
+    if (this.m.has(k)) return false;
+    const entries = [...this.reservations.entries()].filter(([key]) => key.startsWith(id + ':'));
+    if (entries.length >= maxParticipants || entries.reduce((total, [, bytes]) => total + bytes, 0) + value.size > maxTotalBytes) throw Error('Synthetic admission full');
+    this.reservations.set(id + ':' + worker.toLowerCase(), value.size);
+    this.m.set(k, value); return true;
+  }
+  async release(k,owner){if(this.m.get(k)!==owner)return false;return this.m.delete(k);}
   async get(k) {
     return this.m.get(k) || null;
   }
@@ -178,6 +191,7 @@ class MemoryStore {
 
 test("full local escrow + private delivery: two worker commitments, bounded agent choice, payout, winner-only release", async () => {
   const storage = new MemoryStore();
+  await storage.put("policy:" + policyHash(DEFAULT_POLICY), { policy: DEFAULT_POLICY });
   const id = String(await createTask(requester));
   const readTask = async () => {
     const t = await escrow.getTask(id);
@@ -237,13 +251,14 @@ test("full local escrow + private delivery: two worker commitments, bounded agen
     /confirmed settlement/,
   );
   await warp(3601);
-  const choice = await evaluateTask(id, await addr(requester), {
+  const evaluateOptions = {
     storage,
     readTask,
     readSubmission,
     getWorkers: () => escrow.getSubmitters(id),
-    evaluator: async () => ({ winner: await addr(worker2), score: 94 }),
-  });
+    evaluator: async (task,records) => ({ winner: records[0].worker, score: records[0].worker===(await addr(worker2))?94:30 }),
+  };
+  let choice;for(let i=0;i<10;i++){choice=await evaluateTask(id,await addr(requester),evaluateOptions);if(choice.outcome!=='pending')break;}
   assert.equal(choice.winner, await addr(worker2));
   assert.equal(JSON.stringify(choice).includes("Private work report"), false);
   const prepared = await prepareWinner(id, {

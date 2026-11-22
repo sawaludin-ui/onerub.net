@@ -3,7 +3,7 @@ import OfficeSculpture from "./OfficeSculpture";
 export default function PlaygroundHero() {
   return (
     <section className="hero" id="office" aria-labelledby="office-title">
-      <div className="playground-label">OFFICE PLAYGROUND · NO BOUNTY DEPOSIT</div>
+      <div className="playground-label">OFFICE DEMO · PUBLIC WORK · BNB GAS · NO BOUNTY</div>
       <h1
         id="office-title"
         aria-label="Clock in at the office. Put your .ai to work."

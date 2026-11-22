@@ -7,9 +7,10 @@
 //
 // Usage (always previews first; add --execute to broadcast):
 //   node scripts/agent-task.mjs approve <amountUSDC>
-//   node scripts/agent-task.mjs create <amountUSDC> <submitMins> <reviewMins> <criteriaHash> <policyHash>
-//   node scripts/agent-task.mjs submit <taskId> <contentHash> <artifactPtrHash>
-//   node scripts/agent-task.mjs select <taskId> <winnerAddress>
+//   node scripts/agent-task.mjs create <task.json>
+//   node scripts/agent-task.mjs submit <taskId>  (private upload must already exist)
+//   node scripts/agent-task.mjs select <taskId>  (hosted evaluator chooses; no arbitrary winner)
+//   node scripts/agent-task.mjs reject <taskId>  (signed no-acceptable verdict)
 //   node scripts/agent-task.mjs cancel <taskId>
 //   node scripts/agent-task.mjs refund <taskId>
 //
@@ -18,24 +19,16 @@ import fs from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import os from "node:os";
-import {fileURLToPath,pathToFileURL} from "node:url";
+import {pathToFileURL} from "node:url";
+import { ACTIVE_MARKETPLACE_DEPLOYMENT, marketplaceAbiFor } from "../lib/marketplace-deployment-resolver.mjs";
 import { Interface, parseUnits, isAddress } from "ethers";
+import {hash} from '../lib/marketplace-core.mjs';
+import {normalizePolicy,policyHash} from '../lib/marketplace-policy.mjs';
 
 const SHIM = path.join(os.homedir(), ".claude/network/binance-doh.cjs");
-const ROOT = fileURLToPath(new URL("../", import.meta.url));
-const USDC = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
-const USDC_DECIMALS = 18;
-const CHAIN = "56";
-
-const deployment = JSON.parse(fs.readFileSync(path.join(ROOT,"lib/marketplace-deployment.json"), "utf8"));
-const ESCROW = deployment.address;
-const escrowAbi = JSON.parse(fs.readFileSync(path.join(ROOT,"lib/marketplace-abi.json"), "utf8"));
-const escrow = new Interface(escrowAbi);
-const erc20 = new Interface([
-  "function approve(address spender, uint256 value) returns (bool)",
-  "function allowance(address owner, address spender) view returns (uint256)",
-]);
-
+const CHAIN = String(ACTIVE_MARKETPLACE_DEPLOYMENT.chainId);
+const erc20 = new Interface(['function approve(address spender,uint256 value) returns(bool)']);
+export function activeDeployment() { return ACTIVE_MARKETPLACE_DEPLOYMENT; }
 export function locateBaw(env=process.env) {
   const candidates=[env.BAW_CLI_JS];
   for(const dir of (env.PATH||env.Path||'').split(path.delimiter)) {
@@ -78,82 +71,87 @@ function fromAddress(baw) {
   return evm.address;
 }
 
-function h32(value) {
-  if(!/^0x[0-9a-fA-F]{64}$/.test(value||'')||/^0x0{64}$/i.test(value))throw Error('A nonzero bytes32 hash is required; text is not automatically hashed');
-  return value;
+function id(value){if(!/^[1-9]\d*$/.test(value||'')||BigInt(value)>=2n**256n)throw Error('Task ID must be a positive uint256');return value;}
+function amount(value){if(!/^(0|[1-9]\d*)(\.\d{1,18})?$/.test(value||''))throw Error('Amount must be decimal USDC, at most18 places');const n=parseUnits(value,18);if(n<=0n||n>=2n**256n)throw Error('Amount outside uint256 range');return value;}
+export function buildTaskRequest(argv,{from,readFile=p=>fs.readFileSync(p,'utf8')}={}){
+  if(argv.filter(a=>a==='--execute').length>1)throw Error('Duplicate execute flag');
+  const execute=argv.includes('--execute');const [cmd,...p]=argv.filter(a=>a!=='--execute');
+  if(p.length!==1)throw Error('Usage: approve <USDC>; create <task.json>; submit/select/reject/cancel/refund <taskId>; optional --execute');
+  let body;
+  if(cmd==='approve')body={action:'approve',amount:amount(p[0])};
+  else if(cmd==='create'){
+    const raw=readFile(p[0]);if(Buffer.byteLength(raw,'utf8')>65536)throw Error('Task JSON is too large');
+    let v;try{v=JSON.parse(raw);}catch{throw Error('Task JSON is invalid');}
+    if(!v||typeof v!=='object'||Array.isArray(v))throw Error('Task JSON must be an object');
+    body={action:'createAndFund',amount:amount(v.amount),metadata:v.metadata,submissionDeadline:v.submissionDeadline,reviewDeadline:v.reviewDeadline,policy:v.policy};
+    if(!body.metadata||typeof body.metadata!=='object'||!body.policy||typeof body.policy!=='object')throw Error('Task JSON requires metadata and a readable policy');
+    body.metadata=Object.fromEntries(['title','description','category','rubric'].map(k=>{if(typeof body.metadata[k]!=='string')throw Error('Invalid task metadata');return [k,body.metadata[k]];}));
+    body.policy=normalizePolicy(body.policy);
+    if(!Number.isSafeInteger(body.submissionDeadline)||!Number.isSafeInteger(body.reviewDeadline)||body.reviewDeadline-body.submissionDeadline<3600)throw Error('Review window must be at least one hour');
+  }else{
+    const names={submit:'submitCommitment',select:'selectWinner',reject:'rejectAll',cancel:'cancel',refund:'refund'};
+    if(!Object.hasOwn(names,cmd))throw Error('Unknown marketplace action');body={action:names[cmd],taskId:id(p[0])};
+    if(cmd==='submit'){if(!isAddress(from||''))throw Error('Connected worker address required');body.worker=from;}
+  }
+  return {body,execute};
 }
-function id(value) {
-  if(!/^[1-9]\d*$/.test(value||'')||BigInt(value)>=2n**256n)throw Error('Task ID must be a positive uint256');
-  return BigInt(value);
-}
-function qty(value,allowZero=false) {
-  if(!/^(0|[1-9]\d*)(\.\d{1,18})?$/.test(value||''))throw Error('USDC amount must be a decimal with at most 18 places');
-  const n=parseUnits(value,USDC_DECIMALS);
-  if((!allowZero&&n<10n)||n>=2n**256n)throw Error('USDC amount outside allowed range');
-  return n;
-}
-export function buildTaskCall(args,nowSec=BigInt(Math.floor(Date.now()/1000))) {
-  if(args.filter(a=>a==='--execute').length>1)throw Error('Duplicate execute flag');
-  const execute=args.includes('--execute');
-  const [cmd,...p]=args.filter(a=>a!=='--execute');
-  const lengths={approve:1,create:5,submit:3,select:2,cancel:1,refund:1};
-  if(!(cmd in lengths)||p.length!==lengths[cmd])throw Error('Invalid arguments; see script usage');
-  const call=build(cmd,p,nowSec);
-  return {...call,execute};
-}
-function build(cmd,p,nowSec) {
-  switch (cmd) {
-    case "approve": {
-      const amount = qty(p[0],cmd === "approve");
-      return { to: USDC, data: erc20.encodeFunctionData("approve", [ESCROW, amount]), note: `approve ${p[0]} USDC to escrow` };
-    }
-    case "create": {
-      const amount = qty(p[0]);
-      if(!/^[1-9]\d*$/.test(p[1])||!/^[1-9]\d*$/.test(p[2]))throw Error("Deadline minutes must be positive integers");
-      if(BigInt(p[1])<2n||BigInt(p[2])<=BigInt(p[1])||nowSec+BigInt(p[2])*60n>=2n**64n)throw Error("Submission must be at least 2 minutes and review must end later");
-      const subDl = nowSec + BigInt(p[1]) * 60n;
-      const revDl = nowSec + BigInt(p[2]) * 60n;
-      const criteria = h32(p[3]);
-      const policy = h32(p[4]);
-      return {
-        to: ESCROW,
-        data: escrow.encodeFunctionData("createAndFund", [USDC, amount, criteria, subDl, revDl, policy]),
-        note: `createAndFund ${p[0]} USDC, submit +${p[1]}m, review +${p[2]}m`,
-      };
-    }
-    case "submit":
-      return { to: ESCROW, data: escrow.encodeFunctionData("submitCommitment", [id(p[0]), h32(p[1]), h32(p[2])]), note: `submit task ${p[0]}` };
-    case "select":
-      if (!isAddress(p[1]) || /^0x0{40}$/i.test(p[1])) throw Error("winner must be an address");
-      return { to: ESCROW, data: escrow.encodeFunctionData("selectWinner", [id(p[0]), p[1]]), note: `select winner ${p[1]} for task ${p[0]}` };
-    case "cancel":
-      return { to: ESCROW, data: escrow.encodeFunctionData("cancel", [id(p[0])]), note: `cancel task ${p[0]}` };
-    case "refund":
-      return { to: ESCROW, data: escrow.encodeFunctionData("refund", [id(p[0])]), note: `refund task ${p[0]}` };
-    default:
-      throw Error(`Unknown command: ${cmd}. See header for usage.`);
+function requireFundingDeployment(body, config) {
+  if (['approve', 'createAndFund'].includes(body.action) && !(config.version === 2 && config.verified === true && config.newTasksEnabled !== false)) {
+    const error = new Error('ESCROW_UPGRADE_REQUIRED: New hosted approvals and funding require an active verified receipt-gated V2 deployment. Existing V1 task settlement and refunds remain supported.');
+    error.code = 'ESCROW_UPGRADE_REQUIRED'; throw error;
   }
 }
-
-export function runTask(args,{baw=makeBawRunner(),print=v=>console.log(JSON.stringify(v)),nowSec=BigInt(Math.floor(Date.now()/1000))}={}) {
-  const call=buildTaskCall(args,nowSec);
-  const settings=baw(['wallet','settings','--json']);
-  const dev=settings?.data?.devMode;
-  const raw=dev?.expiresAt;
+export function validatePrepared(value,body,config){
+  requireFundingDeployment(body, config);
+  if(String(value?.chainId)!==String(config.chainId)||String(value?.value)!=='0'||!isAddress(value?.to||'')||!/^0x[0-9a-f]+$/i.test(value?.data||''))throw Error('API returned an invalid unsigned transaction');
+  if(value.escrowVersion!==undefined&&value.escrowVersion!==(config.version||1))throw Error('API escrow version mismatch');
+  if(value.activeDeployment&&(String(value.activeDeployment.chainId)!==String(config.chainId)||value.activeDeployment.address?.toLowerCase()!==config.address.toLowerCase()||value.activeDeployment.version!==(config.version||1)))throw Error('API deployment identity mismatch');
+  if(body.action==='rejectAll'&&(config.version||1)<2)throw Error('rejectAll requires a verified V2 deployment; V1 supports timeout refund only');
+  const escrow=new Interface(marketplaceAbiFor(config.version||1));
+  const expected=body.action==='approve'?config.token:config.address;
+  if(value.to.toLowerCase()!==expected.toLowerCase())throw Error('API transaction targets an unexpected token or escrow');
+  let decoded;try{decoded=(body.action==='approve'?erc20:escrow).parseTransaction({data:value.data});}catch{throw Error('API calldata is invalid');}
+  if(decoded?.name!==body.action)throw Error('API calldata action mismatch');
+  if(body.action==='approve'){
+    if(decoded.args[0].toLowerCase()!==config.address.toLowerCase()||decoded.args[1]!==parseUnits(body.amount,18))throw Error('API approval spender or amount mismatch');
+  }else if(body.action==='createAndFund'){
+    if(decoded.args[0].toLowerCase()!==config.token.toLowerCase()||decoded.args[1]!==parseUnits(body.amount,18)||decoded.args[3]!==BigInt(body.submissionDeadline)||decoded.args[4]!==BigInt(body.reviewDeadline))throw Error('API funding amount, token or deadline mismatch');
+    if(decoded.args[2]!==hash(body.metadata)||decoded.args[5]!==policyHash(body.policy))throw Error('API task metadata or policy commitment mismatch');
+  }else if(decoded.args[0]!==BigInt(body.taskId))throw Error('API task ID mismatch');
+  return {...value,note:body.action,to:expected};
+}
+export async function requestPreparation(body,{base=process.env.ONERUB_API_BASE||'https://onerub.net',fetcher=fetch,config=activeDeployment()}={}){
+  const url=new URL('/api/marketplace/prepare',base);
+  if(url.protocol!=='https:'&&!['localhost','127.0.0.1','[::1]'].includes(url.hostname))throw Error('Marketplace API requires HTTPS');
+  requireFundingDeployment(body, config);
+  const response=await fetcher(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,chainId:config.chainId,escrowAddress:config.address}),signal:AbortSignal.timeout(30000),cache:'no-store'});
+  let value;try{value=await response.json();}catch{throw Error('Marketplace API returned invalid JSON');}
+  if(!response.ok)throw Error('Marketplace preparation failed: '+String(value?.code||'REQUEST_FAILED')+' '+String(value?.error||'').slice(0,300));
+  return value;
+}
+export async function runTask(args,{baw,prepare=requestPreparation,config=activeDeployment(),print=v=>console.log(JSON.stringify(v)),nowSec=BigInt(Math.floor(Date.now()/1000))}={}){
+  const command=args.find(arg=>arg!=='--execute');
+  requireFundingDeployment({action:command==='create'?'createAndFund':command},config);
+  const planned=buildTaskRequest(args,{from:config.address});
+  requireFundingDeployment(planned.body, config);
+  if(planned.body.action==='rejectAll'&&(config.version||1)<2)throw Error('rejectAll requires a verified V2 deployment; V1 supports timeout refund only');
+  // Settings and wallet identity are read locally. No private key or session is
+  // sent to ONERUB: only public task input and unsigned calldata are exchanged.
+  baw ??= makeBawRunner();
+  const settings=baw(['wallet','settings','--json']);const dev=settings?.data?.devMode,raw=dev?.expiresAt;
   const numeric=typeof raw==='number'||(typeof raw==='string'&&/^\d+$/.test(raw))?Number(raw):null;
   const expiry=numeric!==null?(numeric<1e12?numeric*1000:numeric):raw?Date.parse(raw):null;
   if(!settings?.success||dev?.enabled!==true||(expiry!==null&&(!Number.isFinite(expiry)||expiry<=Number(nowSec)*1000)))throw Error('Developer Mode disabled or expired; enable it in Binance App before preview');
-  const from=fromAddress(baw);
-  print({step:'plan',from,to:call.to,note:call.note,inputData:call.data});
-  const preview=baw(['contract-call','preview','--binanceChainId',CHAIN,'--from',from,'--to',call.to,'--value','0','--inputData',call.data,'--json']);
-  print({step:'preview',preview});
+  const from=fromAddress(baw);const {body,execute}=planned;if(body.action==='submitCommitment')body.worker=from;
+  const call=validatePrepared(await prepare(body,{config}),body,config);
+  print({step:'plan',from,chainId:config.chainId,escrowVersion:config.version||1,compatibility:config.compatibility,to:call.to,note:call.note,inputData:call.data,policyHash:call.policyHash,criteriaHash:call.criteriaHash});
+  const preview=baw(['contract-call','preview','--binanceChainId',String(config.chainId),'--from',from,'--to',call.to,'--value','0','--inputData',call.data,'--json']);print({step:'preview',preview});
   const requestId=preview?.data?.requestId,code=preview?.data?.simulationResult?.simulationCode;
   if(!preview?.success||typeof requestId!=='string'||!/^[A-Za-z0-9_-]{1,256}$/.test(requestId)||(code&&code!=='000000000'))throw Error('Preview failed, intercepted, or missing a usable requestId; not executing');
-  if(!call.execute){print({step:'dry-run',requestId,broadcast:false,hint:'Inspect parsed transaction and risks before --execute'});return;}
-  const execution=baw(['contract-call','execute','--requestId',requestId,'--json']);
-  print({step:'execute',execution,confirmedOnChain:false,hint:'Check App confirmation and receipt: broadcast is not settlement'});
+  if(!execute){print({step:'dry-run',requestId,broadcast:false,hint:'Inspect parsed transaction and risks before --execute'});return;}
+  const execution=baw(['contract-call','execute','--requestId',requestId,'--json']);print({step:'execute',execution,confirmedOnChain:false,hint:'Check App confirmation and receipt: broadcast is not settlement'});
   if(!execution?.success)throw Error('Wallet execution request failed');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
-  try{runTask(process.argv.slice(2));}catch(error){console.error(JSON.stringify({step:'stop',error:error.message}));process.exitCode=1;}
+  try{await runTask(process.argv.slice(2));}catch(error){console.error(JSON.stringify({step:'stop',error:error.message}));process.exitCode=1;}
 }
