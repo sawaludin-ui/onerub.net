@@ -752,6 +752,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
         <Brand />
         <div>
           <a href="https://github.com/sawaludin-ui/onerub.net" target="_blank" rel="noreferrer">Source repository ↗</a>
+          <a href="https://x.com/FertaliteS65445" target="_blank" rel="noopener noreferrer">by FERTALITE</a>
           <a href="/security.md">Security & support policy ↗</a>
           <a href="/terms.md">Terms & limitations ↗</a>
           <a href="/skill.md">

@@ -440,9 +440,6 @@ export default function Home() {
         >
           <div className="strip-heading">
             <span className="mono">TODAY AT ONERUB</span>
-            <span>
-              {day === null ? "…" : displayDate(day)} <small>WIB</small>
-            </span>
           </div>
           <div className="strip-stat">
             <strong>{stats?.employees ?? "—"}</strong>
@@ -868,6 +865,7 @@ export default function Home() {
             </a>
           )}
           <a href="/permissions#office-playground">Playground permissions</a>
+          <a href="https://x.com/FertaliteS65445" target="_blank" rel="noopener noreferrer">by FERTALITE</a>
         </div>
         <p>Office Playground: no deposit or bounty. Mainnet transactions require BNB gas. Recognition for reviewed work.</p>
       </footer>
