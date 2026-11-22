@@ -479,12 +479,12 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                         {readablePhase(task)}
                       </span>
                     </div>
-                    <div>
+                    <div className="market-task-preview">
                       <span className="task-level">
                         {task.metadata?.category || "Agent assignment"}
                       </span>
-                      <h3>{title(task)}</h3>
-                      <p>
+                      <h3 className="market-task-title" title={title(task)}>{title(task)}</h3>
+                      <p className="market-task-description">
                         {task.metadata?.description ||
                           "Brief not published — do not start work. Observe this funded escrow or open the task for requester recovery."}
                       </p>
@@ -509,7 +509,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                       <span title={deadline(task.submissionDeadline, true)}>Due {deadline(task.submissionDeadline)}</span>
                     </div>
                     <p className="task-risk">Gross {amount(task.bounty, token.decimals)} {token.symbol} · others receive 0 · BNB gas separate</p>
-                    <a className={`button ${index === 0 ? "light" : "dark"}`} href={taskPermalink({ chainId: deployment.chainId, contract, id: task.id })}>View task <ArrowUpRight size={17} /></a>
+                    <a className={`button ${index === 0 ? "light" : "dark"}`} href={taskPermalink({ chainId: deployment.chainId, contract, id: task.id })} aria-label={`Detail: ${title(task)}`}>Detail <ArrowUpRight size={17} /></a>
                   </article>
                 );
               })}
@@ -948,7 +948,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                 <span className="mint-tag">
                   TASK #{selected.id} · {readablePhase(selected)}
                 </span>
-                <h2>{title(selected)}</h2>
+                <h2 className="task-detail-title" title={title(selected)}>{title(selected)}</h2>
                 <a className="text-link" href={taskPermalink({ chainId: deployment.chainId, contract, id: selected.id })}>Task permalink · chain {deployment.chainId} · escrow V{deployment.version} ↗</a>
                 <p className="wallet-address">{contract}</p>
                 {detailLoading && (
@@ -961,12 +961,23 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                     {detailError}
                   </p>
                 )}
-                <p>
+                <p className={hasTaskBrief(selected) ? "task-detail-preview" : "small-note"}>
                   {selected.metadata?.description ||
                     "Brief not published — do not start work. The requester can recover the original matching metadata below without funding another task."}
                 </p>
+                {hasTaskBrief(selected) && <details className="task-brief-details">
+                  <summary>Read full task brief</summary>
+                  <h3>{title(selected)}</h3>
+                  <p>{selected.metadata.description}</p>
+                  <h4>Acceptance criteria</h4>
+                  <p>{typeof selected.metadata.rubric === "string" ? selected.metadata.rubric : JSON.stringify(selected.metadata.rubric)}</p>
+                </details>}
                 {!detailLoading && !detailError && <>
-                  <MetadataIntegrity key={`${selected.id}:${selected.criteriaHash}`} task={selected} onVerificationChange={setBriefVerified} />
+                  <p className="small-note" role="status">{briefVerified ? "Brief and policy hashes match." : "Brief or policy not verified — do not start work."}</p>
+                  <details className="task-technical-details">
+                    <summary>Verify metadata &amp; policy hashes</summary>
+                    <MetadataIntegrity key={`${selected.id}:${selected.criteriaHash}`} task={selected} onVerificationChange={setBriefVerified} />
+                  </details>
                   <p className="small-note">Criteria verification is separate from policy verification. A matching hash proves the published bytes match the commitment, not evaluator correctness or delivery.</p>
                   <p className="small-note">{selfTaskNotice(selected, knownAccount)}</p>
                   {hasTaskBrief(selected) && <button type="button" className="text-link" aria-expanded={showPublisher} onClick={() => setShowPublisher(value => !value)}>Requester: recover / republish metadata</button>}
@@ -1091,16 +1102,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                 >
                   Requester history <ArrowUpRight size={15} />
                 </button>
-                {selected.metadata?.rubric && (
-                  <>
-                    <h4>Acceptance criteria</h4>
-                    <p className="public-criteria">
-                      {typeof selected.metadata.rubric === "string"
-                        ? selected.metadata.rubric
-                        : JSON.stringify(selected.metadata.rubric)}
-                    </p>
-                  </>
-                )}
+
                 {selected.criteriaHash && (
                   <>
                     <h4>Criteria commitment</h4>

@@ -56,7 +56,7 @@ try {
  await publisher.getByRole('button',{name:'Connect requester wallet',exact:true}).click();await publisher.getByText(/Requester connected on BNB Smart Chain/).waitFor();
  check('Separate connect button does not sign',(await page.evaluate(()=>window.__syntheticWalletCalls)).filter(m=>m==='eth_signTypedData_v4').length===0);
  await publisher.getByRole('button',{name:'Sign metadata & publish',exact:true}).click();
- await page.locator('.metadata-integrity').getByText('MATCH — displayed metadata matches criteriaHash.',{exact:true}).waitFor();
+ await page.locator('.metadata-integrity').getByText('MATCH — displayed metadata matches criteriaHash.',{exact:true}).waitFor({state:'attached'});
  check('Signed real handler publishes once and public readback independently matches',commitCount===1&&challengeCount===1&&hash(records.get('metadata:'+task.id).metadata)===task.criteriaHash);
  const calls=await page.evaluate(()=>window.__syntheticWalletCalls);check('One explicit signature; zero transaction/approval methods',calls.filter(m=>m==='eth_signTypedData_v4').length===1&&!calls.some(m=>m==='eth_sendTransaction'||m==='wallet_sendCalls'||m==='personal_sign'));
  check('Known requester gets self-task notice',(await page.locator('dialog').innerText()).includes('own task'));
@@ -68,7 +68,7 @@ try {
  await page.getByRole('button',{name:/Close/}).first().click();
  const card=page.locator('.market-task-card').first();await card.waitFor();check('Board refresh replaces missing brief with actual title',(await card.innerText()).includes(metadata.title)&&!(await card.innerText()).includes('Brief not published'));
  task.policy={...task.policy,minScore:99};await page.goto(base+'/tasks/56/'+baseline.contract+'/'+task.id,{waitUntil:'networkidle'});
- await page.locator('.metadata-integrity').getByText('MISMATCH — policy JSON does not match policyHash.',{exact:false}).waitFor();
+ await page.locator('.metadata-integrity').getByText('MISMATCH — policy JSON does not match policyHash.',{exact:false}).waitFor({state:'attached'});
  check('Client policy mismatch blocks worker even when server policyVerified=true',await page.locator('button[aria-describedby=worker-brief-status]').isDisabled());
  task.policy=baseline.task.policy;task.id='2';records.clear();
  await page.goto(base+'/tasks/56/'+baseline.contract+'/2?external=1',{waitUntil:'networkidle'});await publisher.waitFor();
@@ -77,7 +77,7 @@ try {
  await publisher.locator('[data-field=manual-address]').fill(wallet.address);await publisher.getByRole('button',{name:'Get metadata signing challenge',exact:true}).click();
  await publisher.locator('textarea[name=typedData]').waitFor();const typed=JSON.parse(await publisher.locator('textarea[name=typedData]').inputValue());const{EIP712Domain,...types}=typed.types;
  const manualSignature=await wallet.signTypedData(typed.domain,types,typed.message);await publisher.locator('[data-field=signature]').fill(manualSignature);await publisher.getByRole('button',{name:'Verify signature & publish',exact:true}).click();
- await page.locator('.metadata-integrity').getByText('MATCH — displayed metadata matches criteriaHash.',{exact:true}).waitFor();
+ await page.locator('.metadata-integrity').getByText('MATCH — displayed metadata matches criteriaHash.',{exact:true}).waitFor({state:'attached'});
  check('External wallet signature plus original file recovers metadata without injected provider',commitCount===2&&challengeCount===2&&(await page.evaluate(()=>window.__syntheticWalletCalls)).length===0);
  check('No runtime JS errors',report.errors.length===0);
  report.walletMethods=calls;report.commitCount=commitCount;report.challengeCount=challengeCount;report.pass=true;

@@ -359,9 +359,24 @@ button svg, a svg { flex: none; }
 .market-result-note { padding-block:1rem 1.4rem; font-size:.8rem; color:var(--slate); }
 .market-readiness { display:flex; gap:.6rem; align-items:flex-start; padding:1rem 1.2rem; margin-bottom:1.3rem; background:#f3e7c1; border-radius:1rem; font-size:.88rem; }
 .market-readiness svg { flex:none; margin-top:.1rem; }
-.market-task-card { min-height:27rem; }
-.market-task-card h3 { overflow-wrap:anywhere; }
-.market-task-card > div > p { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
+.market-task-card { min-height: 0; gap: .55rem; padding: 1rem; justify-content: flex-start; }
+.market-task-preview { min-inline-size: 0; }
+.market-task-preview .task-level { margin-bottom: .25rem; font-size: .65rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.market-task-card .market-task-meta { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .35rem .6rem; padding-top: .6rem; font-size: .75rem; }
+.market-task-card .market-task-title { font-size: 1.125rem; line-height: 1.35; letter-spacing: -.025em; }
+.market-task-title, .market-task-description, .task-detail-title, .task-detail-preview { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-inline-size: 0; }
+.market-task-card .market-task-description { display: block; font-size: .875rem; line-height: 1.45; margin-top: .4rem; }
+.market-task-card .task-bounty strong { font-size: 1.75rem; }
+.market-task-card .task-risk { font-size: .75rem; margin-top: 0; }
+.market-task-card > .button { min-height: 44px; padding-block: .65rem; margin-top: auto; }
+.modal .task-detail-title { font-size: clamp(1.25rem, 2.5vw, 1.65rem); line-height: 1.35; margin-block: 1rem .65rem; letter-spacing: -.025em; }
+.task-detail-preview { font-size: .9rem; }
+.task-brief-details, .task-technical-details { min-inline-size: 0; margin-block: .8rem; border: 1px solid var(--line); border-radius: .65rem; padding: .65rem .8rem; }
+.task-brief-details > summary, .task-technical-details > summary { min-height: 44px; display: list-item; align-content: center; cursor: pointer; font-size: .9rem; font-weight: 600; }
+.task-brief-details > summary:focus-visible, .task-technical-details > summary:focus-visible { outline: 3px solid #007d5a; outline-offset: 3px; }
+.task-brief-details h3 { font-size: 1.1rem; line-height: 1.4; margin-block: .8rem; overflow-wrap: anywhere; }
+.task-brief-details p { font-size: .9rem; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.task-technical-details .metadata-integrity { margin-block: .6rem 0; padding: .8rem; }
 .market-phase { font-size:.72rem; white-space:nowrap; }
 .phase-open { background:var(--mint); }.phase-review { background:#fff39b; }.phase-settled { background:#d3e3ff; }.phase-expired,.phase-refunded,.phase-cancelled { background:#e7e7e7; }
 .task-bounty { display:grid; gap:.2rem; }
@@ -406,7 +421,7 @@ button svg, a svg { flex: none; }
 .contract-addresses { font:.85rem/1.8 var(--mono); letter-spacing:0; }
 @media(max-width:1100px){.market-strip { grid-template-columns:1fr 1fr 1fr auto; }.market-strip .strip-heading { grid-column:1/-1; flex-direction:row; align-items:center; justify-content:space-between; }.market-task-card .task-card-top { align-items:flex-start; flex-wrap:wrap; }.process-grid { gap:1.2rem; }}
 @media(max-width:900px){.market-hero h1 { font-size:clamp(5rem,10.4vw,7rem); }.market-hero .office-film { bottom:5%; }.process-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:2rem; }.process-number { margin-bottom:1.7rem; }.market-trust { grid-template-columns:1fr; }.trust-intro h2 { font-size:clamp(4rem,9vw,6rem); }.market-loading { grid-template-columns:1fr 1fr; }.task-skeleton:last-of-type { display:none; }}
-@media(max-width:620px){.market-hero h1 { font-size:clamp(4.5rem,16.5vw,7rem); }.market-hero .office-film { bottom:auto; margin-top:-1.3rem; }.market-strip { gap:1.3rem .6rem; grid-template-columns:repeat(3,minmax(0,1fr)); }.market-strip > a { grid-column:1/-1; margin-top:.2rem; }.market-strip .strip-stat > span { font-size:.74rem; }.market-toolbar { flex-wrap:wrap; }.market-toolbar .filter-pills { flex:1; }.market-search { order:3; width:100%; margin-left:0; }.market-search input { width:100%; }.market-task-card { min-height:24rem; }.market-loading { grid-template-columns:1fr; }.task-skeleton:not(:first-of-type) { display:none; }.marketplace-process .section-top { gap:1.4rem; }.process-intro { max-width:100%; }.process-grid { gap:1.5rem 1rem; }.process-step h3 { font-size:1.4rem; }.process-step p { font-size:.88rem; }.process-number { margin-bottom:1.4rem; }.trust-intro h2 { font-size:clamp(3.3rem,12.6vw,5rem); }.trust-rules article { grid-template-columns:1.2rem 1fr; gap:.5rem; }.closing-docs { display:flex; margin:1.1rem 0 0; }.task-detail-grid { gap:1.2rem .7rem; }.task-detail-grid dd { font-size:.9rem; }}
+@media(max-width:620px){.market-hero h1 { font-size:clamp(4.5rem,16.5vw,7rem); }.market-hero .office-film { bottom:auto; margin-top:-1.3rem; }.market-strip { gap:1.3rem .6rem; grid-template-columns:repeat(3,minmax(0,1fr)); }.market-strip > a { grid-column:1/-1; margin-top:.2rem; }.market-strip .strip-stat > span { font-size:.74rem; }.market-toolbar { flex-wrap:wrap; }.market-toolbar .filter-pills { flex:1; }.market-search { order:3; width:100%; margin-left:0; }.market-search input { width:100%; }.market-task-card { min-height:0; }.market-loading { grid-template-columns:1fr; }.task-skeleton:not(:first-of-type) { display:none; }.marketplace-process .section-top { gap:1.4rem; }.process-intro { max-width:100%; }.process-grid { gap:1.5rem 1rem; }.process-step h3 { font-size:1.4rem; }.process-step p { font-size:.88rem; }.process-number { margin-bottom:1.4rem; }.trust-intro h2 { font-size:clamp(3.3rem,12.6vw,5rem); }.trust-rules article { grid-template-columns:1.2rem 1fr; gap:.5rem; }.closing-docs { display:flex; margin:1.1rem 0 0; }.task-detail-grid { gap:1.2rem .7rem; }.task-detail-grid dd { font-size:.9rem; }}
 
 /* Two experiences share one domain, with a distinct office entry. */
 .nav-pill .nav-playground { background:transparent; color:var(--slate); border-left:1px solid var(--line); border-radius:0; }
