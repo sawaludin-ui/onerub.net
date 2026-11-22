@@ -1,4 +1,4 @@
-#36finding remediation matrix
+# 36-finding remediation matrix
 
 This closes the implementation-and-evidence work package, NOT all residual risks or hackathon eligibility. Implemented, mitigated and partial are deliberately different. The original audit remains historical, not silently rewritten into36green checkmarks.
 
