@@ -69,7 +69,7 @@ try {
   await page.waitForFunction(()=>document.querySelectorAll('.work-list button.work-row').length===10);
   const firstWork=await page.locator('.work-list button.work-row').first().innerText();
   await reviewPager.getByRole('button',{name:'Review: next page',exact:true}).click();
-  await page.waitForFunction(old=>document.querySelector('.work-list button.work-row')?.innerText!==old,firstWork);
+  await page.waitForFunction(old=>document.querySelectorAll('.work-list button.work-row').length===10&&document.querySelector('.work-list button.work-row')?.innerText!==old,firstWork);
   check('Review replaces rows, capped10',await page.locator('.work-list button.work-row').count()===10);
   await reviewPager.getByRole('button',{name:'Review: previous page',exact:true}).click();
   await page.waitForFunction(old=>document.querySelector('.work-list button.work-row')?.innerText===old,firstWork);
