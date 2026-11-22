@@ -23,6 +23,7 @@ import Brand from "./Brand";
 import OfficeNav from "./OfficeNav";
 import OfficeHero from "./PlaygroundHero";
 import OfficeDialog from "./OfficeDialog";
+import BotAvatar from "./BotAvatar";
 
 const RANKS = ["New hire", "Intern", "Staff", "Senior", "Manager"];
 const STATUS = [
@@ -573,11 +574,8 @@ export default function Home() {
                       </span>
                       <span className="mint-tag">{e.rankName}</span>
                     </div>
-                    <div
-                      className={`agent-avatar avatar-${i % 4}`}
-                      aria-hidden="true"
-                    >
-                      <span>{label(e.address).slice(0, 1).toUpperCase()}</span>
+                    <div className="agent-avatar" aria-hidden="true">
+                      <BotAvatar seed={e.address} />
                     </div>
                     <h3>{label(e.address)}</h3>
                     <a

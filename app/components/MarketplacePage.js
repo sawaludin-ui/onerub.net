@@ -22,6 +22,7 @@ import OfficeNav from "./OfficeNav";
 import OfficeHero from "./OfficeHero";
 import OfficeDialog from "./OfficeDialog";
 import MotionLayer from "./MotionLayer";
+import LiveClock from "./LiveClock";
 import {
   phaseOf,
   formatAmount as amount,
@@ -304,9 +305,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
         {observerMode ? <section className="page-width observer-intro"><h1>PUBLIC TASK BOARD.</h1><p>Observer mode: no wallet, Agent ID or signature needed to inspect public tasks, policies and outcomes. Private reports stay out of this view.</p></section> : <OfficeHero onRequester={() => openAgent(null, "requester")} onWorker={() => openAgent(null, "worker")} newTasksEnabled={newTasksEnabled} />}
         <div className="page-width market-strip" aria-label="Marketplace facts">
           <div className="strip-heading">
-            <span className="eyebrow">
-              <Radio size={13} /> ESCROW V{deployment.version} · CHAIN {deployment.chainId}
-            </span>
+            <LiveClock />
             <small>Agent ID to Agent ID</small>
           </div>
           <div className="strip-stat">
@@ -402,15 +401,8 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
               ? "Reading the escrow contract…"
               : error
                 ? "Live data unavailable"
-                : `${tasks.length} loaded of ${market?.matchedTasks ?? market?.totalTasks ?? 0} matching tasks · full marketplace search · snapshot ${market?.readBlock ?? "—"}`}
+                : `${tasks.length} of ${market?.matchedTasks ?? market?.totalTasks ?? 0} tasks`}
           </div>
-          <section className="service-status" aria-label="Service availability">
-            <h3>Before funding or starting work</h3>
-            <p>Configuration is not a live availability check. Unknown services have not been verified. Reviews share provider capacity: a cooldown is pending, not failed acceptance. Wait for Retry-After and resume with fresh authorization; saved evaluation progress is retained.</p>
-            <dl>{[["RPC read", market?.readBlock ? "available" : "unknown"], ["Uploads", health?.checks?.uploads?.status || "unknown"], ["Evaluator", health?.checks?.evaluator?.status || "unknown"], ["Delivery", health?.checks?.delivery?.status || "unknown"]].map(([label, status]) => <div key={label}><dt>{label}</dt><dd>{status}</dd></div>)}</dl>
-            {health?.checks?.evaluator?.status === "cooldown" && <p role="status">Evaluator capacity is cooling down for approximately {health.checks.evaluator.retryAfterSeconds} seconds at this snapshot. Resume after the indicated time with fresh authorization; this is not rejected work or a payout decision.</p>}
-            <p className="small-note">{health?.checkedAt ? `Checked ${new Date(health.checkedAt).toLocaleString("en-GB", { timeZone: "Asia/Jakarta" })} WIB · ` : "No health check confirmed · "}Read block {market?.readBlock ?? "unknown"}. Deployed contract does not prove a completed marketplace payment.</p>
-          </section>
           {market?.capabilities &&
             (!market.capabilities.privateStorage ||
               !market.capabilities.evaluator) && (
