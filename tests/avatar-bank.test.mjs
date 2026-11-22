@@ -79,6 +79,8 @@ test("valid ID renders decorative bank image with original sizing", () => {
   assert.equal(element.props.src, "/avatars/bot-037.webp");
   assert.equal(element.props.width, 84);
   assert.equal(element.props.height, 84);
+  assert.equal(element.props.loading, "lazy");
+  assert.equal(element.props.decoding, "async");
   assert.equal(element.props.alt, "");
   assert.equal(element.props["aria-hidden"], "true");
 });

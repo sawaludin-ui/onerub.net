@@ -3,6 +3,8 @@
 node_modules
 .next
 artifacts
+.agents
+skills-lock.json
 tests
 data
 .env*

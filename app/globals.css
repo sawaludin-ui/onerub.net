@@ -230,7 +230,7 @@ button svg, a svg { flex: none; }
 .modal h4 { margin: 1.3rem 0 .5rem; }
 .modal > p { line-height: 1.45; }
 .modal .prompt-box, .data-block { background: white; border-radius: 1rem; padding: 1.15rem; margin-block: 1.1rem .5rem; }
-.prompt-box { font-size: .97rem; line-height: 1.45; }
+.prompt-box { font-size: .97rem; line-height: 1.45; overflow-wrap: anywhere; }
 .data-block { font: .82rem/1.5 var(--mono); letter-spacing: 0; max-height: 19rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
 .modal-divider { margin-top: 1.4rem; font: .75rem/1.4 var(--mono); text-align: center; }
 .modal .small-note { display: block; font-size: .84rem; color: var(--slate); line-height: 1.45; margin-top: .9rem; }
@@ -318,7 +318,7 @@ button svg, a svg { flex: none; }
   .task-card p { max-width: 32rem; }
   .task-card-bottom > span { display: inline-flex; }
   .task-card-bottom .button { min-width: 7rem; }
-  .person-card { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: .1rem 1rem; }
+  .person-card { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: .1rem 1rem; }
   .person-top, .person-score { grid-column: 1/-1; }
   .agent-avatar { grid-column: 1; grid-row: 2/4; margin: 1.15rem 0 .3rem; }
   .person-card h3 { align-self: end; }
@@ -497,16 +497,19 @@ button svg, a svg { flex: none; }
 /* ============================================================
    10/10 UPGRADE — depth, motion & polish (presentation only)
    ============================================================ */
-body {
+/* Keep the viewport-fixed wash on one bounded layer, not the scrolling canvas. */
+body { isolation: isolate; }
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background:
     radial-gradient(135% 90% at 100% -10%, rgb(240 185 11 / .06), transparent 55%),
     radial-gradient(120% 90% at -10% 0%, rgb(19 105 47 / .04), transparent 50%),
     var(--canvas);
-  background-attachment: fixed;
+  transform: translateZ(0);
 }
 
 /* scroll reveal (JS adds .js-reveal, then .in when visible) */
-.js-reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s var(--ease) var(--reveal-delay,0ms), transform .7s var(--ease) var(--reveal-delay,0ms); will-change: opacity, transform; }
+.js-reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s var(--ease) var(--reveal-delay,0ms), transform .7s var(--ease) var(--reveal-delay,0ms); }
 .js-reveal.in { opacity: 1; transform: none; }
 
 /* sticky nav condenses + frosts on scroll */
@@ -576,3 +579,48 @@ html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { width: 
 .film-control { display: none; }
 @media (max-width: 900px) { .market-hero .office-film { width: 40vw; top: 50%; bottom: auto; margin-top: -20vw; right: 1%; } }
 @media (max-width: 620px) { .market-hero .office-film { position: relative; inset: auto; top: auto; bottom: auto; margin: -1rem -1.2rem -1.3rem 0; width: min(70vw, 20rem); } }
+
+/* Shrink content tracks rather than clipping long agent names, URLs or briefs. */
+:where(.section-top, .employee-banner, .career-step, .market-trust, .trust-rules, .trust-rules article, .work-row, .task-detail-grid, .trust-summary) > * { min-width: 0; }
+.trust-rules article { grid-template-columns: 1.6rem minmax(0, 1fr); }
+.permissions-page h1 { overflow-wrap: anywhere; }
+:where(.task-card, .career-step, .process-step, .trust-summary, .service-status, .modal) { overflow-wrap: anywhere; }
+.task-card-bottom { flex-wrap: wrap; }
+.person-card .address-link { min-width: 0; max-width: 100%; }
+.rank-select, .rank-select select { max-width: 100%; }
+.modal :where(input, select, textarea) { max-width: 100%; min-width: 0; }
+
+/* Keep the existing desktop pill; reduce only its cramped intermediate padding. */
+@media (min-width: 1151px) and (max-width: 1450px) {
+  .nav-pill a, .nav-pill .nav-playground { padding-inline: .8rem; }
+}
+@media (max-width: 1150px) {
+  .nav-pill.open { max-height: calc(100dvh - 6rem); overflow-y: auto; overscroll-behavior: contain; }
+  .nav-pill.open a { white-space: normal; overflow-wrap: anywhere; }
+}
+@media (min-width: 621px) and (max-width: 900px) {
+  .hero:not(.market-hero) h1 { font-size: clamp(2rem, 4.6vw, 2.8rem); }
+}
+@media (max-width: 900px) {
+  .market-trust { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 620px) {
+  .section-top h2, .closing-section h2 { font-size: clamp(2rem, 10.5vw, 3.6rem); }
+  .hero:not(.market-hero) h1 { font-size: clamp(1.6rem, 8vw, 3.1rem); }
+  .trust-intro h2 { font-size: clamp(1.9rem, 7.2vw, 3.3rem); overflow-wrap: anywhere; }
+  .permissions-page h1 { font-size: clamp(2rem, 7.5vw, 3.2rem); }
+  .trust-rules article { grid-template-columns: 1.2rem minmax(0, 1fr); }
+  .person-score { flex-wrap: wrap; }
+  .modal-actions > .button { flex: 1 1 auto; }
+  .task-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 380px) {
+  .hero h1, .market-hero h1 { font-size: clamp(1.75rem, 8.4vw, 2rem); }
+  .office-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .market-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .process-grid, .task-detail-grid, .service-status dl { grid-template-columns: minmax(0, 1fr); }
+}
+/* Native touch editing stays at 16px without disabling browser zoom. */
+@media (pointer: coarse) {
+  .market-search input, .profile-lookup input, .rank-select select, .modal :where(input, select, textarea) { font-size: max(1rem, 16px); }
+}

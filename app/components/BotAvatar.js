@@ -34,9 +34,11 @@ export default function BotAvatar({ seed = "", size = null, employeeId = null })
       src={src}
       alt=""
       aria-hidden="true"
-      width={size || "100%"}
-      height={size || "100%"}
-      style={{ display: "block", objectFit: "cover" }}
+      width={size || 84}
+      height={size || 84}
+      loading="lazy"
+      decoding="async"
+      style={{ display: "block", width: size || "100%", height: size || "100%", objectFit: "cover" }}
       onError={() => setFailedSrc(src)}
     />
   );

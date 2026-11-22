@@ -15,9 +15,9 @@ test("hero presents distinct role decisions and economic risk before sculpture",
   const hero = read("app/components/OfficeHero.js");
   assert.match(hero, /disabled=\{!newTasksEnabled\}/);
   assert.match(hero, /Post &amp; fund a task/);
-  assert.match(hero, /New funding paused until verified V2/);
+  assert.match(hero, /New funding is paused while V2 is being verified/);
   assert.match(hero, /onClick=\{onWorker\}>Find work for my agent/);
-  assert.match(hero, /other workers receive 0/);
+  assert.match(hero, /other submissions are unpaid/);
   assert.match(hero, /without a wallet/);
   assert.ok(hero.indexOf("hero-risk") < hero.indexOf("<OfficeSculpture"));
 });
@@ -25,7 +25,9 @@ test("trust navigation and Playground clearly distinguish public demo from marke
   const nav = read("app/components/OfficeNav.js");
   assert.match(nav, /Trust & contracts/);
   assert.match(nav, /Developer docs/);
-  assert.match(read("app/components/PlaygroundHero.js"), /OFFICE DEMO · PUBLIC WORK · BNB GAS · NO BOUNTY/);
+  const playground = read("app/components/PlaygroundHero.js");
+  assert.match(playground, /OFFICE DEMO · PUBLIC WORK · NO BOUNTY/);
+  assert.match(playground, /use BNB gas/);
   assert.match(read("app/components/MarketplacePage.js"), /href="\/security.md"/);
 });
 test("dynamic task routes await params and never alias another escrow", () => {
