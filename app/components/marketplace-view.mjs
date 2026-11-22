@@ -48,6 +48,23 @@ export function fundingHealthWarning(health) {
     ? "Latest observation reports healthy; refresh health and funding readiness immediately before approval. This is not a guarantee of review or delivery."
     : `Funding health is ${health?.status === "healthy" ? "not fully verified" : health?.status === "degraded" ? "degraded" : "unknown"}: ${uncertain.map(([name, state]) => `${name}: ${state}`).join(", ") || "fresh readiness verification required"}. Before approve or createAndFund, require a fresh readiness check and explicit acknowledgement of the current warning. On HEALTH_ACK_REQUIRED, show the returned readiness checks and request explicit confirmation before retrying the same prepare body with healthAcknowledgement:{accepted:true,token,expiresAt} from that warning; never auto-acknowledge. Expired acknowledgement or changed request/readiness requires a new warning. Direct contract calls bypass this off-chain gate. Acknowledgement never bypasses fatal storage, authorization or key failures.`;
 }
+
+// Human-readable summary of funding readiness for the dialog UI.
+export function fundingHealthSummary(health) {
+  const names = ["rpc", "storage", "encryption", "attestation", "evaluator", "uploads", "delivery"];
+  const components = health?.checks || health?.components || {};
+  const states = names.map(name => {
+    const item = components[name];
+    const raw = typeof item === "string" ? item : item?.status;
+    return { name, status: ["available", "healthy", "ready", "unavailable", "degraded", "unknown", "cooldown", "not-required"].includes(raw) ? raw : "unknown" };
+  });
+  const uncertain = states.filter(s => !["available", "healthy", "ready", "not-required"].includes(s.status));
+  const overall = health?.status === "healthy" && !uncertain.length ? "healthy" : health?.status === "degraded" ? "degraded" : health?.status === "healthy" ? "not fully verified" : "unknown";
+  const headline = overall === "healthy"
+    ? "Readiness check passed. Refresh once more right before funding."
+    : `Readiness is ${overall}. Funding needs an explicit acknowledgement for this request.`;
+  return { overall, headline, states, uncertain };
+}
 export function taskToken(task, primary) {
   const info = task.tokenInfo;
   if (

@@ -371,7 +371,10 @@ button svg, a svg { flex: none; }
 .market-task-card > .button { min-height: 44px; padding-block: .65rem; margin-top: auto; }
 .modal .task-detail-title { font-size: clamp(1.25rem, 2.5vw, 1.65rem); line-height: 1.35; margin-block: 1rem .65rem; letter-spacing: -.025em; }
 .task-detail-preview { font-size: .9rem; }
-.task-brief-details, .task-technical-details { min-inline-size: 0; margin-block: .8rem; border: 1px solid var(--line); border-radius: .65rem; padding: .65rem .8rem; }
+.task-brief-details, .task-technical-details, .funding-health-details { min-inline-size: 0; margin-block: .8rem; border: 1px solid var(--line); border-radius: .65rem; padding: .65rem .8rem; }
+.funding-health { display: grid; gap: .5rem; }
+.funding-health-details > summary { min-height: 44px; display: list-item; align-content: center; cursor: pointer; font-size: .9rem; font-weight: 600; }
+.funding-health-details ul { margin: .6rem 0 0; padding-left: 1.1rem; font-size: .88rem; display: grid; gap: .2rem; }
 .task-brief-details > summary, .task-technical-details > summary { min-height: 44px; display: list-item; align-content: center; cursor: pointer; font-size: .9rem; font-weight: 600; }
 .task-brief-details > summary:focus-visible, .task-technical-details > summary:focus-visible { outline: 3px solid #007d5a; outline-offset: 3px; }
 .task-brief-details h3 { font-size: 1.1rem; line-height: 1.4; margin-block: .8rem; overflow-wrap: anywhere; }

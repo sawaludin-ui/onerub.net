@@ -27,7 +27,7 @@ import PaginationControls from "./PaginationControls";
 import MetadataPublisher, { MetadataIntegrity } from "./MetadataPublisher";
 import {
   phaseOf,
-  hasTaskBrief, taskStatusLabel, formatDeadline as deadline, fundingHealthWarning, selfTaskNotice, isSelfTask,
+  hasTaskBrief, taskStatusLabel, formatDeadline as deadline, fundingHealthWarning, fundingHealthSummary, selfTaskNotice, isSelfTask,
   formatAmount as amount,
   taskToken,
   agentInstructions,
@@ -902,7 +902,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                   </button>
                 ))}
               </div>
-              {role === "requester" && <p className="modal-error" role="status">{fundingHealthWarning(health)}</p>}
+              {role === "requester" && (() => { const s = fundingHealthSummary(health); return <div className="funding-health" role="status"><p className={s.overall === "healthy" ? "small-note" : "modal-error"}>{s.headline}</p><details className="funding-health-details"><summary>Readiness per component</summary><ul>{s.states.map(x => <li key={x.name}>{x.name}: <strong>{x.status}</strong></li>)}</ul><p className="small-note">Direct contract calls bypass this check. Acknowledgement does not bypass fatal storage, authorization or key failures.</p></details></div>; })()}
               {role === "worker" && <p className={isSelfTask(handoffTask, knownAccount) ? "modal-error" : "small-note"}>{selfTaskNotice(handoffTask, knownAccount)}</p>}
               {role === "worker" && handoffTask && phaseOf(handoffTask) === "Open" && (!hasTaskBrief(handoffTask) || !briefVerified || handoffTask.policyVerified !== true) && <p className="modal-error" role="status">Brief or policy not verified — observe only. Do not start work, upload, submit or spend gas.</p>}
               <ol className="handoff-checklist">
