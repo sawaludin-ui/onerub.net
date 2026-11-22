@@ -6,7 +6,7 @@ export async function GET(req) {
   if (address !== null && !walletAddress(address))
     return Response.json({ error: "Invalid wallet address." }, { status: 400 });
   try {
-    return Response.json(await officeState(address), {
+    return Response.json(await officeState(address, { summary: new URL(req.url).searchParams.get("summary") === "1" }), {
       headers: {
         "Cache-Control": address
           ? "private, no-store"

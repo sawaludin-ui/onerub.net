@@ -66,10 +66,12 @@ test("append-only onchain roster order survives paging, identity errors and scor
   assert.equal(before.get(addresses[100]), null);
 });
 
-test("Office passes registration directory number rather than score-sorted map index", () => {
+test("Office passes immutable server registration number rather than page or sorted index", () => {
   const source = readFileSync(new URL("../app/components/OfficePlayground.js", import.meta.url), "utf8");
-  assert.ok(source.includes("employeeId={directory.get(e.address.toLowerCase()).employeeNumber}"));
-  assert.ok(source.includes("employeeNumber: i + 1"));
+  assert.ok(source.includes("employeeId={e.employeeNumber}"));
+  assert.ok(!source.includes("employeeId={i + 1}"));
+  const backend = readFileSync(new URL("../lib/chain.mjs", import.meta.url), "utf8");
+  assert.ok(backend.includes("employeeNumber: start + i + 1"));
 });
 
 test("valid ID renders decorative bank image with original sizing", () => {

@@ -620,6 +620,24 @@ html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { width: 
   .market-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .process-grid, .task-detail-grid, .service-status dl { grid-template-columns: minmax(0, 1fr); }
 }
+/* Bounded server pages share responsive, keyboard-accessible controls. */
+:where(#people, #review, #tasks) { scroll-margin-block-start: 6rem; }
+.pagination-controls { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding-block: 1.4rem .3rem; }
+.pagination-summary { color: var(--slate); font: .84rem/1.5 var(--mono); overflow-wrap: anywhere; min-width: 0; }
+.pagination-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+.pagination-actions .button { min-height: 44px; }
+.people-toolbar { display: flex; align-items: end; flex-wrap: wrap; gap: 1rem; margin-block: 1.4rem; }
+.people-search, .people-rank { display: grid; gap: .45rem; min-width: 0; font-size: .85rem; }
+.people-search { flex: 1 1 15rem; }
+.people-rank { flex: 0 1 12rem; }
+.people-search input, .people-rank select { width: 100%; max-width: 100%; min-width: 0; min-height: 44px; border: 1px solid var(--line); border-radius: 1.4rem; padding: .75rem 1rem; background: transparent; color: var(--ink); font: inherit; font-size: 1rem; }
+@media (max-width: 620px) {
+  .pagination-controls { align-items: stretch; }
+  .pagination-summary, .pagination-actions { flex: 1 1 100%; }
+  .pagination-actions .button { flex: 1 1 0; }
+  .people-rank { flex: 1 1 12rem; }
+}
+
 /* Native touch editing stays at 16px without disabling browser zoom. */
 @media (pointer: coarse) {
   .market-search input, .profile-lookup input, .rank-select select, .modal :where(input, select, textarea) { font-size: max(1rem, 16px); }

@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createRequire} from 'node:module';
+import {runInNewContext} from 'node:vm';
+import {renderToStaticMarkup} from 'react-dom/server';
+const require=createRequire(import.meta.url);
+const source=readFileSync(new URL('../app/components/PaginationControls.js',import.meta.url),'utf8');
+const {code}=require('next/dist/build/swc').transformSync(source,{filename:'PaginationControls.js',jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'automatic'}}},module:{type:'commonjs'}});
+const exports={};runInNewContext(code,{exports,require});const Pager=exports.default;
+const markup=props=>renderToStaticMarkup(Pager({label:'People',page:1,pageSize:12,total:1000,onPageChange(){},...props}));
+test('1000 members show exact page count and bounded range',()=>{const html=markup({});assert.match(html,/Page 1 of 84/);assert.match(html,/1–12 of 1000/);assert.match(html,/aria-label="People pagination"/);assert.match(html,/role="status"/);assert.match(html,/aria-live="polite"/)});
+test('unknown match counts never pretend unfiltered total is exact',()=>{const html=markup({page:3,total:null,hasNext:true,hasPrevious:true});assert.match(html,/Page 3/);assert.doesNotMatch(html,/of null|of 0|NaN|Infinity/)});
+test('next and previous replace page by callback, loading disables navigation',()=>{const calls=[];const element=Pager({label:'Review',page:2,pageSize:10,total:1000,onPageChange:n=>calls.push(n)});const buttons=element.props.children[1].props.children;buttons[0].props.onClick();buttons[1].props.onClick();assert.deepEqual(calls,[1,3]);const busy=Pager({label:'Review',page:2,pageSize:10,total:1000,loading:true,onPageChange(){}});assert.ok(busy.props.children[1].props.children.every(b=>b.props.disabled));assert.match(markup({loading:true}),/Loading page/)});
+test('first and last page bounds and explicit cursor flags are respected',()=>{const first=Pager({label:'Tasks',page:1,pageSize:12,total:13,onPageChange(){}}).props.children[1].props.children;assert.equal(first[0].props.disabled,true);assert.equal(first[1].props.disabled,false);const last=Pager({label:'Tasks',page:2,pageSize:12,total:13,onPageChange(){}}).props.children[1].props.children;assert.equal(last[1].props.disabled,true);const cursor=Pager({label:'Tasks',page:3,pageSize:12,total:null,hasNext:false,hasPrevious:true,onPageChange(){}}).props.children[1].props.children;assert.equal(cursor[1].props.disabled,true)});
+test('empty results and last partial page never report impossible ranges',()=>{assert.match(markup({total:0}),/No results/);const html=markup({page:84});assert.match(html,/997–1000 of 1000/);assert.doesNotMatch(html,/1008/)});

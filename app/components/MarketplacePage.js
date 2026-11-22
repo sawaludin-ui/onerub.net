@@ -23,12 +23,14 @@ import OfficeHero from "./OfficeHero";
 import OfficeDialog from "./OfficeDialog";
 import MotionLayer from "./MotionLayer";
 import LiveClock from "./LiveClock";
+import PaginationControls from "./PaginationControls";
 import {
   phaseOf,
   formatAmount as amount,
   taskToken,
   agentInstructions,
   listQuery,
+  TASK_PAGE_SIZE, firstTaskPage, taskPageTarget, acceptTaskPage, taskPageTotal, scheduleTaskSearch,
   requestGate,
   taskPermalink,
   publicErrorMessage,
@@ -57,11 +59,21 @@ const title = (task) => task.metadata?.title || `Task #${task.id}`;
 const receiptEnforced = deployment.version === 2;
 async function readApi(url, signal) {
   let response;
-  try { response = await fetch(url, { cache: "no-store", signal }); }
+  const deadlineSignal = typeof AbortSignal.any === "function" && typeof AbortSignal.timeout === "function"
+    ? AbortSignal.any([...(signal ? [signal] : []), AbortSignal.timeout(45000)]) : signal;
+  try { response = await fetch(url, { cache: "no-store", signal: deadlineSignal }); }
   catch (error) { if (error.name === "AbortError") throw error; throw new Error(publicErrorMessage(null, 503)); }
   let body;
   try { body = await response.json(); } catch { throw new Error(publicErrorMessage(null, 503)); }
-  if (!response.ok) throw new Error(publicErrorMessage(body, response.status));
+  if (!response.ok) {
+    const failure = new Error(publicErrorMessage(body, response.status));
+    if ((body?.error?.code || body?.code) === "INDEX_BUILDING") {
+      failure.code = "INDEX_BUILDING";
+      const block = body?.error?.readBlock ?? body?.readBlock;
+      if (Number.isSafeInteger(Number(block)) && Number(block) > 0) failure.readBlock = Number(block);
+    }
+    throw failure;
+  }
   if (body.activeDeployment && !matchesDeployment({ chainId: body.activeDeployment.chainId, contract: body.activeDeployment.escrowAddress || body.activeDeployment.address }, deployment)) throw new Error("Deployment changed. Reload this page and verify the new escrow before acting.");
   return body;
 }
@@ -84,53 +96,94 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
     [copyError, setCopyError] = useState(""),
     [handoffTask, setHandoffTask] = useState(null),
     [role, setRole] = useState("worker");
-  const [moreLoading, setMoreLoading] = useState(false),
-    [moreError, setMoreError] = useState("");
+  const [pagination, setPagination] = useState(firstTaskPage);
+  const [searchRevision, setSearchRevision] = useState(0);
+  const [indexing, setIndexing] = useState(false);
+  const retryPage = useRef(firstTaskPage());
   const [profileAddress, setProfileAddress] = useState(""),
     [profile, setProfile] = useState(null),
     [profileLoading, setProfileLoading] = useState(false),
     [profileError, setProfileError] = useState("");
   const listGate = useRef(null),
     detailGate = useRef(null),
-    moreGate = useRef(null),
     profileGate = useRef(null);
   if (!listGate.current) {
     listGate.current = requestGate();
     detailGate.current = requestGate();
-    moreGate.current = requestGate();
     profileGate.current = requestGate();
   }
   useEffect(() => {
-    const timer = setTimeout(() => setQuery(search.trim()), 250);
-    return () => clearTimeout(timer);
-  }, [search]);
-  useEffect(() => {
+    if (!searchRevision) return;
+    return scheduleTaskSearch(search, (value) => {
+      setQuery(value);
+      setRefreshKey((revision) => revision + 1);
+    });
+  }, [search, searchRevision]);
+  function changeTaskSearch(value) {
+    if (value.trim() === search.trim()) { setSearch(value); return; }
+    listGate.current.cancel();
+    setMarket(null);
+    setError("");
+    setLoading(true);
+    setPagination(firstTaskPage());
+    setIndexing(false);
+    setSearch(value);
+    setSearchRevision((revision) => revision + 1);
+  }
+  function resetTaskSearch(value, nextFilter = filter) {
+    if (value.trim() === query && nextFilter === filter) { setSearch(value); return; }
+    listGate.current.cancel();
+    setMarket(null);
+    setError("");
+    setLoading(true);
+    setPagination(firstTaskPage());
+    setIndexing(false);
+    setSearch(value);
+    setQuery(value.trim());
+    setSearchRevision(0);
+    setFilter(nextFilter);
+  }
+  async function readTaskPage(target, scrollToTasks = false) {
     const ticket = listGate.current.next();
-    moreGate.current.cancel();
+    retryPage.current = target;
+    setIndexing(false);
     setLoading(true);
     setError("");
-    setMoreError("");
-    setMoreLoading(false);
     setMarket(null);
-    readApi(listQuery({ q: query, phase: filter }), ticket.signal)
-      .then((data) => {
-        if (ticket.current()) setMarket(data);
-      })
-      .catch((e) => {
-        if (ticket.current() && e.name !== "AbortError")
-          setError(
-            e.message || "Contract data could not be read. Retry before funding or starting work.",
-          );
-      })
-      .finally(() => {
-        if (ticket.current()) setLoading(false);
+    try {
+      const data = await readApi(listQuery({ q: query, phase: filter,
+        offset: target.cursors[target.page - 1], block: target.block }), ticket.signal);
+      if (!ticket.current()) return;
+      const accepted = acceptTaskPage(data, target);
+      setPagination(accepted);
+      setMarket(data);
+      if (scrollToTasks) requestAnimationFrame(() => {
+        if (!ticket.current()) return;
+        document.getElementById("tasks")?.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+          block: "start",
+        });
       });
+    } catch (e) {
+      if (ticket.current() && e.name !== "AbortError") {
+        setIndexing(e.code === "INDEX_BUILDING");
+        if (e.readBlock != null) retryPage.current = { ...target, block: e.readBlock };
+        setError(e.message || "Task data could not be read. Retry this page or refresh the snapshot.");
+      }
+    } finally {
+      if (ticket.current()) setLoading(false);
+    }
+  }
+  useEffect(() => {
+    const first = firstTaskPage();
+    setPagination(first);
+    readTaskPage(first);
     return () => listGate.current.cancel();
+    // Filter/refresh changes start a new snapshot; navigation retains the accepted block.
   }, [query, filter, refreshKey]);
   useEffect(
     () => () => {
       detailGate.current.cancel();
-      moreGate.current.cancel();
       profileGate.current.cancel();
     },
     [],
@@ -140,7 +193,15 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
   const contract = deployment.escrowAddress;
   const newTasksEnabled = deployment.version === 2 && market?.newTasksEnabled === true;
   const prompt = agentInstructions({ task: handoffTask, role, contract, chainId: deployment.chainId, newTasksEnabled });
-  const refresh = () => setRefreshKey((value) => value + 1);
+  const refresh = () => {
+    if (indexing) return;
+    listGate.current.cancel();
+    setMarket(null);
+    setError("");
+    setLoading(true);
+    setPagination(firstTaskPage());
+    setRefreshKey((value) => value + 1);
+  };
   const openAgent = (task = null, nextRole = "worker") => {
     detailGate.current.cancel();
     setHandoffTask(task?.id ? task : null);
@@ -196,46 +257,10 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
       );
     }
   }
-  async function loadMore() {
-    if (market?.nextOffset == null || loading) return;
-    const ticket = moreGate.current.next(),
-      snapshot = market.readBlock;
-    setMoreLoading(true);
-    setMoreError("");
-    try {
-      const data = await readApi(
-        listQuery({
-          q: query,
-          phase: filter,
-          offset: market.nextOffset,
-          block: snapshot,
-        }),
-        ticket.signal,
-      );
-      if (ticket.current())
-        setMarket((previous) =>
-          previous?.readBlock !== snapshot
-            ? previous
-            : {
-                ...data,
-                tasks: [
-                  ...new Map(
-                    [...previous.tasks, ...data.tasks].map((task) => [
-                      task.id,
-                      task,
-                    ]),
-                  ).values(),
-                ],
-              },
-        );
-    } catch (e) {
-      if (ticket.current() && e.name !== "AbortError")
-        setMoreError(
-          "More tasks could not be loaded. Please retry; this view keeps its original chain snapshot.",
-        );
-    } finally {
-      if (ticket.current()) setMoreLoading(false);
-    }
+  function changeTaskPage(page) {
+    if (loading || error || search.trim() !== query) return;
+    const target = taskPageTarget(pagination, page);
+    if (target) readTaskPage(target, true);
   }
   async function showProfile(value) {
     detailGate.current.cancel();
@@ -367,7 +392,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                   type="button"
                   className={filter === value ? "active" : ""}
                   aria-pressed={filter === value}
-                  onClick={() => setFilter(value)}
+                  onClick={() => resetTaskSearch(search, value)}
                 >
                   {value}
                 </button>
@@ -382,7 +407,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                 type="search"
                 placeholder="Search tasks or requester"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => changeTaskSearch(e.target.value)}
                 maxLength={100}
               />
             </label>
@@ -391,7 +416,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
               className="refresh-button"
               aria-label="Refresh marketplace"
               onClick={() => refresh()}
-              disabled={loading}
+              disabled={loading || indexing}
             >
               <RefreshCw size={18} className={loading ? "spin" : ""} />
             </button>
@@ -400,8 +425,10 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
             {loading
               ? "Reading the escrow contract…"
               : error
-                ? "Live data unavailable"
-                : `${tasks.length} of ${market?.matchedTasks ?? market?.totalTasks ?? 0} tasks`}
+                ? indexing ? "Preparing the search snapshot; retry to continue indexing" : "Live data unavailable"
+                : taskPageTotal(market, { q: query, phase: filter }) == null
+                  ? `${tasks.length} tasks on this page; matching total not reported`
+                  : `${tasks.length} tasks on this page · ${taskPageTotal(market, { q: query, phase: filter })} matching tasks`}
           </div>
           {market?.capabilities &&
             (!market.capabilities.privateStorage ||
@@ -420,12 +447,12 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
               <div className="empty-symbol">
                 <Radio size={22} />
               </div>
-              <h3>Task data could not be loaded.</h3>
+              <h3>{indexing ? "Preparing the task search snapshot." : "Task data could not be loaded."}</h3>
               <p>{error}</p>
               <button
                 type="button"
                 className="button dark"
-                onClick={() => refresh()}
+                onClick={() => readTaskPage(retryPage.current)}
               >
                 Try again <RefreshCw size={16} />
               </button>
@@ -507,15 +534,14 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
               </h3>
               <p>
                 {query || filter !== "All"
-                  ? "The full marketplace was searched. Try another status or clear your search."
+                  ? market?.nextOffset != null ? "No matches in this scan. Continue to the next page to search the same snapshot." : "No matches on this page. Try another status or clear your search."
                   : newTasksEnabled ? "Workers: there is no funded work to accept right now. Review worker setup or check again later. Requesters can publish a brief and fund the first task." : "There is no funded work to accept right now. New funding is paused until verified V2 is active. Read role setup or inspect legacy public history."}
               </p>
               {query || filter !== "All" ? (
                 <button
                   className="text-link"
                   onClick={() => {
-                    setFilter("All");
-                    setSearch("");
+                    resetTaskSearch("", "All");
                   }}
                 >
                   Clear filters <ArrowRight size={17} />
@@ -529,21 +555,11 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
               )}
             </div>
           )}
-          {market?.nextOffset != null && !error && (
-            <button
-              className="button outline load-older"
-              onClick={loadMore}
-              disabled={moreLoading}
-            >
-              {moreLoading ? "Loading…" : "Load more tasks"}
-              <ArrowRight size={16} />
-            </button>
-          )}
-          {moreError && (
-            <p role="alert" className="market-result-note">
-              {moreError}
-            </p>
-          )}
+          <PaginationControls label="Tasks" page={pagination.page} pageSize={TASK_PAGE_SIZE}
+            total={taskPageTotal(market, { q: query, phase: filter })}
+            loading={loading || Boolean(error) || search.trim() !== query}
+            hasNext={market?.nextOffset != null} hasPrevious={pagination.page > 1}
+            onPageChange={changeTaskPage} />
           <p className="market-fairness">
             <ShieldCheck size={18} />
             <span>

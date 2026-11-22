@@ -75,6 +75,7 @@ test("search pagination keeps the same chain block and server filters", () => {
   assert.equal(url.searchParams.get("q"), "old task");
   assert.equal(url.searchParams.get("phase"), "Settled");
   assert.equal(url.searchParams.get("offset"), "48");
+  assert.equal(url.searchParams.get("limit"), "12");
 });
 test("a newer selection and dialog dismissal invalidate late responses", () => {
   const gate = requestGate(),

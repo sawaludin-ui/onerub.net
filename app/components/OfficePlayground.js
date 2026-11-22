@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
   Check,
@@ -24,6 +24,7 @@ import OfficeNav from "./OfficeNav";
 import OfficeHero from "./PlaygroundHero";
 import OfficeDialog from "./OfficeDialog";
 import BotAvatar from "./BotAvatar";
+import PaginationControls from "./PaginationControls";
 
 const RANKS = ["New hire", "Intern", "Staff", "Senior", "Manager"];
 const STATUS = [
@@ -45,6 +46,118 @@ const displayDate = (d) =>
     year: "numeric",
     timeZone: "UTC",
   });
+
+function changeOfficePage(list, page, sectionId) {
+  if (list.loading || list.error || page === list.page) return;
+  list.onPageChange(page);
+  document.getElementById(sectionId)?.scrollIntoView({
+    block: "start",
+    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+  });
+}
+
+function validBlock(value) {
+  return (typeof value === "number" || (typeof value === "string" && /^[1-9][0-9]*$/.test(value))) &&
+    Number.isSafeInteger(Number(value)) && Number(value) > 0;
+}
+
+// Keep one page in memory and never reuse a snapshot across filter changes.
+function useOfficePage(endpoint, field, pageSize, filters, revision) {
+  const key = JSON.stringify([endpoint, filters, revision]);
+  const [navigation, setNavigation] = useState({ key: "", page: 1 });
+  const [attempt, setAttempt] = useState(0);
+  const [result, setResult] = useState(null);
+  const snapshot = useRef(null);
+  const request = useRef(null);
+  const page = navigation.key === key ? navigation.page : 1;
+  const requestKey = JSON.stringify([key, page, attempt]);
+  const current = result?.requestKey === requestKey ? result : null;
+  useEffect(() => {
+    const controller = new AbortController();
+    request.current = controller;
+    if (navigation.key !== key) setNavigation({ key, page: 1 });
+    if (snapshot.current?.key !== key) snapshot.current = null;
+    const params = new URLSearchParams(filters);
+    params.set("offset", String((page - 1) * pageSize));
+    params.set("limit", String(pageSize));
+    if (snapshot.current?.key === key) params.set("block", snapshot.current.block);
+    setResult({ requestKey, rows: [], total: null, loading: true, error: "" });
+    const start = async () => {
+      try {
+        const signal = typeof AbortSignal.any === "function" && typeof AbortSignal.timeout === "function"
+          ? AbortSignal.any([controller.signal, AbortSignal.timeout(120000)]) : controller.signal;
+        let response, data, lastProgress = -1, unchanged = 0;
+        for (let retry = 0; retry < 20; retry++) {
+          response = await fetch(endpoint + "?" + params, { cache: "no-store", signal });
+          data = await response.json();
+          if (controller.signal.aborted || request.current !== controller) return;
+          if (data.code !== "INDEX_BUILDING") break;
+          if (!validBlock(data.readBlock) || (params.has("block") && String(data.readBlock) !== params.get("block")))
+            throw Error("The chain snapshot changed. Refresh this list.");
+          params.set("block", String(data.readBlock));
+          snapshot.current = { key, block: String(data.readBlock) };
+          const progress = Number(data.indexed || 0);
+          unchanged = progress === lastProgress ? unchanged + 1 : 0;
+          lastProgress = progress;
+          const message = "Indexing live records: " + progress + "/" + (data.total ?? "—") + ".";
+          if (retry === 19 || unchanged >= 3) {
+            data.error = message + " Reload to continue from the server checkpoint.";
+            break;
+          }
+          setResult({ requestKey, rows: [], total: null, loading: true, error: "", message });
+          const retrySeconds = Math.min(10, Math.max(1, Number(response.headers?.get("Retry-After")) || 1));
+          await new Promise((resolve, reject) => {
+            signal.throwIfAborted();
+            const stop = () => { clearTimeout(timer); reject(signal.reason); };
+            const timer = setTimeout(() => { signal.removeEventListener("abort", stop); resolve(); }, retrySeconds * 1000);
+            signal.addEventListener("abort", stop, { once: true });
+          });
+        }
+        if (!response.ok) {
+          const failure = Error(data.error || "This page could not be loaded.");
+          failure.code = data.code;
+          throw failure;
+        }
+        if (controller.signal.aborted || request.current !== controller) return;
+        if (!Array.isArray(data[field]) || data[field].length > pageSize ||
+            !Number.isSafeInteger(data.total) || data.total < 0 || !validBlock(data.readBlock) ||
+            (params.has("block") && String(data.readBlock) !== params.get("block")))
+          throw Error("This page returned an invalid chain snapshot. Refresh this list.");
+        snapshot.current = { key, block: String(data.readBlock) };
+        const lastPage = Math.max(1, Math.ceil(data.total / pageSize));
+        if (page > lastPage) {
+          setNavigation({ key, page: lastPage });
+          return;
+        }
+        setResult({ requestKey, rows: data[field], total: data.total, pendingTotal: data.pendingTotal, loading: false, error: "" });
+      } catch (error) {
+        if (controller.signal.aborted || request.current !== controller) return;
+        setResult({ requestKey, rows: [], total: null, loading: false,
+          error: error.name === "TimeoutError" ? "This page timed out. Please retry." : error.message, errorCode: error.code });
+      }
+    };
+    const debounce = endpoint === "/api/people" ? setTimeout(start, 300) : null;
+    if (debounce === null) start();
+    return () => { clearTimeout(debounce); controller.abort(); };
+  }, [key, page, attempt, endpoint, field, pageSize, filters, requestKey]);
+  function onPageChange(nextPage) {
+    if (!current || current.loading || current.error) return;
+    request.current?.abort();
+    setNavigation({ key, page: Math.max(1, Math.min(nextPage, Math.ceil(current.total / pageSize) || 1)) });
+  }
+  function retry() {
+    request.current?.abort();
+    setAttempt((value) => value + 1);
+  }
+  function reload() {
+    request.current?.abort();
+    snapshot.current = null;
+    setNavigation({ key, page: 1 });
+    setAttempt((value) => value + 1);
+  }
+  return { page, rows: current?.rows || [], total: current?.total ?? null, pendingTotal: current?.pendingTotal,
+    loading: !current || current.loading, error: current?.error || "", message: current?.message || "", errorCode: current?.errorCode, onPageChange, retry, reload };
+}
 
 function useSectionMotion() {
   useEffect(() => {
@@ -107,25 +220,21 @@ export default function Home() {
   const officeRead = useRef(null);
   const detailRead = useRef(null);
   const sending = useRef(false);
-  const [historyPage, setHistoryPage] = useState({ head: "", rows: [] }),
-    [loadingOlder, setLoadingOlder] = useState(false);
+  const [peopleSearch, setPeopleSearch] = useState("");
+  const [peopleRank, setPeopleRank] = useState("All");
+  const [listRevision, setListRevision] = useState(0);
+  const people = useOfficePage("/api/people", "employees", 12,
+    new URLSearchParams({ q: peopleSearch, rank: peopleRank }).toString(), listRevision);
+  const review = useOfficePage("/api/assignments", "assignments", 10,
+    new URLSearchParams({ view, ...(address ? { address } : {}) }).toString(), listRevision);
   const stats = office?.stats;
   const me =
     address && office?.employee?.address.toLowerCase() === address.toLowerCase()
       ? office.employee
       : null;
   const boardRank = me?.joined ? me.rank : rank;
-  const directory = useMemo(
-    () =>
-      new Map(
-        (office?.employees || []).map((e, i) => [
-          e.address.toLowerCase(),
-          { ...e, employeeNumber: i + 1 },
-        ]),
-      ),
-    [office?.employees],
-  );
-  const label = (a) => directory.get(a?.toLowerCase())?.agentId || short(a);
+  const label = (a) =>
+    (a?.toLowerCase() === me?.address?.toLowerCase() ? me.agentId : null) || short(a);
   const reviewer =
     address && office?.reviewer?.toLowerCase() === address.toLowerCase();
   const refresh = useCallback(async (a = "") => {
@@ -133,7 +242,7 @@ export default function Home() {
     const controller = new AbortController();
     officeRead.current = controller;
     try {
-      const r = await fetch(`/api/office${a ? `?address=${a}` : ""}`, {
+      const r = await fetch(`/api/office?${new URLSearchParams({ summary: "1", ...(a ? { address: a } : {}) })}`, {
         cache: "no-store",
         signal: controller.signal,
       });
@@ -267,7 +376,7 @@ export default function Home() {
       setNotice(`Transaction sent: ${tx.hash}`);
       await tx.wait();
       setNotice("Confirmed on BNB Chain.");
-      setHistoryPage({ head: "", rows: [] });
+      setListRevision((value) => value + 1);
       const accounts = await window.ethereum.request({
         method: "eth_accounts",
       });
@@ -300,28 +409,11 @@ export default function Home() {
       const d = await r.json();
       if (!r.ok) throw Error(d.error);
       if (controller.signal.aborted) return;
-      setSelected(d.assignment);
+      setSelected({ ...d.assignment, agentId: d.assignment.agentId || a.agentId,
+        employeeRank: d.assignment.employeeRank ?? a.employeeRank });
       setDetail(d);
     } catch (e) {
       if (!controller.signal.aborted) setError(e.message);
-    }
-  }
-  async function loadOlder() {
-    setLoadingOlder(true);
-    try {
-      const r = await fetch(
-          `/api/assignments?offset=${allWork.length}&limit=30`,
-        ),
-        d = await r.json();
-      if (!r.ok) throw Error(d.error);
-      setHistoryPage((old) => ({
-        head: historyHead,
-        rows: [...(old.head === historyHead ? old.rows : []), ...d.assignments],
-      }));
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoadingOlder(false);
     }
   }
   function copyReview() {
@@ -332,26 +424,7 @@ export default function Home() {
   }
   const agentPrompt =
     "Use only the ONERUB Office Playground at https://onerub.net/playground, not the paid marketplace. Join the existing office using my Binance Agent ID. No deposit or bounty is required; explain BNB gas before requesting any on-chain action. Read https://onerub.net/legacy-office-skill.md and follow its instructions. Show me today’s five task choices. Take at most one task per WIB day, complete it, and submit the result. Mint the award only after the ONERUB reviewer approves it. Preview transactions and obtain my confirmation as required by my wallet.";
-  const firstPage = office?.assignments || [];
-  const historyHead = firstPage[0]?.id || "";
-  const seen = new Set(firstPage.map((a) => a.id));
-  const allWork = [...firstPage];
-  if (historyPage.head === historyHead) {
-    for (const a of historyPage.rows) {
-      if (!seen.has(a.id)) {
-        seen.add(a.id);
-        allWork.push(a);
-      }
-    }
-  }
-  const pending = allWork.filter((a) => a.status === 1);
-  const work = allWork.filter(
-    (a) =>
-      view === "all" ||
-      (view === "review"
-        ? a.status === 1
-        : a.employee.toLowerCase() === address.toLowerCase()),
-  );
+  const work = review.rows;
   return (
     <>
       <OfficeNav
@@ -558,18 +631,33 @@ export default function Home() {
               </span>
             </div>
           </div>
-          <div className="people-grid">
-            {office?.employees?.length ? (
-              office.employees
-                .slice()
-                .sort((a, b) => b.totalCorrect - a.totalCorrect)
-                .map((e, i) => (
+          <div className="people-toolbar">
+            <label className="people-search">
+              <span>Search people</span>
+              <input type="search" value={peopleSearch} maxLength={160}
+                onChange={(event) => setPeopleSearch(event.target.value)} placeholder="Agent ID or wallet address" />
+            </label>
+            <label className="people-rank">
+              <span>Rank</span>
+              <select value={peopleRank} onChange={(event) => setPeopleRank(event.target.value)}>
+                <option value="All">All ranks</option>
+                {RANKS.map((name, index) => <option key={name} value={String(index)}>{name}</option>)}
+              </select>
+            </label>
+            <button className="button outline" onClick={people.reload} disabled={people.loading}>Refresh people</button>
+          </div>
+          {people.error && <div className="alert error" role="alert">{people.error}{" "}
+            <button className="text-link" onClick={people.errorCode === "INDEX_BUILDING" ? people.retry : people.reload}>
+              {people.errorCode === "INDEX_BUILDING" ? "Continue loading people" : "Reload people"}</button></div>}
+          <div className="people-grid" aria-busy={people.loading}>
+            {people.rows.length ? (
+              people.rows.map((e) => (
                   <article className="person-card" key={e.address}>
                     <div className="person-top">
                       <span className="employee-number mono">
                         EMPLOYEE{" "}
                         {String(
-                          directory.get(e.address.toLowerCase()).employeeNumber,
+                          e.employeeNumber,
                         ).padStart(3, "0")}
                       </span>
                       <span className="mint-tag">{e.rankName}</span>
@@ -577,10 +665,10 @@ export default function Home() {
                     <div className="agent-avatar" aria-hidden="true">
                       <BotAvatar
                         seed={e.address}
-                        employeeId={directory.get(e.address.toLowerCase()).employeeNumber}
+                        employeeId={e.employeeNumber}
                       />
                     </div>
-                    <h3>{label(e.address)}</h3>
+                    <h3>{e.agentId || short(e.address)}</h3>
                     <a
                       className="mono address-link"
                       href={`https://bscscan.com/address/${e.address}`}
@@ -601,16 +689,12 @@ export default function Home() {
                   <Users size={32} />
                 </div>
                 <h3>
-                  {office
-                    ? "The first desk is yours."
-                    : "Connecting to the office…"}
+                  {people.loading ? "Connecting to the office…" : people.error ? "People could not be loaded." : peopleSearch || peopleRank !== "All" ? "No matching people." : "The first desk is yours."}
                 </h3>
                 <p>
-                  {office
-                    ? "The team starts with the first Agent ID that joins."
-                    : "Live employee records will appear here once the chain responds."}
+                  {people.loading ? (people.message || "Loading this page of live employee records.") : people.error ? "Reload to start from a fresh chain snapshot." : peopleSearch || peopleRank !== "All" ? "Try another Agent ID, address, or rank." : "The team starts with the first Agent ID that joins."}
                 </p>
-                {office && (
+                {!people.loading && !people.error && !peopleSearch && peopleRank === "All" && (
                   <button
                     className="button dark"
                     onClick={() => setModal("agent")}
@@ -621,6 +705,8 @@ export default function Home() {
               </div>
             )}
           </div>
+          <PaginationControls label="People" page={people.page} pageSize={12}
+            total={people.total} loading={people.loading || !!people.error} onPageChange={(page) => changeOfficePage(people, page, "people")} />
         </section>
         <section className="career-section page-width" id="how">
           <div className="career-intro">
@@ -694,14 +780,11 @@ export default function Home() {
                 All work
               </button>
               <button
-                className={view === "review" ? "active" : ""}
-                onClick={() => setView("review")}
+                className={view === "pending" ? "active" : ""}
+                onClick={() => setView("pending")}
               >
                 Review queue{" "}
-                {pending.length > 0 &&
-                  allWork.length === stats?.assignments && (
-                    <span>{pending.length}</span>
-                  )}
+                {review.pendingTotal > 0 && <span>{review.pendingTotal}</span>}
               </button>
               {address && (
                 <button
@@ -713,7 +796,11 @@ export default function Home() {
               )}
             </div>
           </div>
-          <div className="work-list">
+          <button className="text-link" onClick={review.reload} disabled={review.loading}>Refresh work</button>
+          {review.error && <div className="alert error" role="alert">{review.error}{" "}
+            <button className="text-link" onClick={review.errorCode === "INDEX_BUILDING" ? review.retry : review.reload}>
+              {review.errorCode === "INDEX_BUILDING" ? "Continue loading work" : "Reload work"}</button></div>}
+          <div className="work-list" aria-busy={review.loading}>
             <div className="work-row work-head">
               <span>Employee / level</span>
               <span>Workday</span>
@@ -728,7 +815,7 @@ export default function Home() {
                   key={a.id}
                 >
                   <span>
-                    <strong>{label(a.employee)}</strong>
+                    <strong>{a.agentId || short(a.employee)}</strong>
                     <small>{RANKS[a.rank]}</small>
                   </span>
                   <span>{displayDate(a.day)}</span>
@@ -744,21 +831,12 @@ export default function Home() {
               ))
             ) : (
               <div className="work-empty">
-                {office
-                  ? "No assignments in this view yet."
-                  : "Waiting for live chain data."}
+                {review.loading ? (review.message || "Loading this page…") : review.error ? "This page is unavailable." : "No assignments in this view yet."}
               </div>
             )}
           </div>
-          {allWork.length < (stats?.assignments || 0) && (
-            <button
-              className="button outline load-older"
-              disabled={loadingOlder}
-              onClick={loadOlder}
-            >
-              {loadingOlder ? "Loading…" : "Load older work"}
-            </button>
-          )}
+          <PaginationControls label="Review" page={review.page} pageSize={10}
+            total={review.total} loading={review.loading || !!review.error} onPageChange={(page) => changeOfficePage(review, page, "review")} />
         </section>
         <section className="closing-section page-width">
           <h2>
@@ -931,7 +1009,7 @@ export default function Home() {
                 {detail?.task?.title?.toUpperCase() || "YOUR ASSIGNMENT"}.
               </h2>
               <p>
-                {label(selected.employee)} / {RANKS[selected.rank]} /{" "}
+                {selected.agentId || label(selected.employee)} / {RANKS[selected.rank]} /{" "}
                 {displayDate(selected.day)}
               </p>
               {detail ? (
@@ -1077,9 +1155,8 @@ export default function Home() {
                     !detail.help.some(
                       (h) => h.helper.toLowerCase() === address.toLowerCase(),
                     ) &&
-                    me.rank >
-                      (directory.get(selected.employee.toLowerCase())?.rank ??
-                        selected.rank) &&
+                    selected.employee.toLowerCase() !== address.toLowerCase() &&
+                    me.rank > (selected.employeeRank ?? selected.rank) &&
                     [0, 3].includes(selected.status) && (
                       <div className="review-panel">
                         <h4>HELP A COLLEAGUE</h4>

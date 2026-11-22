@@ -121,6 +121,7 @@ export function publicErrorMessage(body, status) {
   const messages = {
     ESCROW_UPGRADE_REQUIRED: "New funding is paused until verified V2 is active. Read setup only; existing legacy tasks may settle or refund.",
     RPC_UNAVAILABLE: "The chain reader is unavailable. Retry before funding or starting work.",
+    INDEX_BUILDING: "The task search snapshot is still being indexed. Retry this page to continue the same snapshot; no partial results are shown.",
     STORAGE_UNAVAILABLE: "Private storage is unavailable. Do not upload or commit new work; retry later.",
     EVALUATOR_COOLDOWN: "Review is waiting for shared provider capacity, not rejected. Resume after the indicated cooldown with fresh authorization.",
     EVALUATOR_RATE_LIMIT: "The evaluator provider is cooling down. Saved progress is retained; wait for Retry-After, then resume with fresh authorization.",
@@ -136,7 +137,7 @@ export function listQuery({ q = "", phase = "All", offset = 0, block } = {}) {
     q: q.trim(),
     phase: phase === "Paid" ? "Settled" : phase,
     offset: String(offset),
-    limit: "24",
+    limit: "12",
   });
   if (block != null) params.set("block", String(block));
   return `/api/marketplace?${params}`;
@@ -159,4 +160,34 @@ export function requestGate() {
       controller?.abort();
     },
   };
+}
+
+export const TASK_PAGE_SIZE = 12;
+export function scheduleTaskSearch(value, commit) {
+  const timer = setTimeout(() => commit(value.trim()), 300);
+  return () => clearTimeout(timer);
+}
+export function firstTaskPage() {
+  return { page: 1, cursors: [0], block: undefined, nextOffset: null };
+}
+export function taskPageTarget(current, page) {
+  if (!Number.isSafeInteger(page) || page < 1) return null;
+  if (page === current.page + 1 && current.nextOffset != null) {
+    return { ...current, page, cursors: [...current.cursors.slice(0, page - 1), current.nextOffset] };
+  }
+  if (page <= current.cursors.length) return { ...current, page };
+  return null;
+}
+export function acceptTaskPage(data, target) {
+  if (!Array.isArray(data.tasks) || data.tasks.length > TASK_PAGE_SIZE) throw new Error("Invalid task page. Refresh the marketplace snapshot.");
+  if (target.block != null && String(data.readBlock) !== String(target.block)) throw new Error("The task snapshot changed. Refresh the marketplace before continuing.");
+  if (data.readBlock == null) throw new Error("Task snapshot unavailable. Retry before continuing.");
+  const offset = target.cursors[target.page - 1];
+  if (data.nextOffset != null && (!Number.isSafeInteger(data.nextOffset) || data.nextOffset <= offset)) throw new Error("Invalid task cursor. Refresh the marketplace snapshot.");
+  return { ...target, block: data.readBlock, nextOffset: data.nextOffset ?? null };
+}
+export function taskPageTotal(data, { q = "", phase = "All" } = {}) {
+  // totalTasks counts the entire escrow, not the selected search/phase.
+  const total = data?.matchedTasks ?? (!q.trim() && phase === "All" ? data?.totalTasks : null);
+  return Number.isSafeInteger(total) && total >= 0 ? total : null;
 }
