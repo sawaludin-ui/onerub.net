@@ -74,7 +74,10 @@ test('API deployment selectors fail closed rather than alias a same-numbered for
       assert.equal((await response.json()).code, 'ESCROW_UPGRADE_REQUIRED');
     }
   } else {
-    const approval = await prepare(request({ action: 'approve', amount: '1' }));
+    const approval = await prepare(request({ action: 'approve', amount: '1' }), {
+      config: { authentication: true, privateStorage: true, evaluator: true },
+      readHealth: async () => ({ status: 'healthy', checks: Object.fromEntries(['rpc','storage','encryption','attestation','evaluator','uploads','delivery'].map(key => [key, { status: 'available' }])) }),
+    });
     assert.equal(approval.escrowVersion, deployment.version);
     assert.equal(validatePrepared(approval, { action: 'approve', amount: '1' }, deployment).to, deployment.token);
   }
@@ -119,14 +122,14 @@ test('rate-limit serializer exports bounded cooldown only and never private prov
     assert.equal(response.status, 503);
     assert.equal(response.headers.get('Retry-After'), String(seconds));
     assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
-    assert.deepEqual(await response.json(), { error: error.message, code: error.code, retryAfterSeconds: seconds });
+    assert.deepEqual(await response.json(), { error: error.message, code: error.code, error_code: error.code, retryable: true, retryAfterSeconds: seconds });
   }
   for (const seconds of [-1, 86401, 1.5, '120', NaN, Infinity, null, undefined, { secret: 'SECRET' }]) {
     const error = Object.assign(new MarketplaceError('Protected evaluator is rate limited.', 503, 'EVALUATOR_RATE_LIMIT'),
       { retryAfterSeconds: seconds, providerStatus: 429, body: 'SECRET_PROVIDER_BODY' });
     const response = await handle(() => { throw error; });
     assert.equal(response.headers.get('Retry-After'), null);
-    assert.deepEqual(await response.json(), { error: error.message, code: error.code });
+    assert.deepEqual(await response.json(), { error: error.message, code: error.code, error_code: error.code, retryable: true });
   }
   for (const error of [Object.assign(new MarketplaceError('Other service failure.', 502, 'EVALUATOR_UNAVAILABLE'), { retryAfterSeconds: 15, providerStatus: 500, body: 'SECRET' }),
     Object.assign(new Error('SECRET_PROVIDER_BODY'), { code: 'EVALUATOR_RATE_LIMIT', retryAfterSeconds: 15, providerStatus: 429 })]) {
@@ -150,7 +153,7 @@ test('pending provider cooldown is successful progress with a bounded Retry-Afte
   }
   const error = Object.assign(new MarketplaceError('Shared provider is waiting.', 503, 'EVALUATOR_COOLDOWN'), { retryAfterSeconds: 60, providerStatus: 429, body: 'SECRET_PROVIDER_BODY' });
   const failed = await handle(async () => { throw error; }); assert.equal(failed.headers.get('Retry-After'), '60');
-  assert.deepEqual(await failed.json(), { error: error.message, code: error.code, retryAfterSeconds: 60 });
+  assert.deepEqual(await failed.json(), { error: error.message, code: error.code, error_code: error.code, retryable: true, retryAfterSeconds: 60 });
 });
 
 test('health checks never claim provider delivery or uploads work based only on flags', async () => {

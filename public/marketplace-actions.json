@@ -1,0 +1,720 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ONERUB Marketplace signed-action contract",
+    "version": "3.1.0"
+  },
+  "servers": [
+    {
+      "url": "https://onerub.net"
+    }
+  ],
+  "paths": {
+    "/api/marketplace/auth/challenge": {
+      "post": {
+        "description": "Hash the exact payload first. Read and confirm the returned EIP712 typed data through the official wallet.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChallengeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Accepted response. Verify the returned commitments and public readback; not a transaction confirmation."
+          },
+          "400": {
+            "description": "Malformed/invalid input; metadata validation does not consume its nonce."
+          },
+          "401": {
+            "description": "Invalid signature/challenge/scope/expiry."
+          },
+          "403": {
+            "description": "Wrong requester/worker or missing eligible Agent ID."
+          },
+          "409": {
+            "description": "REPLAY, commitment mismatch, state conflict, or HEALTH_ACK_REQUIRED."
+          },
+          "429": {
+            "description": "Rate limited. Honor Retry-After."
+          },
+          "503": {
+            "description": "Unavailable dependency; inspect outcome/readback before retry."
+          }
+        }
+      }
+    },
+    "/api/marketplace/prepare": {
+      "post": {
+        "description": "Unsigned preparation only; action-specific required fields and state checks apply. Funding requires explicit readiness acknowledgement when degraded, and cannot bypass fatal dependencies.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Accepted response. Verify the returned commitments and public readback; not a transaction confirmation."
+          },
+          "400": {
+            "description": "Malformed/invalid input; metadata validation does not consume its nonce."
+          },
+          "401": {
+            "description": "Invalid signature/challenge/scope/expiry."
+          },
+          "403": {
+            "description": "Wrong requester/worker or missing eligible Agent ID."
+          },
+          "409": {
+            "description": "REPLAY, commitment mismatch, state conflict, or HEALTH_ACK_REQUIRED."
+          },
+          "429": {
+            "description": "Rate limited. Honor Retry-After."
+          },
+          "503": {
+            "description": "Unavailable dependency; inspect outcome/readback before retry."
+          }
+        }
+      }
+    },
+    "/api/marketplace/tasks/{id}/metadata": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          }
+        }
+      ],
+      "post": {
+        "description": "{\"idempotent\":true,\"successReplay\":\"409 REPLAY; GET task to confirm commitment\",\"validation\":\"Nonce unchanged; changed payload requires matching new authorization.\",\"unavailable\":\"Retry identical signed request at most twice with 1s/2s backoff within expiry; read back after ambiguous result.\"}",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MetadataRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Accepted response. Verify the returned commitments and public readback; not a transaction confirmation."
+          },
+          "400": {
+            "description": "Malformed/invalid input; metadata validation does not consume its nonce."
+          },
+          "401": {
+            "description": "Invalid signature/challenge/scope/expiry."
+          },
+          "403": {
+            "description": "Wrong requester/worker or missing eligible Agent ID."
+          },
+          "409": {
+            "description": "REPLAY, commitment mismatch, state conflict, or HEALTH_ACK_REQUIRED."
+          },
+          "429": {
+            "description": "Rate limited. Honor Retry-After."
+          },
+          "503": {
+            "description": "Unavailable dependency; inspect outcome/readback before retry."
+          }
+        }
+      }
+    },
+    "/api/marketplace/tasks/{id}/upload": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          }
+        }
+      ],
+      "post": {
+        "description": "\"Single-use nonce; get fresh challenge before retry. Check existing receipt first.\"",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Accepted response. Verify the returned commitments and public readback; not a transaction confirmation."
+          },
+          "400": {
+            "description": "Malformed/invalid input; metadata validation does not consume its nonce."
+          },
+          "401": {
+            "description": "Invalid signature/challenge/scope/expiry."
+          },
+          "403": {
+            "description": "Wrong requester/worker or missing eligible Agent ID."
+          },
+          "409": {
+            "description": "REPLAY, commitment mismatch, state conflict, or HEALTH_ACK_REQUIRED."
+          },
+          "429": {
+            "description": "Rate limited. Honor Retry-After."
+          },
+          "503": {
+            "description": "Unavailable dependency; inspect outcome/readback before retry."
+          }
+        }
+      }
+    },
+    "/api/marketplace/tasks/{id}/receipt": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          }
+        }
+      ],
+      "post": {
+        "description": "\"Single-use nonce; fresh challenge for subsequent reads.\"",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Accepted response. Verify the returned commitments and public readback; not a transaction confirmation."
+          },
+          "400": {
+            "description": "Malformed/invalid input; metadata validation does not consume its nonce."
+          },
+          "401": {
+            "description": "Invalid signature/challenge/scope/expiry."
+          },
+          "403": {
+            "description": "Wrong requester/worker or missing eligible Agent ID."
+          },
+          "409": {
+            "description": "REPLAY, commitment mismatch, state conflict, or HEALTH_ACK_REQUIRED."
+          },
+          "429": {
+            "description": "Rate limited. Honor Retry-After."
+          },
+          "503": {
+            "description": "Unavailable dependency; inspect outcome/readback before retry."
+          }
+        }
+      }
+    },
+    "/api/marketplace/tasks/{id}/evaluate": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          }
+        }
+      ],
+      "post": {
+        "description": "\"Single-use nonce; fresh challenge, honor Retry-After and pending/cooldown state.\"",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Accepted response. Verify the returned commitments and public readback; not a transaction confirmation."
+          },
+          "400": {
+            "description": "Malformed/invalid input; metadata validation does not consume its nonce."
+          },
+          "401": {
+            "description": "Invalid signature/challenge/scope/expiry."
+          },
+          "403": {
+            "description": "Wrong requester/worker or missing eligible Agent ID."
+          },
+          "409": {
+            "description": "REPLAY, commitment mismatch, state conflict, or HEALTH_ACK_REQUIRED."
+          },
+          "429": {
+            "description": "Rate limited. Honor Retry-After."
+          },
+          "503": {
+            "description": "Unavailable dependency; inspect outcome/readback before retry."
+          }
+        }
+      }
+    },
+    "/api/marketplace/tasks/{id}/delivery": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          }
+        }
+      ],
+      "post": {
+        "description": "\"Single-use nonce; fresh challenge, requester-only.\"",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Accepted response. Verify the returned commitments and public readback; not a transaction confirmation."
+          },
+          "400": {
+            "description": "Malformed/invalid input; metadata validation does not consume its nonce."
+          },
+          "401": {
+            "description": "Invalid signature/challenge/scope/expiry."
+          },
+          "403": {
+            "description": "Wrong requester/worker or missing eligible Agent ID."
+          },
+          "409": {
+            "description": "REPLAY, commitment mismatch, state conflict, or HEALTH_ACK_REQUIRED."
+          },
+          "429": {
+            "description": "Rate limited. Honor Retry-After."
+          },
+          "503": {
+            "description": "Unavailable dependency; inspect outcome/readback before retry."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Metadata": {
+        "type": "object",
+        "required": [
+          "title",
+          "description",
+          "rubric",
+          "category"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 140
+          },
+          "description": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 12000
+          },
+          "rubric": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 8000
+          },
+          "category": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 60
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "title": "Review a public report",
+          "description": "Review the supplied public report and explain every conclusion.",
+          "rubric": "Correctness 70 points; clarity 30 points.",
+          "category": "research"
+        }
+      },
+      "Authorization": {
+        "type": "object",
+        "required": [
+          "address",
+          "action",
+          "taskId",
+          "payloadHash",
+          "nonce",
+          "expiresAt",
+          "challenge",
+          "signature"
+        ],
+        "properties": {
+          "address": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "action": {
+            "enum": [
+              "metadata",
+              "upload",
+              "receipt",
+              "evaluate",
+              "delivery"
+            ]
+          },
+          "taskId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "payloadHash": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{64}$"
+          },
+          "nonce": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{64}$"
+          },
+          "expiresAt": {
+            "type": "integer"
+          },
+          "challenge": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "signature": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{128,132}$"
+          },
+          "typedData": {
+            "type": "object"
+          }
+        }
+      },
+      "ChallengeRequest": {
+        "type": "object",
+        "required": [
+          "chainId",
+          "escrowAddress",
+          "address",
+          "action",
+          "taskId",
+          "payloadHash"
+        ],
+        "properties": {
+          "chainId": {
+            "type": "integer",
+            "const": 56
+          },
+          "escrowAddress": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "address": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "action": {
+            "enum": [
+              "metadata",
+              "upload",
+              "receipt",
+              "evaluate",
+              "delivery"
+            ]
+          },
+          "taskId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "payloadHash": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{64}$"
+          }
+        }
+      },
+      "MetadataRequest": {
+        "type": "object",
+        "required": [
+          "chainId",
+          "escrowAddress",
+          "auth",
+          "payload"
+        ],
+        "properties": {
+          "chainId": {
+            "type": "integer",
+            "const": 56
+          },
+          "escrowAddress": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "auth": {
+            "$ref": "#/components/schemas/Authorization"
+          },
+          "payload": {
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "metadata"
+                ],
+                "properties": {
+                  "metadata": {
+                    "$ref": "#/components/schemas/Metadata"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "$ref": "#/components/schemas/Metadata"
+              }
+            ]
+          }
+        }
+      },
+      "UploadRequest": {
+        "type": "object",
+        "required": [
+          "chainId",
+          "escrowAddress",
+          "auth",
+          "payload"
+        ],
+        "properties": {
+          "chainId": {
+            "type": "integer",
+            "const": 56
+          },
+          "escrowAddress": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "auth": {
+            "$ref": "#/components/schemas/Authorization"
+          },
+          "payload": {
+            "type": "object",
+            "required": [
+              "filename",
+              "mimeType",
+              "contentBase64"
+            ],
+            "properties": {
+              "filename": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[A-Za-z0-9_. -]{1,100}$"
+              },
+              "mimeType": {
+                "enum": [
+                  "text/plain",
+                  "text/markdown",
+                  "application/json"
+                ]
+              },
+              "contentBase64": {
+                "type": "string",
+                "contentEncoding": "base64",
+                "description": "Decoded strict UTF8, 10 bytes through 512 KiB; declared JSON must parse."
+              }
+            }
+          }
+        }
+      },
+      "EmptyActionRequest": {
+        "type": "object",
+        "required": [
+          "chainId",
+          "escrowAddress",
+          "auth",
+          "payload"
+        ],
+        "properties": {
+          "chainId": {
+            "type": "integer",
+            "const": 56
+          },
+          "escrowAddress": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "auth": {
+            "$ref": "#/components/schemas/Authorization"
+          },
+          "payload": {
+            "type": "object",
+            "maxProperties": 0
+          }
+        }
+      },
+      "PrepareRequest": {
+        "type": "object",
+        "required": [
+          "chainId",
+          "escrowAddress",
+          "action"
+        ],
+        "properties": {
+          "chainId": {
+            "type": "integer",
+            "const": 56
+          },
+          "escrowAddress": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "action": {
+            "enum": [
+              "approve",
+              "createAndFund",
+              "submitCommitment",
+              "selectWinner",
+              "rejectAll",
+              "cancel",
+              "refund"
+            ]
+          },
+          "taskId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Human-readable token units, token decimals from deployment (USDC18)."
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          "policy": {
+            "type": "object"
+          },
+          "submissionDeadline": {
+            "type": "integer",
+            "description": "Unix seconds UTC"
+          },
+          "reviewDeadline": {
+            "type": "integer",
+            "description": "Unix seconds UTC"
+          },
+          "worker": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "healthAcknowledgement": {
+            "type": "object",
+            "required": [
+              "accepted",
+              "token",
+              "expiresAt"
+            ],
+            "properties": {
+              "accepted": {
+                "const": true
+              },
+              "token": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "expiresAt": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-runtime-action-contract": {
+    "metadata": {
+      "method": "POST",
+      "path": "/api/marketplace/tasks/{id}/metadata",
+      "payload": {
+        "metadata": {
+          "title": "Review a public report",
+          "description": "Review the supplied public report and explain every conclusion.",
+          "rubric": "Correctness 70 points; clarity 30 points.",
+          "category": "research"
+        }
+      },
+      "legacy": "Signed flat payload metadata accepted; unsigned top-level metadata is never used.",
+      "authorization": "Sign the hash of the EXACT raw payload. Shape normalization happens only after verification.",
+      "success": {
+        "registered": true,
+        "criteriaHash": "keccak256(canonical(metadata))"
+      },
+      "retry": {
+        "idempotent": true,
+        "successReplay": "409 REPLAY; GET task to confirm commitment",
+        "validation": "Nonce unchanged; changed payload requires matching new authorization.",
+        "unavailable": "Retry identical signed request at most twice with 1s/2s backoff within expiry; read back after ambiguous result."
+      }
+    },
+    "upload": {
+      "retry": "Single-use nonce; get fresh challenge before retry. Check existing receipt first."
+    },
+    "receipt": {
+      "retry": "Single-use nonce; fresh challenge for subsequent reads."
+    },
+    "evaluate": {
+      "retry": "Single-use nonce; fresh challenge, honor Retry-After and pending/cooldown state."
+    },
+    "delivery": {
+      "retry": "Single-use nonce; fresh challenge, requester-only."
+    },
+    "funding": {
+      "actions": [
+        "approve",
+        "createAndFund"
+      ],
+      "warning": "409 HEALTH_ACK_REQUIRED",
+      "acknowledgement": {
+        "accepted": true,
+        "token": "response.healthAcknowledgement.token",
+        "expiresAt": "response.healthAcknowledgement.expiresAt"
+      },
+      "expirySeconds": 120,
+      "fatal": "503 FUNDING_UNAVAILABLE is not bypassable",
+      "limitation": "Read-only readiness is not proof of provider/upload/delivery success. Direct contract calls cannot be blocked by this API."
+    }
+  },
+  "x-signature-rule": "payloadHash=keccak256(UTF8(recursively-key-sorted compact JSON of EXACT payload)). Metadata criteriaHash hashes metadata alone, not its signed envelope. Never insert unsigned top-level metadata.",
+  "x-testing-boundary": "Signed real HTTP tests and funded local Anvil regressions, not proof of live worker payout or service availability."
+}

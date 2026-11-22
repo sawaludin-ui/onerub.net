@@ -638,6 +638,24 @@ html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { width: 
   .people-rank { flex: 1 1 12rem; }
 }
 
+.phase-missing-brief { background: #fff0d4; color: #704400; }
+.metadata-publisher, .metadata-integrity { min-width: 0; max-width: 100%; margin-block: 1.5rem; padding: 1.1rem; border: 1px solid var(--line); border-radius: .8rem; }
+.metadata-publisher :where(p, code, dd), .metadata-integrity :where(p, code, dd) { overflow-wrap: anywhere; }
+.metadata-publisher-fields { display: grid; gap: .65rem; min-width: 0; padding: .8rem; border: 1px solid var(--line); }
+.metadata-publisher :where(label, legend) { font-weight: 600; }
+.metadata-publisher :where(input, textarea) { display: block; width: 100%; max-width: 100%; min-width: 0; margin-block: .4rem .9rem; padding: .75rem; border: 1px solid var(--line); border-radius: .5rem; color: var(--ink); background: white; font: 1rem/1.45 var(--mono); }
+.metadata-publisher textarea { resize: vertical; white-space: pre-wrap; overflow-wrap: anywhere; }
+.metadata-publisher-actions { display: flex; flex-wrap: wrap; gap: .65rem; }
+.metadata-publisher button { min-height: 44px; max-width: 100%; padding: .65rem .9rem; border: 1px solid var(--ink); border-radius: .5rem; background: var(--ink); color: white; font: inherit; cursor: pointer; overflow-wrap: anywhere; }
+.metadata-publisher button:disabled { opacity: .55; cursor: wait; }
+.metadata-publisher :where(button, input, textarea, summary):focus-visible, .metadata-integrity summary:focus-visible { outline: 3px solid #007d5a; outline-offset: 3px; }
+.metadata-publisher-status { min-height: 2rem; overflow-wrap: anywhere; }
+.metadata-publisher-status [role="alert"] { color: #8a250f; border-inline-start: 3px solid currentColor; padding-inline-start: .7rem; }
+.metadata-integrity-json { max-width: 100%; max-height: 22rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: .8rem/1.5 var(--mono); }
+.metadata-integrity-hashes { min-width: 0; font-size: .8rem; }
+.metadata-integrity-hashes dt { margin-top: .6rem; font-weight: 600; }
+.metadata-integrity-hashes dd { margin-inline-start: 0; font-family: var(--mono); overflow-wrap: anywhere; }
+.metadata-publisher details, .metadata-integrity details { min-width: 0; margin-block: .9rem; }
 /* Native touch editing stays at 16px without disabling browser zoom. */
 @media (pointer: coarse) {
   .market-search input, .profile-lookup input, .rank-select select, .modal :where(input, select, textarea) { font-size: max(1rem, 16px); }

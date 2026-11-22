@@ -24,6 +24,7 @@ import { ACTIVE_MARKETPLACE_DEPLOYMENT, marketplaceAbiFor } from "../lib/marketp
 import { Interface, parseUnits, isAddress } from "ethers";
 import {hash} from '../lib/marketplace-core.mjs';
 import {normalizePolicy,policyHash} from '../lib/marketplace-policy.mjs';
+import {fundingReadinessContract} from '../lib/marketplace-action-contract.mjs';
 
 const SHIM = path.join(os.homedir(), ".claude/network/binance-doh.cjs");
 const CHAIN = String(ACTIVE_MARKETPLACE_DEPLOYMENT.chainId);
@@ -73,10 +74,34 @@ function fromAddress(baw) {
 
 function id(value){if(!/^[1-9]\d*$/.test(value||'')||BigInt(value)>=2n**256n)throw Error('Task ID must be a positive uint256');return value;}
 function amount(value){if(!/^(0|[1-9]\d*)(\.\d{1,18})?$/.test(value||''))throw Error('Amount must be decimal USDC, at most18 places');const n=parseUnits(value,18);if(n<=0n||n>=2n**256n)throw Error('Amount outside uint256 range');return value;}
-export function buildTaskRequest(argv,{from,readFile=p=>fs.readFileSync(p,'utf8')}={}){
-  if(argv.filter(a=>a==='--execute').length>1)throw Error('Duplicate execute flag');
-  const execute=argv.includes('--execute');const [cmd,...p]=argv.filter(a=>a!=='--execute');
-  if(p.length!==1)throw Error('Usage: approve <USDC>; create <task.json>; submit/select/reject/cancel/refund <taskId>; optional --execute');
+function parseTaskArgs(argv) {
+  let execute=false,ackFile;const positional=[];
+  for(let i=0;i<argv.length;i++){
+    const a=argv[i];
+    if(a==='--execute'){if(execute)throw Error('Duplicate execute flag');execute=true;}
+    else if(a==='--health-ack'){
+      if(ackFile!==undefined)throw Error('Duplicate health acknowledgement flag');
+      if(!argv[i+1]||argv[i+1].startsWith('--'))throw Error('--health-ack requires a JSON file');
+      ackFile=argv[++i];
+    }else if(a.startsWith('--'))throw Error('Unknown marketplace flag');
+    else positional.push(a);
+  }
+  const [cmd,...p]=positional;
+  if(p.length!==1)throw Error('Usage: approve <USDC>; create <task.json>; submit/select/reject/cancel/refund <taskId>; optional --execute; approve/create only: --health-ack <file.json>');
+  if(ackFile!==undefined&&!['approve','create'].includes(cmd))throw Error('--health-ack is only supported for approve/create');
+  return {cmd,p,execute,ackFile};
+}
+export function validateHealthAcknowledgement(v,nowSec=Math.floor(Date.now()/1000)) {
+  const now=Number(nowSec);
+  if(!v||typeof v!=='object'||Array.isArray(v)||Object.keys(v).length!==3||
+      !['accepted','token','expiresAt'].every(k=>Object.hasOwn(v,k))||v.accepted!==true||
+      typeof v.token!=='string'||! /^[a-f0-9]{64}$/.test(v.token)||
+      !Number.isSafeInteger(v.expiresAt)||!Number.isSafeInteger(now)||v.expiresAt<=now||v.expiresAt>now+120)
+    throw Error('Invalid health acknowledgement: require exactly {accepted:true,token:64 lowercase hex,expiresAt:future Unix seconds within 120s}');
+  return {accepted:true,token:v.token,expiresAt:v.expiresAt};
+}
+export function buildTaskRequest(argv,{from,readFile=p=>fs.readFileSync(p,'utf8'),nowSec=Math.floor(Date.now()/1000)}={}){
+  const {cmd,p,execute,ackFile}=parseTaskArgs(argv);
   let body;
   if(cmd==='approve')body={action:'approve',amount:amount(p[0])};
   else if(cmd==='create'){
@@ -87,11 +112,21 @@ export function buildTaskRequest(argv,{from,readFile=p=>fs.readFileSync(p,'utf8'
     if(!body.metadata||typeof body.metadata!=='object'||!body.policy||typeof body.policy!=='object')throw Error('Task JSON requires metadata and a readable policy');
     body.metadata=Object.fromEntries(['title','description','category','rubric'].map(k=>{if(typeof body.metadata[k]!=='string')throw Error('Invalid task metadata');return [k,body.metadata[k]];}));
     body.policy=normalizePolicy(body.policy);
+    if(Object.hasOwn(v,'healthAcknowledgement')){
+      if(ackFile!==undefined)throw Error('Health acknowledgement supplied in both task JSON and --health-ack');
+      body.healthAcknowledgement=validateHealthAcknowledgement(v.healthAcknowledgement,nowSec);
+    }
     if(!Number.isSafeInteger(body.submissionDeadline)||!Number.isSafeInteger(body.reviewDeadline)||body.reviewDeadline-body.submissionDeadline<3600)throw Error('Review window must be at least one hour');
   }else{
     const names={submit:'submitCommitment',select:'selectWinner',reject:'rejectAll',cancel:'cancel',refund:'refund'};
     if(!Object.hasOwn(names,cmd))throw Error('Unknown marketplace action');body={action:names[cmd],taskId:id(p[0])};
     if(cmd==='submit'){if(!isAddress(from||''))throw Error('Connected worker address required');body.worker=from;}
+  }
+  if(ackFile!==undefined){
+    const raw=readFile(ackFile);
+    if(Buffer.byteLength(raw,'utf8')>4096)throw Error('Health acknowledgement JSON exceeds 4KB');
+    let ack;try{ack=JSON.parse(raw);}catch{throw Error('Health acknowledgement JSON is invalid');}
+    body.healthAcknowledgement=validateHealthAcknowledgement(ack,nowSec);
   }
   return {body,execute};
 }
@@ -126,13 +161,43 @@ export async function requestPreparation(body,{base=process.env.ONERUB_API_BASE|
   requireFundingDeployment(body, config);
   const response=await fetcher(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,chainId:config.chainId,escrowAddress:config.address}),signal:AbortSignal.timeout(30000),cache:'no-store'});
   let value;try{value=await response.json();}catch{throw Error('Marketplace API returned invalid JSON');}
-  if(!response.ok)throw Error('Marketplace preparation failed: '+String(value?.code||'REQUEST_FAILED')+' '+String(value?.error||'').slice(0,300));
+  if(!response.ok){
+    const code=typeof value?.code==='string'&&/^[A-Z][A-Z0-9_]{0,79}$/.test(value.code)?value.code:'REQUEST_FAILED';
+    const error=Object.assign(Error('Marketplace preparation failed: '+code),{code});
+    if(Number.isInteger(response.status)&&response.status>=400&&response.status<=599)error.status=response.status;
+    Object.assign(error,safeValidationDetails(value),safeFundingError(value,code));
+    throw error;
+  }
   return value;
 }
-export async function runTask(args,{baw,prepare=requestPreparation,config=activeDeployment(),print=v=>console.log(JSON.stringify(v)),nowSec=BigInt(Math.floor(Date.now()/1000))}={}){
-  const command=args.find(arg=>arg!=='--execute');
-  requireFundingDeployment({action:command==='create'?'createAndFund':command},config);
-  const planned=buildTaskRequest(args,{from:config.address});
+function safeFundingError(value,code) {
+  if(!['HEALTH_ACK_REQUIRED','FUNDING_UNAVAILABLE'].includes(code))return {};
+  const out={};
+  if(value?.readiness&&typeof value.readiness==='object'){
+    const checks=fundingReadinessContract(value.readiness.checks&&typeof value.readiness.checks==='object'?value.readiness.checks:{});
+    out.readiness={status:value.readiness.status==='healthy'&&Object.values(checks).every(c=>['available','not-required'].includes(c.status))?'healthy':'degraded',checks};
+  }
+  const ack=value?.healthAcknowledgement;
+  if(code==='HEALTH_ACK_REQUIRED'){
+    if(typeof ack?.token==='string'&&/^[a-f0-9]{64}$/.test(ack.token)&&Number.isSafeInteger(ack.expiresAt)&&ack.expiresAt>0)
+      out.healthAcknowledgement={token:ack.token,expiresAt:ack.expiresAt};
+    out.hint='Review readiness. To explicitly accept this request only, save {accepted:true,token,expiresAt} from healthAcknowledgement to JSON and retry unchanged approve/create with --health-ack <file.json> before expiry. This does not authorize wallet execution; --execute and preview checks are unchanged.';
+  }else out.hint='Funding is unavailable. Restore required services/configuration and retry; acknowledgement cannot bypass this failure.';
+  return out;
+}
+function safeValidationDetails(value) {
+  return Object.fromEntries(['field','expected','received'].filter(k=>typeof value?.[k]==='string'&&value[k].length<=200).map(k=>[k,value[k]]));
+}
+export function taskStopOutput(error) {
+  const out={step:'stop',error:String(error?.message||'Marketplace task failed').slice(0,1000)};
+  if(typeof error?.code==='string'&&/^[A-Z][A-Z0-9_]{0,79}$/.test(error.code))out.code=error.code;
+  if(Number.isInteger(error?.status)&&error.status>=400&&error.status<=599)out.status=error.status;
+  return {...out,...safeValidationDetails(error),...safeFundingError(error,out.code)};
+}
+export async function runTask(args,{baw,prepare=requestPreparation,config=activeDeployment(),print=v=>console.log(JSON.stringify(v)),nowSec=BigInt(Math.floor(Date.now()/1000)),readFile}={}){
+  const {cmd}=parseTaskArgs(args);
+  requireFundingDeployment({action:cmd==='create'?'createAndFund':cmd},config);
+  const planned=buildTaskRequest(args,{from:config.address,nowSec,readFile});
   requireFundingDeployment(planned.body, config);
   if(planned.body.action==='rejectAll'&&(config.version||1)<2)throw Error('rejectAll requires a verified V2 deployment; V1 supports timeout refund only');
   // Settings and wallet identity are read locally. No private key or session is
@@ -153,5 +218,5 @@ export async function runTask(args,{baw,prepare=requestPreparation,config=active
   if(!execution?.success)throw Error('Wallet execution request failed');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
-  try{await runTask(process.argv.slice(2));}catch(error){console.error(JSON.stringify({step:'stop',error:error.message}));process.exitCode=1;}
+  try{await runTask(process.argv.slice(2));}catch(error){console.error(JSON.stringify(taskStopOutput(error)));process.exitCode=1;}
 }

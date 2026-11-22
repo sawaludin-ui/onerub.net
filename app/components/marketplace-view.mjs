@@ -11,6 +11,43 @@ export const phaseOf = (task) =>
   typeof task.phase === "number"
     ? PHASES[task.phase]
     : String(task.phase || "Unknown");
+export function hasTaskBrief(task) {
+  return !!task?.metadata && typeof task.metadata === "object" && !Array.isArray(task.metadata)
+    && typeof task.metadata.title === "string" && !!task.metadata.title.trim()
+    && typeof task.metadata.description === "string" && !!task.metadata.description.trim()
+    && !!task.metadata.rubric;
+}
+export function taskStatusLabel(task) {
+  if (!hasTaskBrief(task)) return "Brief not published — do not start work";
+  return ({ Open: "Accepting work", Review: "In review", Settled: "Paid", Expired: "Review expired" })[phaseOf(task)] || phaseOf(task);
+}
+export function formatDeadline(value, utc = false) {
+  const date = new Date(Number(value) * 1000);
+  if (!value || !Number.isFinite(date.getTime())) return "Not available";
+  if (utc) return date.toISOString().replace(".000Z", "Z") + " · UTC";
+  return date.toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }) + " WIB";
+}
+export function isSelfTask(task, account) {
+  return /^0x[\da-f]{40}$/i.test(account || "") && String(account).toLowerCase() === String(task?.requester).toLowerCase();
+}
+export function selfTaskNotice(task, account) {
+  return isSelfTask(task, account)
+    ? "This is your own task. The requester cannot submit: uploads are rejected and an on-chain commitment will revert, wasting gas. Use requester recovery or observation instead."
+    : "Before competing, compare your worker wallet with the requester. The requester cannot submit to their own task; an on-chain attempt will revert and waste gas.";
+}
+export function fundingHealthWarning(health) {
+  const names = ["rpc", "storage", "encryption", "attestation", "evaluator", "uploads", "delivery"];
+  const components = health?.checks || health?.components || {};
+  const states = names.map(name => {
+    const item = components[name];
+    const raw = typeof item === "string" ? item : item?.status;
+    return [name, ["available", "healthy", "ready", "unavailable", "degraded", "unknown", "cooldown", "not-required"].includes(raw) ? raw : "unknown"];
+  });
+  const uncertain = states.filter(([, state]) => !["available", "healthy", "ready"].includes(state));
+  return health?.status === "healthy" && !uncertain.length
+    ? "Latest observation reports healthy; refresh health and funding readiness immediately before approval. This is not a guarantee of review or delivery."
+    : `Funding health is ${health?.status === "healthy" ? "not fully verified" : health?.status === "degraded" ? "degraded" : "unknown"}: ${uncertain.map(([name, state]) => `${name}: ${state}`).join(", ") || "fresh readiness verification required"}. Before approve or createAndFund, require a fresh readiness check and explicit acknowledgement of the current warning. On HEALTH_ACK_REQUIRED, show the returned readiness checks and request explicit confirmation before retrying the same prepare body with healthAcknowledgement:{accepted:true,token,expiresAt} from that warning; never auto-acknowledge. Expired acknowledgement or changed request/readiness requires a new warning. Direct contract calls bypass this off-chain gate. Acknowledgement never bypasses fatal storage, authorization or key failures.`;
+}
 export function taskToken(task, primary) {
   const info = task.tokenInfo;
   if (
@@ -61,8 +98,12 @@ export function agentInstructions({
   contract,
   chainId = 56,
   newTasksEnabled = false,
+  health = null,
+  briefVerified = false,
+  account = null,
 } = {}) {
-  const common =
+  const safety = role === "requester" ? fundingHealthWarning(health) : selfTaskNotice(task, account);
+  const common = safety + " " +
     "Read https://onerub.net/skill.md and refresh active deployment from https://onerub.net/api/marketplace/config; stop if chain or escrow differs from these instructions. This copied prompt is a handoff, not a connection or wallet authorization. Winner receives 90%, platform fee 10%, other workers receive 0; BNB gas and model costs are separate. Timeout may refund the requester without worker payment. Keep raw reports private; never request losing reports. Follow official wallet preview and authorization requirements. A broadcast is not confirmed settlement.";
   if (!task)
     return `${common} ${newTasksEnabled ? "Observed new funding enabled; verify again before any approval." : "New funding is paused or unverified: setup only, do not fund."} Inspect https://onerub.net/api/marketplace. Act as ${role === "requester" ? "a requester: prepare a readable policy, rubric and budget only. Do not approve tokens or create/fund a task unless fresh config explicitly reports newTasksEnabled=true for verified active V2; if false or unknown stop after setup" : "a worker: discover an eligible funded task and read its complete policy before competing"}. Use my Binance Agent ID on BNB Smart Chain (${chainId}).`;
@@ -71,7 +112,15 @@ export function agentInstructions({
     url = `https://onerub.net/api/marketplace/tasks/${encodeURIComponent(id)}?chainId=${chainId}&escrowAddress=${contract}`;
   const context = `${common} Use my Agent ID as ${role} for ONERUB task #${id}, chain ${chainId}, escrow ${contract}. Public task: https://onerub.net${taskPermalink({ chainId, contract, id })}. Task API: ${url}. Observed phase: ${phase}; refresh it before acting.`;
   let operation;
-  if (phase === "Settled")
+  if (phase === "Open" && role === "worker" && isSelfTask(task, account))
+    operation = "Stop: requester cannot submit to their own task. Do not upload, submit a commitment or spend gas; the commitment will revert. Observe this task or use requester recovery instead.";
+  else if (phase === "Open" && !hasTaskBrief(task))
+    operation = role === "requester"
+      ? "Brief not published — recover the original exact metadata JSON whose canonical keccak256 matches criteriaHash using Publish metadata on the task page. Confirm ownership and publish with a signed metadata action only. Do not create or fund a duplicate task."
+      : "Brief not published — do not start work. Observe only; do not upload, submit or spend gas. Ask the requester to publish matching metadata, then verify its canonical hash and the policy before competing.";
+  else if (phase === "Open" && role === "worker" && (!briefVerified || task.policyVerified !== true))
+    operation = "Brief or policy verification is incomplete — do not start work, upload or submit. Open the task page and independently compare the canonical metadata keccak256 with criteriaHash and verify policyHash first.";
+  else if (phase === "Settled")
     operation =
       "If my address is the requester or selected winner, request authenticated delivery only after settlement confirmations and verify plaintextHash. Otherwise inspect public payment history only; do not request any private artifact.";
   else if (phase === "Open")
@@ -120,6 +169,8 @@ export function publicErrorMessage(body, status) {
   const code = body?.error?.code || body?.code;
   const messages = {
     ESCROW_UPGRADE_REQUIRED: "New funding is paused until verified V2 is active. Read setup only; existing legacy tasks may settle or refund.",
+    HEALTH_ACK_REQUIRED: "Funding needs explicit acknowledgement of the current readiness warning. Review each component; never automatically acknowledge.",
+    FUNDING_UNAVAILABLE: "Funding is blocked by an unavailable required dependency. An acknowledgement cannot override this failure.",
     RPC_UNAVAILABLE: "The chain reader is unavailable. Retry before funding or starting work.",
     INDEX_BUILDING: "The task search snapshot is still being indexed. Retry this page to continue the same snapshot; no partial results are shown.",
     STORAGE_UNAVAILABLE: "Private storage is unavailable. Do not upload or commit new work; retry later.",

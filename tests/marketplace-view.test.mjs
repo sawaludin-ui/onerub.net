@@ -15,7 +15,8 @@ const contract = "0x" + "a".repeat(40),
   usdc = { address: "0x" + "b".repeat(40), symbol: "USDC", decimals: 18 };
 test("task handoff binds selected task, role, phase, chain and API URL", () => {
   const a = agentInstructions({
-    task: { id: "11", phase: "Open" },
+    task: { id: "11", phase: "Open", metadata: { title: "Local test brief", description: "Local test description", rubric: "Local test rubric" }, policyVerified: true },
+    briefVerified: true,
     role: "worker",
     contract,
   });

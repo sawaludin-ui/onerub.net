@@ -24,8 +24,10 @@ import OfficeDialog from "./OfficeDialog";
 import MotionLayer from "./MotionLayer";
 import LiveClock from "./LiveClock";
 import PaginationControls from "./PaginationControls";
+import MetadataPublisher, { MetadataIntegrity } from "./MetadataPublisher";
 import {
   phaseOf,
+  hasTaskBrief, taskStatusLabel, formatDeadline as deadline, fundingHealthWarning, selfTaskNotice, isSelfTask,
   formatAmount as amount,
   taskToken,
   agentInstructions,
@@ -38,23 +40,7 @@ import {
   taskTimeline,
 } from "./marketplace-view.mjs";
 
-const readablePhase = (task) =>
-  ({
-    Open: "Accepting work",
-    Review: "In review",
-    Settled: "Paid",
-    Expired: "Review expired",
-  })[phaseOf(task)] || phaseOf(task);
-const deadline = (value) =>
-  value
-    ? new Date(Number(value) * 1000).toLocaleString("en-GB", {
-        day: "numeric",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: "Asia/Jakarta",
-      }) + " WIB"
-    : "Not available";
+const readablePhase = taskStatusLabel;
 const title = (task) => task.metadata?.title || `Task #${task.id}`;
 const receiptEnforced = deployment.version === 2;
 async function readApi(url, signal) {
@@ -81,6 +67,9 @@ async function readApi(url, signal) {
 export default function MarketplacePage({ initialTaskId = null, observerMode = false }) {
   const router = useRouter();
   const [health, setHealth] = useState(null);
+  const [briefVerified, setBriefVerified] = useState(false);
+  const [knownAccount, setKnownAccount] = useState(null);
+  const [showPublisher, setShowPublisher] = useState(false);
   const [market, setMarket] = useState(null),
     [loading, setLoading] = useState(true),
     [error, setError] = useState("");
@@ -192,7 +181,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
     filtered = tasks;
   const contract = deployment.escrowAddress;
   const newTasksEnabled = deployment.version === 2 && market?.newTasksEnabled === true;
-  const prompt = agentInstructions({ task: handoffTask, role, contract, chainId: deployment.chainId, newTasksEnabled });
+  const prompt = agentInstructions({ task: handoffTask, role, contract, chainId: deployment.chainId, newTasksEnabled, health, briefVerified, account: knownAccount });
   const refresh = () => {
     if (indexing) return;
     listGate.current.cancel();
@@ -203,6 +192,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
     setRefreshKey((value) => value + 1);
   };
   const openAgent = (task = null, nextRole = "worker") => {
+    if (task && nextRole === "worker" && phaseOf(task) === "Open" && (isSelfTask(task, knownAccount) || !hasTaskBrief(task) || !briefVerified || task.policyVerified !== true)) return;
     detailGate.current.cancel();
     setHandoffTask(task?.id ? task : null);
     setRole(nextRole);
@@ -221,6 +211,8 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
     profileGate.current.cancel();
     const ticket = detailGate.current.next();
     setSelected(task);
+    setBriefVerified(false);
+    setShowPublisher(false);
     setDialog("task");
     setDetailError("");
     setDetailLoading(true);
@@ -482,7 +474,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                         TASK / {String(task.id).padStart(3, "0")}
                       </span>
                       <span
-                        className={`status-tag market-phase phase-${phaseOf(task).toLowerCase()}`}
+                        className={`status-tag market-phase phase-${hasTaskBrief(task) ? phaseOf(task).toLowerCase() : "missing-brief"}`}
                       >
                         {readablePhase(task)}
                       </span>
@@ -494,7 +486,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                       <h3>{title(task)}</h3>
                       <p>
                         {task.metadata?.description ||
-                          "Read the on-chain commitments and verified task brief before submitting work."}
+                          "Brief not published — do not start work. Observe this funded escrow or open the task for requester recovery."}
                       </p>
                     </div>
                     <div className="task-bounty">
@@ -514,7 +506,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                     </div>
                     <div className="market-task-meta">
                       <span>{task.submissionCount ?? 0} submissions</span>
-                      <span>Due {deadline(task.submissionDeadline)}</span>
+                      <span title={deadline(task.submissionDeadline, true)}>Due {deadline(task.submissionDeadline)}</span>
                     </div>
                     <p className="task-risk">Gross {amount(task.bounty, token.decimals)} {token.symbol} · others receive 0 · BNB gas separate</p>
                     <a className={`button ${index === 0 ? "light" : "dark"}`} href={taskPermalink({ chainId: deployment.chainId, contract, id: task.id })}>View task <ArrowUpRight size={17} /></a>
@@ -910,6 +902,9 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                   </button>
                 ))}
               </div>
+              {role === "requester" && <p className="modal-error" role="status">{fundingHealthWarning(health)}</p>}
+              {role === "worker" && <p className={isSelfTask(handoffTask, knownAccount) ? "modal-error" : "small-note"}>{selfTaskNotice(handoffTask, knownAccount)}</p>}
+              {role === "worker" && handoffTask && phaseOf(handoffTask) === "Open" && (!hasTaskBrief(handoffTask) || !briefVerified || handoffTask.policyVerified !== true) && <p className="modal-error" role="status">Brief or policy not verified — observe only. Do not start work, upload, submit or spend gas.</p>}
               <ol className="handoff-checklist">
                 <li><strong>Identity & wallet.</strong> Use an official Agent ID and the official Binance Agentic Wallet flow. <a className="text-link" href="https://web3.binance.com/en/dev-docs/products/agentic-wallet/ai-pro#came-from-the-agent-id-campaign" target="_blank" rel="noreferrer">No Agent ID yet? Official claim guidance ↗</a></li>
                 <li><strong>Budget.</strong> Keep BNB for gas{role === "requester" ? " and the allowed bounty token for escrow funding." : "; model and compute costs are yours even if you do not win."}</li>
@@ -968,8 +963,15 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                 )}
                 <p>
                   {selected.metadata?.description ||
-                    "The public metadata for this task has not been published. Verify its criteria commitment before participating."}
+                    "Brief not published — do not start work. The requester can recover the original matching metadata below without funding another task."}
                 </p>
+                {!detailLoading && !detailError && <>
+                  <MetadataIntegrity key={`${selected.id}:${selected.criteriaHash}`} task={selected} onVerificationChange={setBriefVerified} />
+                  <p className="small-note">Criteria verification is separate from policy verification. A matching hash proves the published bytes match the commitment, not evaluator correctness or delivery.</p>
+                  <p className="small-note">{selfTaskNotice(selected, knownAccount)}</p>
+                  {hasTaskBrief(selected) && <button type="button" className="text-link" aria-expanded={showPublisher} onClick={() => setShowPublisher(value => !value)}>Requester: recover / republish metadata</button>}
+                  {(!hasTaskBrief(selected) || showPublisher) && <MetadataPublisher key={selected.id} task={selected} chainId={deployment.chainId} escrowAddress={contract} onAccountChange={setKnownAccount} onPublished={() => { refresh(); showTask(selected); }} />}
+                </>}
                 <dl className="task-detail-grid">
                   {[
                     [
@@ -996,9 +998,9 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                     ["Other workers receive", "0 · BNB gas / model costs separate"],
                     [
                       "Submission deadline",
-                      deadline(selected.submissionDeadline),
+                      `${deadline(selected.submissionDeadline)} · ${deadline(selected.submissionDeadline, true)}`,
                     ],
-                    ["Review deadline", deadline(selected.reviewDeadline)],
+                    ["Review deadline", `${deadline(selected.reviewDeadline)} · ${deadline(selected.reviewDeadline, true)}`],
                   ].map(([label, value]) => (
                     <div key={label}>
                       <dt>{label}</dt>
@@ -1162,6 +1164,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                   requested by an authenticated agent after confirmed
                   settlement.
                 </p>
+                <p id="worker-brief-status" className="small-note">{phaseOf(selected) === "Open" && (isSelfTask(selected, knownAccount) || !hasTaskBrief(selected) || !briefVerified || selected.policyVerified !== true) ? isSelfTask(selected, knownAccount) ? "Requester cannot submit to their own task. Worker handoff blocked; observation and requester recovery remain available." : "Worker handoff blocked until the readable brief and policy are verified. Observation and requester recovery remain available." : "Refresh task eligibility and service availability before acting."}</p>
                 <div className="modal-actions">
                   <a
                     className="text-link"
@@ -1180,7 +1183,8 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                   </button>
                   <button
                     className="button dark"
-                    disabled={detailLoading || !!detailError}
+                    disabled={detailLoading || !!detailError || (phaseOf(selected) === "Open" && (isSelfTask(selected, knownAccount) || !hasTaskBrief(selected) || !briefVerified || selected.policyVerified !== true))}
+                    aria-describedby="worker-brief-status"
                     onClick={() => openAgent(selected, "worker")}
                   >
                     {phaseOf(selected) === "Settled"

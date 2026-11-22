@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {Interface,parseUnits} from 'ethers';
-import {buildTaskRequest,validatePrepared,requestPreparation,makeBawRunner,parseBawJson,runTask} from '../scripts/agent-task.mjs';
+import {buildTaskRequest,validatePrepared,requestPreparation,makeBawRunner,parseBawJson,runTask,taskStopOutput} from '../scripts/agent-task.mjs';
 import {hash} from '../lib/marketplace-core.mjs';
 import {normalizePolicy,policyHash} from '../lib/marketplace-policy.mjs';
 const config={version:2,verified:true,newTasksEnabled:true,chainId:56,address:'0x1111111111111111111111111111111111111111',token:'0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d'};
@@ -74,4 +74,67 @@ test('failed or intercepted previews never execute',async()=>{
 });
 test('App pending execution is never claimed as confirmed settlement',async()=>{
  const m=mock(),out=[];await runTask(['select','1','--execute'],{...m,config,nowSec:now,prepare:async b=>prepared(b),print:v=>out.push(v)});assert.equal(out.at(-1).confirmedOnChain,false);assert.equal(out.at(-1).execution.data.status,'PENDING_CONFIRMATION');
+});
+
+test('funding deployment gate precedes task and acknowledgement file reads with flag before command',async()=>{
+ for(const c of [{...config,version:1},{...config,verified:false}])await assert.rejects(runTask(['--health-ack','missing.json','create','unused.json'],{config:c,readFile:()=>{throw Error('must not read')},baw:()=>{throw Error('must not call wallet')}}),error=>error.code==='ESCROW_UPGRADE_REQUIRED');
+});
+const healthAck={accepted:true,token:'ab'.repeat(32),expiresAt:Number(now)+100};
+test('manual health acknowledgement parses flags anywhere without implying execute',()=>{
+ for(const args of [['--health-ack','ack.json','approve','1'],['approve','--health-ack','ack.json','1'],['approve','1','--health-ack','ack.json']]){
+  const v=buildTaskRequest(args,{nowSec:now,readFile:p=>{assert.equal(p,'ack.json');return JSON.stringify(healthAck)}});
+  assert.deepEqual(v.body.healthAcknowledgement,healthAck);assert.equal(v.execute,false);
+ }
+ const v=buildTaskRequest(['--execute','--health-ack','ack.json','create','task.json'],{nowSec:now,readFile:p=>JSON.stringify(p==='ack.json'?healthAck:doc)});
+ assert.equal(v.execute,true);assert.deepEqual(v.body.healthAcknowledgement,healthAck);
+ assert.equal(Object.hasOwn(buildTaskRequest(['approve','1']).body,'healthAcknowledgement'),false);
+});
+test('acknowledgements reject malformed, expired, oversized, ambiguous and unrelated action input',()=>{
+ const invalid=[null,[],{}, {...healthAck,accepted:false},{...healthAck,token:'cd'}, {...healthAck,token:'AB'.repeat(32)}, {...healthAck,expiresAt:Number(now)}, {...healthAck,expiresAt:Number(now)-1}, {...healthAck,expiresAt:Number(now)+121}, {...healthAck,expiresAt:String(healthAck.expiresAt)}, {...healthAck,secret:'not-allowed'}];
+ for(const ack of invalid)assert.throws(()=>buildTaskRequest(['approve','1','--health-ack','ack.json'],{nowSec:now,readFile:()=>JSON.stringify(ack)}),/Invalid health acknowledgement/);
+ for(const raw of ['{',' '.repeat(4097)])assert.throws(()=>buildTaskRequest(['approve','1','--health-ack','ack.json'],{nowSec:now,readFile:()=>raw}),/JSON/);
+ for(const args of [['approve','1','--health-ack'],['approve','1','--health-ack','--execute'],['approve','1','--health-ack','a','--health-ack','b'],['--health-ack','ack.json','select','1'],['refund','1','--health-ack','ack.json'],['approve','1','--auto-ack']])assert.throws(()=>buildTaskRequest(args,{readFile:()=>{throw Error('must not read')}}));
+ const readFile=()=>JSON.stringify({...doc,healthAcknowledgement:healthAck});
+ assert.deepEqual(buildTaskRequest(['create','task.json'],{nowSec:now,readFile}).body.healthAcknowledgement,healthAck);
+ assert.throws(()=>buildTaskRequest(['create','task.json','--health-ack','ack.json'],{nowSec:now,readFile}),/both/);
+});
+function healthFailure(code='HEALTH_ACK_REQUIRED'){
+ return {code,error:'SECRET_SERVER_MESSAGE',secret:'SECRET_ROOT',readiness:{status:'degraded',secret:'SECRET_READINESS',checks:{rpc:{status:'available'},evaluator:{status:'unknown',basis:'read-only',secret:'SECRET_CHECK'},delivery:{status:'cooldown',retryAt:123},evil:{status:'available',secret:'SECRET_UNKNOWN'}}},healthAcknowledgement:{token:healthAck.token,expiresAt:healthAck.expiresAt,secret:'SECRET_ACK'}};
+}
+test('prepare preserves bounded allowlisted warning fields and prints actionable stop JSON',async()=>{
+ const value=healthFailure();let calls=0;
+ await assert.rejects(requestPreparation({action:'approve',amount:'1'},{config,fetcher:async()=>{calls++;return {ok:false,status:409,json:async()=>value}}}),error=>{
+  assert.equal(error.code,'HEALTH_ACK_REQUIRED');assert.equal(error.status,409);
+  const out=taskStopOutput(error);assert.equal(out.step,'stop');assert.deepEqual(out.healthAcknowledgement,{token:healthAck.token,expiresAt:healthAck.expiresAt});
+  assert.equal(out.readiness.checks.evaluator.basis,'read-only');assert.equal(out.readiness.checks.delivery.retryAt,123);
+  assert.match(out.hint,/--health-ack/);assert.equal(JSON.stringify(out).includes('SECRET'),false);assert.equal(Object.hasOwn(out.readiness.checks,'evil'),false);
+  return true;
+ });assert.equal(calls,1);
+});
+test('prepare validation diagnostics preserve only bounded public machine fields',async()=>{
+ const fields={field:'metadata.title',expected:'string length 5–140',received:'string length 2'};
+ await assert.rejects(requestPreparation({action:'approve',amount:'1'},{config,fetcher:async()=>({ok:false,status:400,json:async()=>({code:'METADATA_FIELD_INVALID',...fields,error:'SECRET_RAW_ERROR',body:{token:'SECRET_BODY'},token:'SECRET_TOKEN',provider:'SECRET_PROVIDER'})})}),error=>{
+  const out=taskStopOutput(error);assert.deepEqual(out,{step:'stop',error:'Marketplace preparation failed: METADATA_FIELD_INVALID',code:'METADATA_FIELD_INVALID',status:400,...fields});assert.equal(JSON.stringify(out).includes('SECRET'),false);return true;
+ });
+ const out=taskStopOutput({message:'local validation',field:'a'.repeat(201),expected:{secret:'SECRET'},received:'number'});assert.deepEqual(out,{step:'stop',error:'local validation',received:'number'});
+});
+test('malformed remote warning fields are omitted or fail closed',async()=>{
+ await assert.rejects(requestPreparation({action:'approve',amount:'1'},{config,fetcher:async()=>({ok:false,status:409,json:async()=>({...healthFailure(),healthAcknowledgement:{token:'SECRET',expiresAt:'not-int'},readiness:{status:'healthy',checks:null}})})}),error=>{const out=taskStopOutput(error);assert.equal(out.readiness.status,'degraded');assert.equal(out.healthAcknowledgement,undefined);assert.equal(JSON.stringify(out).includes('SECRET'),false);return true;});
+});
+test('manual ack is serialized only in prepare JSON and keeps deployment identity',async()=>{
+ const body=buildTaskRequest(['approve','1','--health-ack','ack.json'],{nowSec:now,readFile:()=>JSON.stringify(healthAck)}).body;
+ await requestPreparation(body,{config,fetcher:async(url,options)=>{assert.equal(url.pathname,'/api/marketplace/prepare');assert.deepEqual(JSON.parse(options.body),{...body,chainId:56,escrowAddress:config.address});return {ok:true,json:async()=>prepared(body)}}});
+});
+test('fatal funding error remains typed and cannot offer acknowledgement bypass',async()=>{
+ await assert.rejects(requestPreparation({action:'approve',amount:'1',healthAcknowledgement:healthAck},{config,fetcher:async()=>({ok:false,status:503,json:async()=>healthFailure('FUNDING_UNAVAILABLE')})}),error=>{
+  const out=taskStopOutput(error);assert.equal(out.code,'FUNDING_UNAVAILABLE');assert.equal(out.status,503);assert.equal(Object.hasOwn(out,'healthAcknowledgement'),false);assert.match(out.hint,/cannot bypass/);return true;
+ });
+});
+test('manual ack reaches prepare but never auto retries, previews on failure or executes by default',async()=>{
+ for(const fail of [false,true]){
+  const m=mock();let prepares=0;
+  const go=runTask(['--health-ack','ack.json','approve','1'],{...m,config,nowSec:now,readFile:()=>JSON.stringify(healthAck),print:()=>{},prepare:async body=>{prepares++;assert.deepEqual(body.healthAcknowledgement,healthAck);if(fail)throw Object.assign(Error('Marketplace preparation failed: HEALTH_ACK_REQUIRED'),healthFailure());return prepared(body)}});
+  if(fail)await assert.rejects(go);else await go;
+  assert.equal(prepares,1);assert.equal(m.calls.some(a=>a[1]==='execute'),false);assert.equal(m.calls.some(a=>a[1]==='preview'),!fail);
+ }
 });
