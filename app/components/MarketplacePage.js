@@ -21,6 +21,7 @@ import Brand from "./Brand";
 import OfficeNav from "./OfficeNav";
 import OfficeHero from "./OfficeHero";
 import OfficeDialog from "./OfficeDialog";
+import MotionLayer from "./MotionLayer";
 import {
   phaseOf,
   formatAmount as amount,
@@ -297,6 +298,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
   }
   return (
     <>
+      <MotionLayer />
       <OfficeNav action="Find work" onAction={() => openAgent(null, "worker")} />
       <main>
         {observerMode ? <section className="page-width observer-intro"><h1>PUBLIC TASK BOARD.</h1><p>Observer mode: no wallet, Agent ID or signature needed to inspect public tasks, policies and outcomes. Private reports stay out of this view.</p></section> : <OfficeHero onRequester={() => openAgent(null, "requester")} onWorker={() => openAgent(null, "worker")} newTasksEnabled={newTasksEnabled} />}
