@@ -5,6 +5,7 @@ import { Wallet,keccak256 } from 'ethers';
 import { MarketplaceError,artifactKey,encryptArtifact,hash,canonical } from '../lib/marketplace-core.mjs';
 import { evaluateTask,prepareWinner,parseDecision,parseCandidateScore,uploadArtifact,ensureReviewTime,verifyDecision,requestEvaluator,evaluatorRetryAfter } from '../lib/marketplace-service.mjs';
 
+import {createProviderQueue,PROVIDER_RESERVE_LUA,PROVIDER_FINISH_LUA,PROVIDER_INSPECT_LUA} from '../lib/marketplace-provider-queue.mjs';
 import {attestDecision,verifyDecisionAuthentication} from '../lib/marketplace-decision-auth.mjs';
 import {DEFAULT_POLICY,LEGACY_POLICY,normalizePolicy,policyHash} from '../lib/marketplace-policy.mjs';
 import {signReviewDecision,evaluatorSigner} from '../lib/marketplace-attestation.mjs';
@@ -178,4 +179,53 @@ test('provider network timeouts, billing/auth/client errors and invalid JSON are
 test('transient502/503/504 retry uses bounded backoff and response work cannot exceed the45s budget',async()=>{
  for(const status of [502,503,504]){let clock=0,calls=0;const waits=[];await requestEvaluator('https://example.invalid',{}, {now:()=>clock,sleep:async ms=>{waits.push(ms);clock+=ms;},fetchImpl:async()=>++calls===1?{ok:false,status,headers:{get:()=>null}}:{ok:true,json:async()=>({ok:true})}});assert.equal(calls,2);assert.deepEqual(waits,[1000]);}
  let clock=0,calls=0;await assert.rejects(requestEvaluator('https://example.invalid',{}, {now:()=>clock,fetchImpl:async()=>{calls++;clock+=45001;return {ok:true,json:async()=>({})};}}),e=>e.code==='EVALUATOR_UNAVAILABLE');assert.equal(calls,1);
+});
+
+class ProviderRedis{
+ clock=1700000000000;states=new Map();keys=[];
+ async command(op,script,n,key,owner,a,b){assert.equal(op,'EVAL');assert.equal(n,'1');this.keys.push(key);let state=this.states.get(key)||{nextAt:0,leaseUntil:0};
+  if(script===PROVIDER_RESERVE_LUA){const due=Math.max(state.nextAt,state.leaseUntil);if(due>this.clock)return [0,due-this.clock,due];state={owner,leaseUntil:this.clock+Number(b),nextAt:this.clock+Number(a)};this.states.set(key,state);return [1,0,this.clock];}
+  if(script===PROVIDER_INSPECT_LUA){const due=Math.max(state.nextAt,state.leaseUntil);return [Math.max(0,due-this.clock),Math.max(this.clock,due)];}
+  assert.equal(script,PROVIDER_FINISH_LUA);if(Number(a)>0)state.nextAt=Math.max(state.nextAt,this.clock+Number(a));if(state.owner===owner){delete state.owner;state.leaseUntil=0;}this.states.set(key,state);return [Math.max(0,state.nextAt-this.clock),state.nextAt];
+ }
+}
+test('provider-wide reservations serialize concurrent tasks and survive process loss without unbounded queue reservations',async()=>{
+ const storage=new ProviderRedis(),queue=createProviderQueue({storage,url:'https://example.invalid/v1/chat',scope:'test-account'});
+ const slots=await Promise.all(Array.from({length:10},()=>queue.reserve()));assert.equal(slots.filter(s=>s.admitted).length,1);assert.equal(slots[1].retryAfterSeconds,60);
+ await queue.finish(slots[0]);assert.equal((await queue.reserve()).admitted,false);storage.clock+=7000;const next=await queue.reserve();assert.equal(next.admitted,true);
+ storage.clock+=60001;assert.equal((await queue.reserve()).admitted,true);assert.equal(storage.states.size,1);assert.ok(storage.keys.every(k=>!k.includes('task')));
+});
+test('shared cooldown cannot be shortened or old permit release another owner; scope does not depend on contract or model',async()=>{
+ const storage=new ProviderRedis(),queue=createProviderQueue({storage,url:'https://example.invalid/v1/a',scope:'account'}),same=createProviderQueue({storage,url:'https://example.invalid/v1/b',scope:'account'});
+ const first=await queue.reserve();await queue.finish(first,60);storage.clock+=7000;assert.equal((await same.reserve()).admitted,false);await queue.finish(first,1);assert.equal((await same.reserve()).retryAfterSeconds,53);
+ storage.clock+=53000;const second=await same.reserve();await queue.finish(first);assert.equal((await queue.reserve()).admitted,false);assert.equal(second.admitted,true);
+ const separate=createProviderQueue({storage,url:'https://example.invalid/v1',scope:'separate-account'});assert.equal((await separate.reserve()).admitted,true);
+});
+test('shared dispatcher skips provider and candidate debit on known cooldown; actual429 updates shared gate once with no inline sleep',async()=>{
+ const redis=new ProviderRedis(),queue=createProviderQueue({storage:redis,url:'https://example.invalid',scope:'quota'});let calls=0,debits=0;
+ const options={dispatchQueue:queue,beforeDispatch:async()=>{debits++;},fetchImpl:async()=>{calls++;return {ok:false,status:429,headers:{get:()=> '60'}};},now:()=>redis.clock,sleep:async()=>{throw Error('must not wait');}};
+ await assert.rejects(requestEvaluator('https://example.invalid',{},options),e=>e.code==='EVALUATOR_RATE_LIMIT'&&e.retryAfterSeconds===60);
+ for(let i=0;i<5;i++)await assert.rejects(requestEvaluator('https://example.invalid',{},options),e=>e.code==='EVALUATOR_COOLDOWN');
+ assert.equal(calls,1);assert.equal(debits,1);redis.clock+=60000;
+ const result=await requestEvaluator('https://example.invalid',{}, {...options,fetchImpl:async()=>{calls++;return {ok:true,json:async()=>({score:90,acceptable:true})};}});assert.equal(result.score,90);assert.equal(calls,2);assert.equal(debits,2);
+});
+test('evaluation cooldown is resumable without verdict, cursor or candidate quota mutation and releases per-task lease',async()=>{
+ const f=fixture(1),redis=new ProviderRedis(),queue=createProviderQueue({storage:redis,url:'https://example.invalid',scope:'resume'});let calls=0;
+ f.options.providerQueue=queue;f.options.evaluator=async(t,r,m,{providerQueue,transport})=>{const data=await requestEvaluator('https://example.invalid',{}, {...transport,dispatchQueue:providerQueue,now:()=>redis.clock,fetchImpl:async()=>{calls++;return {ok:true,json:async()=>({score:91,acceptable:true})};}});return {winner:r[0].worker,...data};};
+ const blocker=await queue.reserve();await queue.finish(blocker,60);
+ const pending=await evaluateTask('77',f.requester,f.options);assert.equal(pending.status,'cooldown');assert.equal(pending.outcome,'pending');assert.equal(pending.processed,0);assert.equal(calls,0);assert.equal(f.storage.counts.size,0);assert.equal(await f.storage.get('decision:77'),null);assert.equal(await f.storage.get('evaluation-lock:77'),null);
+ redis.clock+=60000;const d=await evaluateTask('77',f.requester,f.options);assert.equal(d.outcome,'winner');assert.equal(d.coverage.accepted,1);assert.equal(calls,1);assert.equal([...f.storage.counts.values()].reduce((a,b)=>a+b,0),1);
+});
+
+test('shared dispatch reservation and candidate budget operations are included in the45s wall deadline',async()=>{
+ const redis=new ProviderRedis(),queue=createProviderQueue({storage:redis,url:'https://example.invalid',scope:'elapsed'});let calls=0;
+ await assert.rejects(requestEvaluator('https://example.invalid',{}, {dispatchQueue:queue,now:()=>redis.clock,beforeDispatch:async()=>{redis.clock+=45001;},fetchImpl:async()=>{calls++;return {ok:true,json:async()=>({})};}}),e=>e.code==='EVALUATOR_UNAVAILABLE');assert.equal(calls,0);
+});
+
+test('provider inspection is read-only and reports only current gate cooldown, never evaluator health',async()=>{
+ const redis=new ProviderRedis(),queue=createProviderQueue({storage:redis,url:'https://example.invalid',scope:'inspect'});
+ assert.deepEqual(await queue.inspect(),{cooldown:false,retryAfterSeconds:0,retryAt:Math.ceil(redis.clock/1000)});assert.equal(redis.states.size,0);
+ const permit=await queue.reserve();const before=JSON.stringify([...redis.states]);assert.equal((await queue.inspect()).retryAfterSeconds,60);assert.equal(JSON.stringify([...redis.states]),before);
+ await queue.finish(permit,60);redis.clock+=11000;const snapshot=JSON.stringify([...redis.states]);assert.equal((await queue.inspect()).retryAfterSeconds,49);assert.equal(JSON.stringify([...redis.states]),snapshot);
+ redis.clock+=49000;assert.equal((await queue.inspect()).cooldown,false);
 });

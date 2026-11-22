@@ -404,8 +404,9 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
           </div>
           <section className="service-status" aria-label="Service availability">
             <h3>Before funding or starting work</h3>
-            <p>Configuration is not a live availability check. Unknown services have not been verified.</p>
+            <p>Configuration is not a live availability check. Unknown services have not been verified. Reviews share provider capacity: a cooldown is pending, not failed acceptance. Wait for Retry-After and resume with fresh authorization; saved evaluation progress is retained.</p>
             <dl>{[["RPC read", market?.readBlock ? "available" : "unknown"], ["Uploads", health?.checks?.uploads?.status || "unknown"], ["Evaluator", health?.checks?.evaluator?.status || "unknown"], ["Delivery", health?.checks?.delivery?.status || "unknown"]].map(([label, status]) => <div key={label}><dt>{label}</dt><dd>{status}</dd></div>)}</dl>
+            {health?.checks?.evaluator?.status === "cooldown" && <p role="status">Evaluator capacity is cooling down for approximately {health.checks.evaluator.retryAfterSeconds} seconds at this snapshot. Resume after the indicated time with fresh authorization; this is not rejected work or a payout decision.</p>}
             <p className="small-note">{health?.checkedAt ? `Checked ${new Date(health.checkedAt).toLocaleString("en-GB", { timeZone: "Asia/Jakarta" })} WIB · ` : "No health check confirmed · "}Read block {market?.readBlock ?? "unknown"}. Deployed contract does not prove a completed marketplace payment.</p>
           </section>
           {market?.capabilities &&

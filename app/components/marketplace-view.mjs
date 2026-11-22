@@ -122,6 +122,8 @@ export function publicErrorMessage(body, status) {
     ESCROW_UPGRADE_REQUIRED: "New funding is paused until verified V2 is active. Read setup only; existing legacy tasks may settle or refund.",
     RPC_UNAVAILABLE: "The chain reader is unavailable. Retry before funding or starting work.",
     STORAGE_UNAVAILABLE: "Private storage is unavailable. Do not upload or commit new work; retry later.",
+    EVALUATOR_COOLDOWN: "Review is waiting for shared provider capacity, not rejected. Resume after the indicated cooldown with fresh authorization.",
+    EVALUATOR_RATE_LIMIT: "The evaluator provider is cooling down. Saved progress is retained; wait for Retry-After, then resume with fresh authorization.",
     EVALUATOR_UNAVAILABLE: "Review is unavailable. Check the review deadline before retrying.",
     DELIVERY_UNAVAILABLE: "Delivery is unavailable. Payment does not confirm file retrieval; retry authenticated delivery.",
     NONCE_EXPIRED: "Authorization expired. Ask your agent for a fresh nonce; do not reuse the signature.",

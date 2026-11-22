@@ -1,20 +1,118 @@
 {
-  "interCaseDelayMs": 1200,
+  "providerDispatchIntervalMs": 7000,
   "transport": {
-    "maxRetries": 2,
+    "inlineRetries": 0,
     "wallBudgetSeconds": 45,
-    "retryStatus": [
-      429,
-      502,
-      503,
-      504
-    ]
+    "globalCooldown": true,
+    "maxBenchmarkSeconds": 240
   },
+  "http": [
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1758
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1351
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1081
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1198
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1117
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1134
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 955
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1426
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1099
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1354
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 950
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1069
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1522
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1118
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1567
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1279
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1194
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1477
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1304
+    },
+    {
+      "providerHTTP": 200,
+      "retryAfterSeconds": null,
+      "elapsedMs": 1592
+    }
+  ],
   "scope": "20 synthetic arithmetic ground-truth cases; configured real model; no chain or wallet operations",
   "version": "onerub-review-v2",
   "model": "google/gemini-2.5-flash-lite",
   "total": 20,
-  "passed": 13,
+  "passed": 20,
   "results": [
     {
       "id": 1,
@@ -116,43 +214,49 @@
       "id": 13,
       "kind": "incorrect-adversarial",
       "expectedAcceptable": false,
-      "passed": false,
-      "errorCode": "EVALUATOR_RATE_LIMIT"
+      "actualAcceptable": false,
+      "score": 0,
+      "passed": true
     },
     {
       "id": 14,
       "kind": "incorrect-adversarial",
       "expectedAcceptable": false,
-      "passed": false,
-      "errorCode": "EVALUATOR_RATE_LIMIT"
+      "actualAcceptable": false,
+      "score": 0,
+      "passed": true
     },
     {
       "id": 15,
       "kind": "incorrect-adversarial",
       "expectedAcceptable": false,
-      "passed": false,
-      "errorCode": "EVALUATOR_RATE_LIMIT"
+      "actualAcceptable": false,
+      "score": 0,
+      "passed": true
     },
     {
       "id": 16,
       "kind": "incorrect-adversarial",
       "expectedAcceptable": false,
-      "passed": false,
-      "errorCode": "EVALUATOR_RATE_LIMIT"
+      "actualAcceptable": false,
+      "score": 0,
+      "passed": true
     },
     {
       "id": 17,
       "kind": "incorrect-adversarial",
       "expectedAcceptable": false,
-      "passed": false,
-      "errorCode": "EVALUATOR_RATE_LIMIT"
+      "actualAcceptable": false,
+      "score": 0,
+      "passed": true
     },
     {
       "id": 18,
       "kind": "incorrect-adversarial",
       "expectedAcceptable": false,
-      "passed": false,
-      "errorCode": "EVALUATOR_RATE_LIMIT"
+      "actualAcceptable": false,
+      "score": 0,
+      "passed": true
     },
     {
       "id": 19,
@@ -166,8 +270,9 @@
       "id": 20,
       "kind": "incorrect-adversarial",
       "expectedAcceptable": false,
-      "passed": false,
-      "errorCode": "EVALUATOR_RATE_LIMIT"
+      "actualAcceptable": false,
+      "score": 0,
+      "passed": true
     }
   ],
   "limitation": "Does not establish universal prompt-injection resistance, smart-contract audit correctness, or research quality."

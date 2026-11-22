@@ -14,11 +14,11 @@
 
 ## Test and release evidence
 
-- Final full suite after V2 activation and rate-limit/legacy-recovery patches:142tests,142pass,0fail,0skipped,88.565s. Local Anvil/mock tests are not real paid marketplace use.
+- Final full suite after shared provider scheduler/cooldown and BscScan readback:149tests,149pass,0fail,0skipped,89.698s. Local Anvil/mock tests are not real paid marketplace use.
 - Dependency check tmp0.2.7 matches override+lock; npm audit known advisories0 across installed dependency report, not a code audit.
 - Real private Redis:6/6 synthetic checks for PING, atomic admission, immutability, capacity, nonshortening TTL and encrypted integrity readback.
 - Real isolated encrypted backup/restore drill:1record,1artifact,1restored, productionNamespaceMutated=false. Separate data backup key, no credential material in data snapshot.
-- Production web Vercel deployment https://onerub-gch2rydnm-fertalites-projects.vercel.app aliased https://onerub.net.
+- Production web Vercel deployment https://onerub-8sbg7m3cp-fertalites-projects.vercel.app aliased https://onerub.net.
 - Public config,health,list,observer,permissions,Playground,handbook,security,terms,submission all HTTP200 and deployment identity matches. [Readback evidence](audit-evidence/production-release.json).
 - Browser production1440×900 and390×844: actual configV2+enabled funding, first-fold role/risk, no overflow,12Tab/ShiftTab/Escape/focus, foreign namespace404, observer/trust pass. Actual GET-only homepage also inspected with no fixtures; no wallet mutations. Fixture task/payment screenshots are explicitly simulated.
 
@@ -26,9 +26,9 @@
 
 - Mainnet funded task→worker artifact→review→payout→retrieval remains absent; production board currently0tasks. Deployment is not payment evidence.
 - Participation scan12interacting addresses/11current holders does not establish30eligible addresses; only real participants and organizer-accepted contracts count.
-- Official submission requires Binance account login; no authenticated form session or receipt available. Form-level30-address wording may be stricter than award-specific announcement language.
-- BscScan headless flow was blocked by Turnstile/403 and no API key. Authorized existing Brave session later uploaded exact source and submitted final verification; returned err_code_5 with empty compiled contract output and creation-bytecode mismatch. bscscanVerified=false; exact Sourcify match is not substituted for BscScan success. See BRAVE-ACCESS-2026-11-22.md.
-- Provider benchmark availability failure diagnosed by bounded status-only run: first9cases HTTP200, remaining11 HTTP429 with Retry-After8–10seconds; separate positive and adversarial probes both HTTP200. This is a real burst-rate limit, not evidence that negative content is rejected. Bounded429/502/503/504 retry now honors Retry-After inside a shared45second budget with at most2retries and no replay of unknown network completion. Final paced20case run13/20passed: one16second429 cooldown recovered; later60second cooldowns correctly returned EVALUATOR_RATE_LIMIT instead of exceeding the budget. Provider throughput remains limited; no20/20claim. No universal correctness/injection-resistance claim. Health remains degraded/unknown for provider,uploads,task-specific delivery rather than green based on configuration.
+- Official submission draft is now accessible in the authorized existing Brave tab. Field3 contains the BscScan Exact Match source link and was independently read back. No final submission receipt exists; participant handles personal X and remaining form. Form-level30-address wording remains a gate.
+- BscScan now displays Source Code Verified — Exact Match for the deployed V2; published source and65ABI entries independently read back. Historical403/err_code_5 attempts are no longer the current explorer state. No replacement deployment or payment was made. See BSC-SOURCE-VERIFICATION.md.
+- Provider429 failures were caused by shared burst quota; per-request retries alone were insufficient (historical13/20). New provider-wide Redis dispatch serializes model calls with7second minimum spacing and shared429cooldown, returns resumable pending without spending denied-candidate attempt quota, and preserves checkpoints. Actual20case run now20/20pass,20HTTP200,zero429,144837ms; no universal quality/throughput guarantee. Health may show observed cooldown, otherwise provider remains unknown rather than green on configuration. See EVALUATOR-CAPACITY.md.
 - Host/key administrators, storage and model providers remain trusted. Refund/expiry/revocation or membership loss can leave worker costs unpaid. No human arbitration, host-proof secrecy, or unconditional delivery guarantee.
 
 ## Relevant runbooks

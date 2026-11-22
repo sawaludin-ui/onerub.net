@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-22T03:25:41.021Z",
+  "checkedAt": "2026-11-22T03:56:23.901Z",
   "base": "https://onerub.net",
   "identityMatched": true,
   "checks": [
@@ -21,7 +21,7 @@
     {
       "path": "/tasks",
       "status": 200,
-      "bytes": 25361
+      "bytes": 25537
     },
     {
       "path": "/permissions",
@@ -36,7 +36,7 @@
     {
       "path": "/skill.md",
       "status": 200,
-      "bytes": 11953
+      "bytes": 12296
     },
     {
       "path": "/security.md",
@@ -51,7 +51,7 @@
     {
       "path": "/submission.md",
       "status": 200,
-      "bytes": 2262
+      "bytes": 2657
     }
   ],
   "config": {
@@ -137,7 +137,7 @@
   },
   "health": {
     "status": "degraded",
-    "checkedAt": "2026-11-22T03:25:40.132Z",
+    "checkedAt": "2026-11-22T03:56:23.739Z",
     "activeDeployment": {
       "chainId": 56,
       "contract": "OneRubMarketplaceEscrowV2",
@@ -165,11 +165,11 @@
       "compatibility": "receipt-gated-v2"
     },
     "escrowVersion": 2,
-    "readBlock": 135006758,
+    "readBlock": 135010854,
     "checks": {
       "rpc": {
         "status": "available",
-        "readBlock": 135006758
+        "readBlock": 135010854
       },
       "storage": {
         "status": "available",
@@ -205,7 +205,7 @@
     "scope": "Read-only dependency probes. Provider evaluation, uploads, task signer liveness and paid delivery require task-specific verification; configuration is not live success."
   },
   "totalTasks": 0,
-  "readBlock": 135006760,
+  "readBlock": 135010856,
   "limitations": [
     "No wallet signing, task funding, private uploads, provider inference or artifact delivery is performed by this check.",
     "Source verification is Sourcify evidence; BscScan verification is distinct."

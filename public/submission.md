@@ -10,6 +10,10 @@ The official announcement links the same form through https://app.binance.com/un
 
 Deadline: 9 December 2026, 15:00 WIB (08:00 UTC). Only participating contract addresses actually submitted/accepted count.
 
+## Verified V2 source
+
+The active OneRubMarketplaceEscrowV2 source is published on BscScan with Exact Match: https://bscscan.com/address/0x0D33DD09131aC17827fA165D70daAAB4DBfC299a#code . Compiler v0.8.39+commit.ce47f2c8, optimizer200, Cancun; source SPDX MIT (explorer license header displays -NA-). Source verification does not establish a security audit, paid usage or organizer eligibility.
+
 ## Current evidence limitations
 
 A read-only chain scan during hardening observed 30 event-emitting successful transactions, 12 interacting wallet addresses, and 11 current Agent ID holders at snapshot block134963053 across the original Office and marketplace V1 contracts. This includes a nonholder deployer and is not a count of paid marketplace tasks, historical holder eligibility, or organizer-approved participation. Office activity is distinct from marketplace work. It does not establish the30-address requirement.

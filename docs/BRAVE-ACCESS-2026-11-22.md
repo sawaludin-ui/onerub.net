@@ -2,7 +2,11 @@
 
 The participant explicitly authorized using their Brave browser. Existing Brave was accessed through Windows UI Automation; no remote-debugging port was enabled, no process/profile was killed or copied, and no passwords/cookies/session tokens were extracted. Only task-related pages/controls were used.
 
-## Binance form
+## Current verified status
+
+Later same-tab inspection now confirms BscScan Source Code Verified — Exact Match with the V2 source published. The Binance form is accessible; field3 was filled with the verified source link and independently read back. No form submission or X edit occurred. The earlier login/verification failures below are chronological history, not current blockers. See [current source verification](BSC-SOURCE-VERIFICATION.md).
+
+## Binance form (earlier observation)
 
 The official project survey opens the Binance Log In page in this Brave profile. Windows accessibility confirmed Log In, Email/Phone number, and native sign-in methods. No credential value was read or entered and no submission was sent. The participant needs to authenticate directly in Brave, not send password, OTP or cookies in chat.
 

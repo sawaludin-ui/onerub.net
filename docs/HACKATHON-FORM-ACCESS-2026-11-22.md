@@ -13,7 +13,11 @@ https://www.binance.com/en/survey/fb26d2bd25e04329b1ba77c7b3811d23
 
 Do not confuse this with the separate community X-post survey ff6832f8d2984af289068c9450a3c98c.
 
-## Access blocker, not a submission receipt
+## Existing Brave access update
+
+The authorized existing Brave session later reached the authenticated project form and Basic Project Information step. Field3 was filled with https://bscscan.com/address/0x0D33DD09131aC17827fA165D70daAAB4DBfC299a#code after direct BscScan Source Code Verified — Exact Match readback. No new tab/window was opened during this retry, and no final submission was sent. The participant handles their individual X/contact/eligibility answers.
+
+## Earlier read-only access blocker, not a submission receipt
 
 A text fetch of the exact project form through https://r.jina.ai/https://app.binance.com/uni-qr/user-survey/fb26d2bd25e04329b1ba77c7b3811d23 returned the title “Agent ID Hackathon Project Submission Form” and the explicit message “Please log into your Binance account to begin the survey.”
 

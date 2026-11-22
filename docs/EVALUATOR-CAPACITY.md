@@ -1,11 +1,21 @@
-# Hosted evaluator rate-limit handling
+# Hosted evaluator — shared dispatch and resumable cooldown
 
-Real provider tests found a burst limit, not an authentication or negative-content failure: a bounded20request run produced9HTTP200 then11HTTP429 with Retry-After8–10seconds. Separate correct/adversarial probes both returned200 and the adversarial answer correctly failed acceptance.
+## Root cause and current implementation
 
-Implemented: at most two retries, only explicit429/502/503/504, one shared45second wall budget, numeric/date Retry-After honored, no early retry when cooldown exceeds remaining time, no replay for network/timeout/400/401/402/403/500/invalidJSON unknown completion. Public EVALUATOR_RATE_LIMIT(503) exposes only bounded integer retryAfterSeconds and Retry-After header; no provider body/status/secret. Fresh single-use authorization is required for a later API attempt.
+Initial unpaced runs failed after9–10requests with HTTP429. Per-request bounded retries improved13/20cases but still failed at provider60second cooldowns. This was insufficient: parallel tasks could still consume a shared upstream quota. Those failed runs remain historical evidence.
 
-Scoped40tests passed after the transport patch. A single paced20case run with1.2seconds between cases passed13/20:10correct reports accepted,3incorrect/adversarial reports rejected. A16second429 recovered through bounded retry; subsequent60second cooldowns were intentionally not retried inside45seconds. This is NOT a20/20 benchmark, proof of production throughput, universal prompt-injection resistance or complete work-quality validation.
+Production now uses a provider-wide Redis dispatch gate, separate from task/contract/model identity. Redis server TIME and atomic Lua enforce one in-flight request, a60second ownership lease, default7000ms between dispatches and a shared max Retry-After cooldown after429. All instances using an upstream account must share Redis and MARKETPLACE_EVALUATOR_QUEUE_SCOPE. No secret is stored in the queue key or public health response.
 
-The configured provider needs higher capacity or lower admission/dispatch rate for larger task bursts. Do not enlarge execution beyond the lease/settlement window or treat unavailable evaluation as accepted work. Tasks can resume review checkpoints with fresh authorization after cooldown. RPC/storage/encryption/receipt-signer readiness does not certify provider capacity or future delivery; public health remains unknown/degraded for those task-specific dependencies.
+Denied dispatch does not reserve a future slot, spend a model call or debit a candidate attempt. Evaluation returns HTTP200 with status=cooldown,outcome=pending,processed,total,retryAfterSeconds,retryAt,nextAction=evaluate. Existing candidate cursor/scores and any saved final verdict remain unchanged; the per-task lock is released. Resume with fresh authorization after Retry-After. No settlement receipt can be prepared from pending review.
 
-No production participant data was used; all benchmark text was synthetic arithmetic. No chain transactions or wallets were involved in these model probes.
+There are no inline provider retries or sleeps in the production shared-gate path. Each model request and preceding gate/quota work fit the existing45second budget; network/timeout failures are not automatically replayed. The standalone transport helper retains bounded retries for explicit transient responses, but normal runEvaluator always supplies the shared dispatch gate.
+
+## Actual verification
+
+One bounded20case benchmark through the real Redis scheduler and configured google/gemini-2.5-flash-lite provider passed20/20: all20HTTP200, zero429,144837ms total,7000ms minimum dispatch spacing. Ten correct arithmetic artifacts accepted; ten synthetic negative/injection artifacts rejected. [Public benchmark evidence](audit-evidence/evaluator-benchmark.json). This is not real paid usage, universal injection resistance, or proof of complex work quality.
+
+Read-only queue.inspect reports current cooldown without mutation or model call. Health shows cooldown with bounded retry fields when observed; an open gate remains provider status unknown, never a green success based only on configuration.
+
+## Remaining limits
+
+No FIFO fairness or guaranteed future throughput. Other applications or calls outside this shared gate can exhaust the same provider account. Higher volume needs measured admission/capacity planning, not longer hidden waits beyond the lease/settlement budget. Storage, host, provider and signer remain trusted; missing provider capacity is not acceptable work and never authorizes payout.

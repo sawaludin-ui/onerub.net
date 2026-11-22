@@ -1,0 +1,30 @@
+{
+  "address": "0x0D33DD09131aC17827fA165D70daAAB4DBfC299a",
+  "chainId": 56,
+  "explorerURL": "https://bscscan.com/address/0x0D33DD09131aC17827fA165D70daAAB4DBfC299a#code",
+  "bscscanVerified": true,
+  "match": "Exact Match",
+  "contractName": "OneRubMarketplaceEscrowV2",
+  "compilerVersion": "v0.8.39+commit.ce47f2c8",
+  "optimizer": {
+    "enabled": true,
+    "runs": 200
+  },
+  "evmVersion": "cancun",
+  "licenseHeader": "-NA-",
+  "sourceSPDX": "MIT",
+  "evidence": {
+    "screenshot": "docs/audit-evidence/bscscan-exact-match.png",
+    "observedBy": "root existing Brave session; screenshot independently read by contract-review",
+    "publicVerifierStatus": "Address-specific already verified response from both StandardJSON and multipart public forms",
+    "abiReadback": "docs/audit-evidence/bscscan-abi-readback.json",
+    "abiMatchesDeployment": true,
+    "abiEntries": 65
+  },
+  "supersedes": [
+    "Earlier err_code_5/empty output observations are historical failed attempts.",
+    "Earlier CAPTCHA/no-key findings are not current verification blockers."
+  ],
+  "noRedeploymentForVerification": true,
+  "noAdditionalSourceUploadInFinalDiagnosis": true
+}

@@ -137,6 +137,22 @@ test('rate-limit serializer exports bounded cooldown only and never private prov
     assert.equal(JSON.stringify(body).includes('SECRET'), false);
   }
 });
+test('pending provider cooldown is successful progress with a bounded Retry-After, never a settlement decision', async () => {
+  const progress = { status: 'cooldown', outcome: 'pending', taskId: '1', processed: 1, total: 3, retryAfterSeconds: 7, nextAction: 'evaluate' };
+  const response = await handle(async () => progress);
+  assert.equal(response.status, 200); assert.equal(response.headers.get('Retry-After'), '7');
+  const body = await response.json(); assert.deepEqual(body, progress); assert.equal('signature' in body, false); assert.equal('winner' in body, false);
+  for (const retryAfterSeconds of [0, -1, 86401, '7', 1.5, NaN, Infinity]) {
+    const r = await handle(async () => ({ ...progress, retryAfterSeconds })); assert.equal(r.headers.get('Retry-After'), null);
+  }
+  for (const changed of [{ status: 'evaluating' }, { outcome: 'winner' }]) {
+    const r = await handle(async () => ({ ...progress, ...changed })); assert.equal(r.headers.get('Retry-After'), null);
+  }
+  const error = Object.assign(new MarketplaceError('Shared provider is waiting.', 503, 'EVALUATOR_COOLDOWN'), { retryAfterSeconds: 60, providerStatus: 429, body: 'SECRET_PROVIDER_BODY' });
+  const failed = await handle(async () => { throw error; }); assert.equal(failed.headers.get('Retry-After'), '60');
+  assert.deepEqual(await failed.json(), { error: error.message, code: error.code, retryAfterSeconds: 60 });
+});
+
 test('health checks never claim provider delivery or uploads work based only on flags', async () => {
   const options = { storage: { command: async () => 'PONG' }, config: { evaluator: true }, checkEncryption: () => true,
     readChain: async () => ({ readBlock: 123, owner: addr('1'), treasury: addr('2'), registry: addr('3') }) };
@@ -148,6 +164,11 @@ test('health checks never claim provider delivery or uploads work based only on 
   const down = await probeReadiness({ ...options, storage: { command: failure }, readChain: failure, checkEncryption: failure });
   assert.equal(down.checks.rpc.status, 'unavailable'); assert.equal(down.checks.storage.status, 'unavailable');
   assert.equal(JSON.stringify(down).includes('SECRET_TOKEN'), false);
+  const waiting = await probeReadiness({ ...options, checkDispatch: async () => ({ cooldown: true, retryAfterSeconds: 60, retryAt: 2000000000, owner: 'SECRET_OWNER' }) });
+  assert.deepEqual(waiting.checks.evaluator, { status: 'cooldown', basis: 'shared-dispatch-state-not-provider-health', retryAfterSeconds: 60, retryAt: 2000000000 });
+  assert.equal(JSON.stringify(waiting).includes('SECRET_OWNER'), false);
+  const open = await probeReadiness({ ...options, checkDispatch: async () => ({ cooldown: false, retryAfterSeconds: 0, retryAt: 2000000000 }) });
+  assert.equal(open.checks.evaluator.status, 'unknown');
 });
 test('V2 health signer must match a live non-revoked default, not stale manifest config', async () => {
   const active = resolveMarketplaceDeployment({ v2Manifest: v2() }); let checked;

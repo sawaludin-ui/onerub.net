@@ -29,6 +29,15 @@
     "minimumValidSubmissions": "1",
     "evaluatorRevoked": false
   },
+  "explorerVerification": {
+    "source": "bscscan",
+    "status": "verified",
+    "match": "exact",
+    "url": "https://bscscan.com/address/0x0D33DD09131aC17827fA165D70daAAB4DBfC299a#code",
+    "sourcePublished": true,
+    "sourceSpdx": "MIT",
+    "licenseHeader": "-NA-"
+  },
   "verification": {
     "status": "verified",
     "chainId": 56,

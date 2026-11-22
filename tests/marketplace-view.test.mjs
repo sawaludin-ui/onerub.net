@@ -117,6 +117,8 @@ test("public error copy is allowlisted and never echoes provider private text", 
   assert.match(publicErrorMessage({error:{code:"STORAGE_UNAVAILABLE",message:raw}},503), /Do not upload/);
   assert.match(publicErrorMessage({},404), /not found/);
   assert.match(publicErrorMessage({},429), /do not resend wallet transactions/);
+  assert.match(publicErrorMessage({ code: "EVALUATOR_COOLDOWN", error: raw }, 503), /pending, not failed|waiting for shared provider capacity, not rejected/);
+  assert.match(publicErrorMessage({ code: "EVALUATOR_RATE_LIMIT", error: raw }, 503), /Saved progress is retained/);
 });
 test("timeline never turns payment into proof of artifact retrieval", () => {
  const timeline = Object.fromEntries(taskTimeline({phase:"Settled",submissionCount:2,readBlock:123,observation:{paymentStatus:"paid-on-chain",deliveryStatus:"recovery-required",events:[{event:"TaskCreated",blockNumber:100}]}}));
