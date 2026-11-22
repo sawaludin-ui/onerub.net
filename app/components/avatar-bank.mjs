@@ -1,5 +1,5 @@
 // One-based, append-only Office registration IDs; never use leaderboard position or wallet hashes.
-export const AVATAR_BANK_SIZE = 100;
+export const AVATAR_BANK_SIZE = 55;
 
 export function avatarImageForEmployee(employeeId) {
   let id;

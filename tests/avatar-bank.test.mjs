@@ -28,22 +28,22 @@ function componentHarness() {
   return exports.default;
 }
 
-test("first 100 registration IDs get exactly 100 unique ordered image paths", () => {
+test("first AVATAR_BANK_SIZE registration IDs get exactly AVATAR_BANK_SIZE unique ordered image paths", () => {
   const paths = Array.from({ length: AVATAR_BANK_SIZE }, (_, i) => avatarImageForEmployee(i + 1));
-  assert.equal(paths.length, 100);
-  assert.equal(new Set(paths).size, 100);
+  assert.equal(paths.length, AVATAR_BANK_SIZE);
+  assert.equal(new Set(paths).size, AVATAR_BANK_SIZE);
   paths.forEach((path, i) => assert.equal(path, `/avatars/bot-${String(i + 1).padStart(3, "0")}.webp`));
 });
 
 test("JSON and bigint registration ID forms agree", () => {
-  for (let id = 1; id <= 100; id++) {
+  for (let id = 1; id <= AVATAR_BANK_SIZE; id++) {
     assert.equal(avatarImageForEmployee(String(id)), avatarImageForEmployee(id));
     assert.equal(avatarImageForEmployee(BigInt(id)), avatarImageForEmployee(id));
   }
 });
 
 test("missing, malformed and out-of-bank IDs explicitly choose procedural fallback", () => {
-  for (const id of [undefined, null, "", 0, -1, 101, 200, 1.1, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1, 0n, 101n, 10n ** 100n, "0", "01", "001", "1.0", "1e2", " 1", "+1", "0x01", "101", "0xabc", {}, [], true]) {
+  for (const id of [undefined, null, "", 0, -1, AVATAR_BANK_SIZE+1, 200, 1.1, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1, 0n, 101n, 10n ** 100n, "0", "01", "001", "1.0", "1e2", " 1", "+1", "0x01", "101", "0xabc", {}, [], true]) {
     assert.equal(avatarImageForEmployee(id), null, String(id));
   }
 });
@@ -62,7 +62,7 @@ test("append-only onchain roster order survives paging, identity errors and scor
   for (const e of roster.slice().sort((a, b) => b.totalCorrect - a.totalCorrect)) {
     assert.equal(avatarImageForEmployee(directory.get(e.address).employeeNumber), before.get(e.address));
   }
-  assert.equal(before.get(addresses[99]), "/avatars/bot-100.webp");
+  assert.equal(before.get(addresses[AVATAR_BANK_SIZE-1]), "/avatars/bot-055.webp");
   assert.equal(before.get(addresses[100]), null);
 });
 
