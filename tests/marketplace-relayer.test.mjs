@@ -1,5 +1,7 @@
 // Isolated synthetic keys, mock Redis semantics, and local Anvil only. No live RPC.
 import {test} from 'node:test';
+import {prepareTests} from '../scripts/prepare-tests.mjs';
+prepareTests();
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {spawn} from 'node:child_process';
@@ -10,7 +12,8 @@ import {randomBytes} from 'node:crypto';
 import {Wallet,Transaction,keccak256,ContractFactory,JsonRpcProvider} from 'ethers';
 import {createSettlementRelayer,RELAYER_LUA} from '../lib/marketplace-relayer.mjs';
 import {marketplaceInterface,hash,taskView} from '../lib/marketplace-core.mjs';
-import {DEFAULT_POLICY,policyHash} from '../lib/marketplace-policy.mjs';
+// Receipt/nonce regression deliberately exercises the immutable v3 judge protocol.
+import {V3_POLICY as DEFAULT_POLICY,policyHash} from '../lib/marketplace-policy.mjs';
 import {signUploadReceipt} from '../lib/marketplace-attestation.mjs';
 import {registerMetadata,uploadArtifact,evaluateTask} from '../lib/marketplace-service.mjs';
 

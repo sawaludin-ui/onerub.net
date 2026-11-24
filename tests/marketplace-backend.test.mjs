@@ -22,7 +22,7 @@ import {
   getArtifactReceipt,
 } from "../lib/marketplace-service.mjs";
 import { compile } from "../scripts/compile.mjs";
-import { DEFAULT_POLICY, policyHash } from "../lib/marketplace-policy.mjs";
+import { V3_POLICY as DEFAULT_POLICY, policyHash } from "../lib/marketplace-policy.mjs";
 
 let chain, provider;
 let deployer, requester, worker1, worker2, outsider, treasury;

@@ -9,7 +9,7 @@ import {randomBytes} from 'node:crypto';
 import {Wallet,ContractFactory,JsonRpcProvider} from 'ethers';
 import {compileMarketplaceV2} from '../scripts/compile-marketplace-v2.mjs';
 import {hash,taskView,artifactKey,MarketplaceError} from '../lib/marketplace-core.mjs';
-import {DEFAULT_POLICY,policyHash} from '../lib/marketplace-policy.mjs';
+import {V3_POLICY as DEFAULT_POLICY,policyHash} from '../lib/marketplace-policy.mjs';
 import {registerMetadata,uploadArtifact,evaluateTask,prepareWinner,deliverArtifact} from '../lib/marketplace-service.mjs';
 import {signUploadReceipt,signReviewDecision} from '../lib/marketplace-attestation.mjs';
 

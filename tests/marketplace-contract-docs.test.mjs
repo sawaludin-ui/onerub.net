@@ -14,7 +14,8 @@ test('published machine-readable action contract is generated from runtime limit
 });
 test('handbook documents exact metadata envelope, signature-binding safe retries and readiness acknowledgement', () => {
   const text = fs.readFileSync(new URL('../public/skill.md',import.meta.url),'utf8');
-  assert.ok(text.includes('version: 3.1.0')); assert.ok(text.includes('const payload = { metadata: originalMetadata };'));
+  assert.ok(text.includes('version: 4.0.0')); assert.ok(text.includes('const payload = { metadata: originalMetadata };'));
+  for (const phrase of ['onerub-rubric-v1','21600','verified chain submission order','Legacy policy v3']) assert.ok(text.includes(phrase),phrase);
   for (const phrase of ['HEALTH_ACK_REQUIRED','FUNDING_UNAVAILABLE','METADATA_FIELD_INVALID','metadataHash','policyVerified','at most twice','payloadHash, so obtain matching new authorization']) {
     assert.ok(text.includes(phrase),phrase);
   }

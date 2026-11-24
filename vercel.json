@@ -1,1 +1,14 @@
-{"framework":"nextjs","buildCommand":"npm run build","regions":["sin1"]}
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "regions": ["sin1"],
+  "schedules": {
+    "marketplace-review": {
+      "schedule": "2-47/15 * * * *",
+      "jitter": 15,
+      "path": "/api/marketplace/automation",
+      "requestMethod": "POST"
+    }
+  }
+}
+

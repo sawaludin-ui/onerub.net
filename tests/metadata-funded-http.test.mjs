@@ -11,7 +11,7 @@ import { randomBytes } from 'node:crypto';
 import { Wallet, NonceManager, ContractFactory, JsonRpcProvider, parseEther } from 'ethers';
 import { compileMarketplaceV2 } from '../scripts/compile-marketplace-v2.mjs';
 import { hash, taskView, deployment, MarketplaceError } from '../lib/marketplace-core.mjs';
-import { DEFAULT_POLICY, policyHash } from '../lib/marketplace-policy.mjs';
+import { V3_POLICY as DEFAULT_POLICY, policyHash } from '../lib/marketplace-policy.mjs';
 import * as http from '../lib/marketplace-http.mjs';
 
 let chain, provider, server, endpoint, owner, registry, token, escrow, requester, fundedRequester;

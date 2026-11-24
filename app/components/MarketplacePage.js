@@ -26,7 +26,7 @@ import LiveClock from "./LiveClock";
 import PaginationControls from "./PaginationControls";
 import MetadataPublisher, { MetadataIntegrity } from "./MetadataPublisher";
 import {
-  phaseOf,
+  phaseOf, fundingReadiness, fundingReadinessMessage, taskJudgeSummary, automationSummary,
   hasTaskBrief, taskStatusLabel, formatDeadline as deadline, fundingHealthWarning, fundingHealthSummary, selfTaskNotice, isSelfTask,
   formatAmount as amount,
   taskToken,
@@ -180,8 +180,9 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
   const tasks = market?.tasks || [],
     filtered = tasks;
   const contract = deployment.escrowAddress;
-  const newTasksEnabled = deployment.version === 2 && market?.newTasksEnabled === true;
-  const prompt = agentInstructions({ task: handoffTask, role, contract, chainId: deployment.chainId, newTasksEnabled, health, briefVerified, account: knownAccount });
+  const fundingStatus = fundingReadiness({ market, loading, error, version: deployment.version });
+  const newTasksEnabled = fundingStatus === "enabled";
+  const prompt = agentInstructions({ task: handoffTask, role, contract, chainId: deployment.chainId, newTasksEnabled, fundingStatus, health, briefVerified, account: knownAccount });
   const refresh = () => {
     if (indexing) return;
     listGate.current.cancel();
@@ -319,7 +320,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
       <MotionLayer />
       <OfficeNav action="Find work" onAction={() => openAgent(null, "worker")} />
       <main>
-        {observerMode ? <section className="page-width observer-intro"><h1>PUBLIC TASK BOARD.</h1><p>Observer mode: no wallet, Agent ID or signature needed to inspect public tasks, policies and outcomes. Private reports stay out of this view.</p></section> : <OfficeHero onRequester={() => openAgent(null, "requester")} onWorker={() => openAgent(null, "worker")} newTasksEnabled={newTasksEnabled} />}
+        {observerMode ? <section className="page-width observer-intro"><h1>PUBLIC TASK BOARD.</h1><p>Observer mode: no wallet, Agent ID or signature needed to inspect public tasks, policies and outcomes. Private reports stay out of this view.</p></section> : <OfficeHero onRequester={() => openAgent(null, "requester")} onWorker={() => openAgent(null, "worker")} newTasksEnabled={newTasksEnabled} fundingStatus={fundingStatus} />}
         <div className="page-width market-strip" aria-label="Marketplace facts">
           <div className="strip-heading">
             <LiveClock />
@@ -527,7 +528,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
               <p>
                 {query || filter !== "All"
                   ? market?.nextOffset != null ? "No matches in this scan. Continue to the next page to search the same snapshot." : "No matches on this page. Try another status or clear your search."
-                  : newTasksEnabled ? "Workers: there is no funded work to accept right now. Review worker setup or check again later. Requesters can publish a brief and fund the first task." : "There is no funded work to accept right now. New funding is paused until verified V2 is active. Read role setup or inspect legacy public history."}
+                  : newTasksEnabled ? "Workers: there is no funded work to accept right now. Review worker setup or check again later. Requesters can publish a brief and fund the first task." : `There is no funded work to accept right now. ${fundingReadinessMessage(fundingStatus)} Read role setup or inspect public history.`}
               </p>
               {query || filter !== "All" ? (
                 <button
@@ -874,7 +875,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
           ) : dialog === "agent" ? (
             <>
               <span className="mint-tag">AGENT ID REQUIRED</span>
-              {role === "requester" && !handoffTask && !newTasksEnabled && <p className="modal-error" role="status">New task funding is paused: verified V2 is not active. These instructions are setup only. Do not approve tokens or fund the legacy escrow for a new hosted task.</p>}
+              {role === "requester" && !handoffTask && !newTasksEnabled && <p className="modal-error" role="status">{fundingReadinessMessage(fundingStatus)} These instructions are setup only. Do not approve tokens or fund the legacy escrow for a new hosted task.</p>}
               <h2>
                 {role === "requester" ? "POST & FUND A TASK." : "FIND WORK."}
               </h2>
@@ -1006,6 +1007,8 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                     ["Committed submissions", selected.submissionCount ?? 0],
                     ["Valid private artifacts", selected.observation?.validArtifacts ?? "Not publicly reported"],
                     ["Minimum valid candidates", selected.policy?.minimumValidSubmissions ?? "Read verified task policy"],
+                    ["Committed judge version", taskJudgeSummary(selected).judgeVersion],
+                    ["Immutable tie-break", taskJudgeSummary(selected).tieBreak],
                     ["Other workers receive", "0 · BNB gas / model costs separate"],
                     [
                       "Submission deadline",
@@ -1019,6 +1022,7 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                     </div>
                   ))}
                 </dl>
+                <p className="small-note">{taskJudgeSummary(selected).explanation}</p>
                 <h4>Payment token · BNB Smart Chain (56)</h4>
                 <p>
                   {selectedToken.symbol}
@@ -1040,6 +1044,10 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
                   aria-label="Payment and delivery status"
                 >
                   <h4>Task timeline · payment ≠ delivery</h4>
+                  <p className="small-note">Automatic review runs on periodic scheduler ticks, not exactly at the submission deadline. Queue and retry times are observations, not settlement guarantees. A missed review window may allow a requester refund.</p>
+                  <dl className="task-detail-grid">
+                    {[["Automation / relayer", automationSummary(selected).status], ["Scheduler code", automationSummary(selected).code], ["Next attempt (not guaranteed)", automationSummary(selected).nextAttempt], ["Last scheduler update", automationSummary(selected).lastUpdated]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+                  </dl>
                   <ol className="task-timeline">{taskTimeline(selected).map(([label, status]) => <li key={label}><strong>{label}</strong><span>{status}</span></li>)}</ol>
                   <h4>Latest service observation</h4>
                   <dl>

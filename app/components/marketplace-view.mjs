@@ -1,3 +1,36 @@
+// Readiness is not inferred from missing data or RPC errors.
+export function fundingReadiness({ market, loading = false, error = "", version = 2 } = {}) {
+  if (error) return "unavailable";
+  if (loading || !market) return "checking";
+  if (market.newTasksEnabled === false) return "disabled";
+  if (version === 2 && market.newTasksEnabled === true) return "enabled";
+  return "unavailable";
+}
+export function fundingReadinessMessage(state) {
+  return ({ checking: "Checking marketplace readiness…", enabled: "New funding is enabled. Verify readiness again before approval.", disabled: "New funding is paused while V2 is being verified.", unavailable: "Funding status unavailable. Retry the marketplace read before approval." })[state] || "Funding status unavailable.";
+}
+export function taskJudgeSummary(task) {
+  const policy = task?.policyVerified === true ? task.policy : null;
+  const judgeVersion = policy?.judgeVersion || policy?.evaluatorVersion || "Unavailable — verify the committed policy";
+  const tieBreak = policy?.tieBreak || "Unavailable — verify the committed policy";
+  return { judgeVersion, tieBreak, explanation: tieBreak === "score-desc-address-asc"
+    ? "Legacy rule: highest score first; equal scores are decided by lowest wallet address, not submission quality. This does not prove the winner is uniquely best. The committed policy cannot be changed retroactively."
+    : tieBreak === "score-basis-points-desc-submission-chain-order-asc"
+      ? "Highest basis-point score first; equal scores use on-chain submission order, not wallet address. The committed rule is immutable; model scores do not prove a uniquely best or correct answer."
+      : "The task's committed rule is immutable. Model scores and tie-breaks do not prove a uniquely best or correct answer." };
+}
+export function publicTaskMetadata(task, { id, chainId, contract }) {
+  const verified = task?.metadataVerified === true && typeof task.metadataHash === "string"
+    && task.metadataHash.toLowerCase() === String(task.criteriaHash).toLowerCase();
+  const clean = (value, max) => typeof value === "string" ? value.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, max) : "";
+  const name = verified ? clean(task.metadata?.title, 160) : "";
+  const category = verified ? clean(task.metadata?.category, 64) : "";
+  const status = task ? phaseOf(task) : "Status unavailable";
+  const title = name ? `${name} — Task #${id} | ONERUB.NET` : `Task #${id} — ONERUB.NET`;
+  const description = [category, status, "Public task on BNB Smart Chain. Private submissions and deliverables are not included."].filter(Boolean).join(" · ");
+  const url = "https://onerub.net" + taskPermalink({ chainId, contract, id });
+  return { title, description, alternates: { canonical: url }, openGraph: { title, description, url, type: "website" }, twitter: { card: "summary", title, description } };
+}
 export const PHASES = [
   "None",
   "Open",
@@ -115,6 +148,7 @@ export function agentInstructions({
   contract,
   chainId = 56,
   newTasksEnabled = false,
+  fundingStatus = newTasksEnabled ? "enabled" : "unavailable",
   health = null,
   briefVerified = false,
   account = null,
@@ -123,7 +157,7 @@ export function agentInstructions({
   const common = safety + " " +
     "Read https://onerub.net/skill.md and refresh active deployment from https://onerub.net/api/marketplace/config; stop if chain or escrow differs from these instructions. This copied prompt is a handoff, not a connection or wallet authorization. Winner receives 90%, platform fee 10%, other workers receive 0; BNB gas and model costs are separate. Timeout may refund the requester without worker payment. Keep raw reports private; never request losing reports. Follow official wallet preview and authorization requirements. A broadcast is not confirmed settlement.";
   if (!task)
-    return `${common} ${newTasksEnabled ? "Observed new funding enabled; verify again before any approval." : "New funding is paused or unverified: setup only, do not fund."} Inspect https://onerub.net/api/marketplace. Act as ${role === "requester" ? "a requester: prepare a readable policy, rubric and budget only. Do not approve tokens or create/fund a task unless fresh config explicitly reports newTasksEnabled=true for verified active V2; if false or unknown stop after setup" : "a worker: discover an eligible funded task and read its complete policy before competing"}. Use my Binance Agent ID on BNB Smart Chain (${chainId}).`;
+    return `${common} ${newTasksEnabled ? "Observed new funding enabled; verify again before any approval." : `${fundingReadinessMessage(fundingStatus)} setup only, do not fund.`} Inspect https://onerub.net/api/marketplace. Act as ${role === "requester" ? "a requester: prepare a readable policy, rubric and budget only. For new v4 tasks use at least a six-hour review window (21600 seconds); review starts on periodic scheduler ticks, not exactly at submission close. Do not change an existing task's immutable deadlines or policy. Do not approve tokens or create/fund a task unless fresh config explicitly reports newTasksEnabled=true for verified active V2; if false or unknown stop after setup" : "a worker: discover an eligible funded task and read its complete policy before competing"}. Use my Binance Agent ID on BNB Smart Chain (${chainId}).`;
   const phase = phaseOf(task),
     id = String(task.id),
     url = `https://onerub.net/api/marketplace/tasks/${encodeURIComponent(id)}?chainId=${chainId}&escrowAddress=${contract}`;
@@ -160,6 +194,14 @@ export function agentInstructions({
       "Inspect this terminal or unavailable task and its public history only. Do not create a new submission, duplicate settlement, or request losing reports.";
   return `${context} Next operation: ${operation}`;
 }
+export function automationSummary(task) {
+  const automation = task?.automation;
+  const statuses = { waiting: "Waiting for review window", queued: "Queued for a scheduler tick", running: "Review / settlement tick running", retry: "Retry scheduled", pending: "Review or settlement pending", blocked: "Automation blocked", missed: "Review window missed", complete: "Automation complete — verify chain payment", disabled: "Automation disabled", unknown: "Automation status unavailable", unavailable: "Automation status unavailable", "not-enqueued": "Not yet queued" };
+  const status = task && phaseOf(task) === "Settled" ? "Settled on-chain — inspect the settlement receipt" : statuses[automation?.status] || "Automation status unavailable";
+  const codes = ["WAITING_REVIEW", "EVALUATION_PENDING", "RELAYER_UNCONFIGURED", "SETTLEMENT_PENDING", "CHAIN_TERMINAL", "REVIEW_DEADLINE_MISSED", "SETTLED", "AUTOMATION_DISABLED", "AUTOMATION_RETRY", "DAILY_LLM_BUDGET", "RELAYER_UNAVAILABLE", "PROVIDER_COOLDOWN", "AUTOMATION_TICK_BUDGET", "INSUFFICIENT_GAS", "RELAYER_GAS_PRICE_LIMIT", "RELAYER_BALANCE_LOW"];
+  const timestamp = value => Number.isSafeInteger(value) && value > 0 && value <= 8640000000000 ? formatDeadline(value) : "Not reported";
+  return { status, code: codes.includes(automation?.code) ? automation.code : "Not reported", nextAttempt: timestamp(automation?.nextAt), lastUpdated: timestamp(automation?.updatedAt) };
+}
 export function taskTimeline(task) {
   const observation = task.observation || {};
   const funded = observation.events?.find(event => event.event === "TaskCreated");
@@ -168,6 +210,7 @@ export function taskTimeline(task) {
     ["Artifact stored", "Private status — check through your signed agent request"],
     ["Commitment confirmed", `${task.submissionCount ?? 0} on-chain commitments at snapshot ${task.readBlock ?? "unknown"}`],
     ["Review / decision", observation.decisionStatus || "Not reported"],
+    ["Automatic review / relayer", automationSummary(task).status],
     ["Winner selected", task.winner && !/^0x0{40}$/i.test(task.winner) ? task.winner : "No winner reported"],
     ["Payment", observation.paymentStatus || (phaseOf(task) === "Settled" ? "Settled on-chain — inspect receipt" : "Not settled")],
     ["Delivery availability", observation.deliveryStatus || "Not reported — authenticated check required"],

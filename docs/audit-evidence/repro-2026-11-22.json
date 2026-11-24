@@ -1,0 +1,128 @@
+{
+  "dateWib": "2026-11-22",
+  "scope": "synthetic in-memory audit; no RPC/provider/wallet/signing/broadcast",
+  "secretsIncluded": false,
+  "probes": [
+    {
+      "probe": "21 committed workers",
+      "reproduced": true,
+      "result": {
+        "ok": false,
+        "error": {
+          "name": "MarketplaceError",
+          "code": "EVALUATION_LIMIT",
+          "status": 409,
+          "message": "This evaluation supports at most 20 workers per task."
+        }
+      }
+    },
+    {
+      "probe": "individually permitted reports exceed combined evaluation budget",
+      "sizes": [
+        524288,
+        262144
+      ],
+      "combined": 786432,
+      "reproduced": true,
+      "result": {
+        "ok": false,
+        "error": {
+          "name": "MarketplaceError",
+          "code": "INVALID_REQUEST",
+          "status": 413,
+          "message": "Combined reports exceed the protected evaluation limit."
+        }
+      }
+    },
+    {
+      "probe": "one second review window accepted",
+      "reproduced": true,
+      "result": {
+        "ok": true,
+        "value": {
+          "action": "createAndFund",
+          "reviewWindowSeconds": 1,
+          "signed": false,
+          "broadcast": false
+        }
+      }
+    },
+    {
+      "probe": "failed evaluation retains lock and retries consume quota",
+      "reproduced": true,
+      "rateCount": 4,
+      "lockStillPresent": true,
+      "lockTtlSeconds": 90,
+      "results": [
+        {
+          "attempt": 1,
+          "ok": false,
+          "error": {
+            "name": "Error",
+            "code": null,
+            "status": null,
+            "message": "Synthetic provider failure"
+          }
+        },
+        {
+          "attempt": 2,
+          "ok": false,
+          "error": {
+            "name": "MarketplaceError",
+            "code": "EVALUATION_RUNNING",
+            "status": 409,
+            "message": "Evaluation is already running. Retry after its completion."
+          }
+        },
+        {
+          "attempt": 3,
+          "ok": false,
+          "error": {
+            "name": "MarketplaceError",
+            "code": "EVALUATION_RUNNING",
+            "status": 409,
+            "message": "Evaluation is already running. Retry after its completion."
+          }
+        },
+        {
+          "attempt": 4,
+          "ok": false,
+          "error": {
+            "name": "MarketplaceError",
+            "code": "RATE_LIMIT",
+            "status": 429,
+            "message": "Request limit reached. Retry later."
+          }
+        }
+      ]
+    },
+    {
+      "probe": "JSON null evaluator response",
+      "reproduced": true,
+      "result": {
+        "ok": false,
+        "error": {
+          "name": "TypeError",
+          "code": null,
+          "status": null,
+          "message": "Cannot read properties of null (reading 'winner')"
+        }
+      }
+    },
+    {
+      "probe": "key rotation after decision permits prepare but breaks delivery",
+      "reproduced": true,
+      "preparePassed": true,
+      "delivery": {
+        "ok": false,
+        "error": {
+          "name": "Error",
+          "code": null,
+          "status": null,
+          "message": "Unsupported state or unable to authenticate data"
+        }
+      }
+    }
+  ],
+  "reproducedCount": 6
+}

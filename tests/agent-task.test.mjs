@@ -11,7 +11,7 @@ const config={version:2,verified:true,newTasksEnabled:true,chainId:56,address:'0
 const wallet='0x607cF25614065179a9238705E03E6590C082F56d',now=1800000000n;
 const abi=new Interface(JSON.parse(fs.readFileSync(new URL('../lib/marketplace-v2-abi.json',import.meta.url))));
 const approve=new Interface(['function approve(address,uint256)']);
-const doc={amount:'1',metadata:{title:'Review a small algorithm',description:'Inspect the supplied algorithm and provide test evidence.',category:'Code review',rubric:'Accept complete work with reproducible test evidence.'},submissionDeadline:Number(now)+3600,reviewDeadline:Number(now)+7200,policy:{minScore:70}};
+const doc={amount:'1',metadata:{title:'Review a small algorithm',description:'Inspect the supplied algorithm and provide test evidence.',category:'Code review',rubric:'Accept complete work with reproducible test evidence.'},submissionDeadline:Number(now)+3600,reviewDeadline:Number(now)+26000,policy:{minScore:70}};
 function prepared(body){
  let data;if(body.action==='approve')data=approve.encodeFunctionData('approve',[config.address,parseUnits(body.amount,18)]);
  else if(body.action==='createAndFund')data=abi.encodeFunctionData(body.action,[config.token,parseUnits(body.amount,18),hash(body.metadata),body.submissionDeadline,body.reviewDeadline,policyHash(body.policy)]);
@@ -32,8 +32,8 @@ test('normal CLI selection and rejection use hosted preparation with task ID onl
 });
 test('task JSON preserves readable policy and sufficient review window',()=>{
  const {body}=buildTaskRequest(['create','task.json'],{readFile:()=>JSON.stringify(doc)});
- assert.equal(body.policy.minReviewWindowSeconds,3600);assert.equal(body.metadata.title,doc.metadata.title);assert.equal(body.amount,'1');
- assert.throws(()=>buildTaskRequest(['create','task.json'],{readFile:()=>JSON.stringify({...doc,reviewDeadline:doc.submissionDeadline+1})}),/one hour/);
+ assert.equal(body.policy.version,4);assert.equal(body.policy.minReviewWindowSeconds,21600);assert.equal(body.metadata.title,doc.metadata.title);assert.equal(body.amount,'1');
+ assert.throws(()=>buildTaskRequest(['create','task.json'],{readFile:()=>JSON.stringify({...doc,reviewDeadline:doc.submissionDeadline+1})}),/Review window must be at least/);
  assert.throws(()=>buildTaskRequest(['create','task.json'],{readFile:()=>JSON.stringify({...doc,policy:undefined})}),/readable policy/);
 });
 test('malformed commands and amounts fail locally',()=>{

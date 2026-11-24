@@ -7,7 +7,7 @@ import { evaluateTask,prepareWinner,parseDecision,parseCandidateScore,uploadArti
 
 import {createProviderQueue,PROVIDER_RESERVE_LUA,PROVIDER_FINISH_LUA,PROVIDER_INSPECT_LUA} from '../lib/marketplace-provider-queue.mjs';
 import {attestDecision,verifyDecisionAuthentication} from '../lib/marketplace-decision-auth.mjs';
-import {DEFAULT_POLICY,LEGACY_POLICY,normalizePolicy,policyHash} from '../lib/marketplace-policy.mjs';
+import {DEFAULT_POLICY,V3_POLICY,LEGACY_POLICY,normalizePolicy,policyHash} from '../lib/marketplace-policy.mjs';
 import {signReviewDecision,evaluatorSigner} from '../lib/marketplace-attestation.mjs';
 
 process.env.MARKETPLACE_AUTH_SECRET=randomBytes(32).toString('hex');
@@ -116,7 +116,7 @@ test('receipt signer cannot turn tampered decision into valid chain receipt',asy
  const f=fixture(1),d=await complete(f);await assert.rejects(signReviewDecision(f.task,{...d,winner:Wallet.createRandom().address},{storage:f.storage}),e=>e.code==='DECISION_INVALID');
 });
 test('policy v3 supports singleton and disclosed escrow relaying without changing legacy policy v2 hash',()=>{
- assert.equal(DEFAULT_POLICY.minimumValidSubmissions,1);assert.equal(DEFAULT_POLICY.version,3);assert.equal(LEGACY_POLICY.minimumValidSubmissions,2);
+ assert.equal(DEFAULT_POLICY.minimumValidSubmissions,1);assert.equal(DEFAULT_POLICY.version,4);assert.equal(V3_POLICY.version,3);assert.equal(policyHash(V3_POLICY),hash(V3_POLICY));assert.equal(LEGACY_POLICY.minimumValidSubmissions,2);
  assert.equal(policyHash(LEGACY_POLICY),hash(LEGACY_POLICY));assert.deepEqual(normalizePolicy(LEGACY_POLICY),LEGACY_POLICY);
  assert.equal(DEFAULT_POLICY.settlement,'any-relayer-signed-decision-funded-escrow-only');assert.equal(DEFAULT_POLICY.rights,'winner-nonexclusive-after-settlement-loser-not-licensed');
  assert.throws(()=>normalizePolicy({...DEFAULT_POLICY,minimumValidSubmissions:0}));

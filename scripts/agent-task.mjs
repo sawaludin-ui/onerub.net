@@ -116,7 +116,8 @@ export function buildTaskRequest(argv,{from,readFile=p=>fs.readFileSync(p,'utf8'
       if(ackFile!==undefined)throw Error('Health acknowledgement supplied in both task JSON and --health-ack');
       body.healthAcknowledgement=validateHealthAcknowledgement(v.healthAcknowledgement,nowSec);
     }
-    if(!Number.isSafeInteger(body.submissionDeadline)||!Number.isSafeInteger(body.reviewDeadline)||body.reviewDeadline-body.submissionDeadline<3600)throw Error('Review window must be at least one hour');
+    const minReview=body.policy.minReviewWindowSeconds;
+    if(!Number.isSafeInteger(body.submissionDeadline)||!Number.isSafeInteger(body.reviewDeadline)||body.reviewDeadline-body.submissionDeadline<minReview)throw Error('Review window must be at least '+minReview+' seconds for the selected policy');
   }else{
     const names={submit:'submitCommitment',select:'selectWinner',reject:'rejectAll',cancel:'cancel',refund:'refund'};
     if(!Object.hasOwn(names,cmd))throw Error('Unknown marketplace action');body={action:names[cmd],taskId:id(p[0])};

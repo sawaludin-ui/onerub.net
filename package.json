@@ -5,9 +5,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1",
+    "prebuild": "node scripts/build-release-manifest.mjs",
     "build": "next build",
+    "release:manifest": "node scripts/build-release-manifest.mjs",
+    "test:prepare": "node scripts/prepare-tests.mjs",
+    "pretest": "npm run test:prepare",
     "start": "next start --hostname 127.0.0.1",
-    "test": "node --test tests/*.test.mjs",
+    "test": "node --experimental-test-module-mocks --test tests/*.test.mjs",
     "compile": "node scripts/compile.mjs",
     "deploy:contract": "node scripts/deploy.mjs"
   },

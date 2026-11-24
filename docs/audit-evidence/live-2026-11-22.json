@@ -1,0 +1,43 @@
+{
+  "checkedAt": "2026-11-22 04:15:47 WIB",
+  "marketplace": {
+    "status": 200,
+    "contract": "0xb30E139eAdE49fdD8ace38FBE0C3dD97C0f5a0Ea",
+    "totalTasks": 0,
+    "capabilities": {
+      "privateStorage": true,
+      "authentication": true,
+      "evaluator": true,
+      "unsignedTransactions": true
+    },
+    "block": 134957469
+  },
+  "office": {
+    "status": 200,
+    "contract": "0x7d7A4B8f27838aca993d6C2c086031301ee33A9C",
+    "stats": {
+      "employees": 11,
+      "approved": 4,
+      "awards": 2,
+      "assignments": 6
+    },
+    "agentIds": [
+      "ferta.ai",
+      "scientific.ai",
+      "kentlee.ai",
+      "rifkiandika.ai",
+      "rels.ai",
+      "51bitcoin.ai",
+      "skypots.ai",
+      "mm1111.ai",
+      "mm111.ai",
+      "agentai.ai",
+      "azeral.ai"
+    ],
+    "block": 134957469
+  },
+  "playground": {
+    "status": 200,
+    "title": "Office Playground — ONERUB.NET"
+  }
+}

@@ -1,0 +1,50 @@
+name: Clean release verification
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install exact lockfile dependencies
+        run: npm ci
+      - name: Test clean checkout (compile-only fixtures prepared automatically)
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/release
+          npm test 2>&1 | tee artifacts/release/tests.log
+      - name: Build locked source and verify frozen artifact identity
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/build-release-manifest.mjs --require-clean
+          npm run build 2>&1 | tee artifacts/release/build.log
+          node --input-type=module -e "import fs from 'node:fs'; import assert from 'node:assert/strict'; import {execFileSync} from 'node:child_process'; const m=JSON.parse(fs.readFileSync('artifacts/release/manifest.json')); assert.equal(m.sourceCommit,execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim()); assert.equal(m.dirty,false); assert.equal(fs.readFileSync('.next/BUILD_ID','utf8').trim(),m.buildId); const routes=JSON.parse(fs.readFileSync('.next/server/app-paths-manifest.json')); assert.ok(routes['/api/release/route']); fs.copyFileSync('.next/server/app-paths-manifest.json','artifacts/release/built-routes.json');"
+      - name: Verify running built release endpoint
+        shell: bash
+        run: |
+          npm start -- --port 3100 > artifacts/release/runtime.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          node --input-type=module -e "import fs from 'node:fs'; import assert from 'node:assert/strict'; const expected=JSON.parse(fs.readFileSync('artifacts/release/manifest.json')); let response; for(let i=0;i<60;i++){try{response=await fetch('http://127.0.0.1:3100/api/release');if(response.ok)break;}catch{}await new Promise(r=>setTimeout(r,500));} assert.ok(response?.ok,'Built runtime did not start'); const actual=await response.json(); assert.deepEqual(actual,expected); assert.equal(response.headers.get('x-onerub-build-id'),expected.buildId); assert.equal(response.headers.get('cache-control'),'no-store'); fs.writeFileSync('artifacts/release/runtime-proof.json',JSON.stringify({url:'http://127.0.0.1:3100/api/release',status:response.status,sourceCommit:actual.sourceCommit,sourceDigest:actual.sourceDigest,buildId:actual.buildId,verified:true},null,2));"
+      - name: Upload immutable evidence (not a deployment)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: release-evidence-${{ github.sha }}-${{ github.run_attempt }}
+          path: artifacts/release/
+          if-no-files-found: error
+          retention-days: 30
