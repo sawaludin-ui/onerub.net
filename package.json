@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1",
-    "prebuild": "node scripts/build-release-manifest.mjs",
+    "prebuild": "node scripts/build-release-manifest.mjs prepare",
     "build": "next build",
     "release:manifest": "node scripts/build-release-manifest.mjs",
     "test:prepare": "node scripts/prepare-tests.mjs",
