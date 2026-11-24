@@ -26,7 +26,21 @@ test('change is a standalone presentation with native Detail link and no new sid
  const component=fs.readFileSync(new URL('../app/components/TaskStatsCard.js',import.meta.url),'utf8');
  const css=fs.readFileSync(new URL('../app/components/TaskStatsCard.module.css',import.meta.url),'utf8');
  assert.match(component,/<article/);assert.match(component,/<a className={styles.detail} href={view.href}/);assert.match(component,/All Time/);assert.match(component,/aria-label={view.knownAgents/);
- assert.doesNotMatch(component,/fetch[(]|useEffect|setInterval|Math[.]random|signTransaction|since last month|5 this month|3 this month/);
+ assert.doesNotMatch(component,/fetch[(]|useEffect|setInterval|Math[.]random|signTransaction|5 this month|3 this month/);
  assert.doesNotMatch(component,/TASK [/]|Winner payout|Gross |submissions<|market-task-title|market-task-description|task[.]metadata/);
+ assert.match(component,/since last month/);assert.doesNotMatch(component,/requester wallet|[·] this task/);
+ assert.match(css,/padding: 13px 12px 12px/);assert.match(css,/font-size: 40px/);assert.match(css,/min-block-size: 400px/);
  assert.match(css,/container-type: inline-size/);assert.match(css,/.detail:focus-visible/);assert.doesNotMatch(css,/@keyframes|animation:/);
 });
+test('since-last-month amount is backed by the actual settled deadline, not fabricated monthly growth',()=>{
+ const at=Math.floor(Date.parse('2026-11-25T02:12:00+07:00')/1000);
+ const opts={fallbackToken:token,chainId,contract,nowSec:at};
+ const recent={...task,submissionDeadline:Math.floor(Date.parse('2026-11-24T21:00:00+07:00')/1000)};
+ assert.equal(taskStatsView(recent,opts).earnedSinceLastMonth,'0.9');
+ assert.equal(taskStatsView({...recent,phase:'Open'},opts).earnedSinceLastMonth,'0');
+ assert.equal(taskStatsView({...recent,submissionDeadline:at+86400},opts).earnedSinceLastMonth,null);
+ assert.equal(taskStatsView({...recent,submissionDeadline:1},opts).earnedSinceLastMonth,null);
+ assert.equal(taskStatsView({...recent,submissionDeadline:undefined},opts).earnedSinceLastMonth,null);
+ assert.equal(taskStatsView({...recent,amountUnavailable:true},opts).earnedSinceLastMonth,null);
+});
+

@@ -1,4 +1,4 @@
-/* Stats-card presentation only. No global selectors, timers, network calls or animation overrides. */
+/* Reference proportions: 270px panel, 400px height, 12px gutters; isolated to this card. */
 .card.card.card {
   container-type: inline-size;
   position: relative;
@@ -7,43 +7,45 @@
   align-items: stretch;
   justify-content: flex-start;
   min-inline-size: 0;
+  inline-size: 100%;
+  max-inline-size: 270px;
   min-block-size: 400px;
-  padding: 20px 18px 19px;
+  padding: 13px 12px 12px;
   gap: 0;
   border: 1px solid rgb(255 255 255 / 8%);
-  border-radius: 23px;
-  background: linear-gradient(164deg, #3c3d3b 0%, #30312f 39%, #171816 77%, #10110f 100%);
-  color: #f7f7f5;
+  border-radius: 21px;
+  background: linear-gradient(180deg, #3a3a3a 0%, #2c2c2c 42%, #1b1b1b 74%, #141414 100%);
+  color: #f7f7f7;
   font-family: Arial, Helvetica, sans-serif;
   overflow: hidden;
 }
-.header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.card .heading { margin: 0; font-size: 18px; line-height: 1.2; font-weight: 400; letter-spacing: -.035em; }
-.period { flex: none; padding: 7px 10px; border: 1px solid #60615f; border-radius: 9px; background: rgb(255 255 255 / 5%); color: #f3f3f0; font-size: 12px; line-height: 1.15; }
-.earnings { margin-block-start: 17px; min-inline-size: 0; }
-.label { display: block; font-size: 12px; line-height: 1.4; color: #eee; }
+.header { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-block-size: 30px; }
+.card .heading { margin: 0; font: 400 18px/22px Arial, Helvetica, sans-serif; letter-spacing: -.02em; }
+.period { display: inline-flex; align-items: center; justify-content: center; min-inline-size: 76px; min-block-size: 30px; padding: 6px 9px; border: 1px solid #626262; border-radius: 9px; background: rgb(255 255 255 / 5%); color: #f1f1f1; font-size: 12px; line-height: 16px; flex: none; }
+.earnings { margin-block-start: 12px; min-inline-size: 0; }
+.label { display: block; font-size: 12px; line-height: 17px; color: #ededed; }
 .amount { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px; margin-block-start: 3px; min-inline-size: 0; }
-.amount strong { color: #f7f7f5; font-size: clamp(36px, 13.5cqi, 56px); line-height: 1.05; font-weight: 700; letter-spacing: -.055em; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
-.fraction { color: #8a8b87; }
-.currency { color: #b1b2ad; font-size: 13px; line-height: 1.3; }
-.card .note { margin: 5px 0 0; font-size: 10px; line-height: 1.5; color: #a1a29d; }
-.paid { color: #56d96a; }
-.unpaid { color: #cacbc5; }
-.scope { color: #b5b6b1; }
-.metrics { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 5px; padding: 0; margin: 22px 0 9px; }
-.metric { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: baseline; column-gap: 4px; row-gap: 3px; padding: 10px 11px 8px; border-radius: 14px; background: rgb(255 255 255 / 10%); min-inline-size: 0; }
-.metric dt { grid-column: 2; grid-row: 1; font-size: 12px; line-height: 1.3; color: #b5b6b1; }
-.metric dd { grid-column: 1; grid-row: 1; margin: 0; font-size: 26px; line-height: 1.05; letter-spacing: -.04em; color: #f7f7f5; }
-.metricNote { grid-column: 1 / -1; font-size: 10px; line-height: 1.4; color: #b4b5ae; }
-.detail { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; min-block-size: 72px; padding: 13px 13px; border-radius: 13px; background: #f4f4f2; color: #121310; text-decoration: none; }
-.number { font-size: 29px; line-height: 1.15; letter-spacing: -.055em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.detailLabel { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; line-height: 1.5; }
+.amount strong { color: #fafafa; font-size: 40px; line-height: 44px; font-weight: 700; letter-spacing: -.035em; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.fraction { color: #888; }
+.currency { color: #b1b1b1; font-size: 12px; line-height: 16px; }
+.card .note { margin: 4px 0 0; font-size: 10px; line-height: 14px; color: #c3c3c3; }
+.paid { color: #56c96a; }
+.unpaid { color: #bcbcbc; }
+.scope { color: #d0d0d0; }
+.metrics { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding: 0; margin: 16px 0 8px; }
+.metric { display: grid; grid-template-columns: max-content minmax(0, 1fr); grid-template-rows: 27px 12px; align-items: baseline; column-gap: 4px; row-gap: 1px; padding: 8px 9px 7px; border-radius: 14px; background: #3f3f3f; min-inline-size: 0; }
+.metric dt { grid-column: 2; grid-row: 1; font-size: 12px; line-height: 16px; color: #c4c4c4; }
+.metric dd { grid-column: 1; grid-row: 1; margin: 0; font-size: 26px; line-height: 27px; letter-spacing: -.03em; color: #f7f7f7; }
+.metricNote { grid-column: 1 / -1; font-size: 10px; line-height: 12px; color: #aaa; }
+.detail { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; min-block-size: 74px; padding: 12px 10px; border-radius: 13px; background: #f0f0f0; color: #161616; text-decoration: none; }
+.number { font-size: 26px; line-height: 31px; letter-spacing: -.035em; font-weight: 500; font-variant-numeric: tabular-nums; }
+.detailLabel { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; line-height: 20px; }
 .detail:focus-visible { outline: 3px solid #80c5ff; outline-offset: 3px; }
 .detail:hover { background: #fff; }
 .availability { margin-block-start: auto; padding-block-start: 22px; min-inline-size: 0; }
-.bars { display: flex; gap: 3px; inline-size: 100%; block-size: 35px; margin-block-start: 5px; }
-.bar { display: block; flex: 1 1 0; min-inline-size: 0; block-size: 100%; border-radius: 3px; background: #454640; }
-.card .agentCount { margin: 6px 0 0; font-size: 10px; line-height: 1.5; color: #b5b6ae; }
+.bars { display: flex; gap: 3px; inline-size: 100%; block-size: 34px; margin-block-start: 4px; }
+.bar { display: block; flex: 1 1 0; min-inline-size: 0; block-size: 100%; border-radius: 3px; background: #474747; }
+.card .agentCount { margin: 5px 0 0; font-size: 10px; line-height: 14px; color: #b6b6b6; }
 @container (max-width: 235px) {
   .metric { padding-inline: 8px; column-gap: 3px; }
   .metric dt { font-size: 11px; }

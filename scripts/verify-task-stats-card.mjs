@@ -19,7 +19,7 @@ try{
   await page.goto(base,{waitUntil:'domcontentloaded',timeout:120000});
   const card=page.locator('.market-task-card').first();await card.getByText('Availability',{exact:true}).waitFor();
   const copy=await card.innerText();assert.ok(copy.includes('Stats'));assert.ok(copy.includes('All Time'));assert.ok(copy.includes('Earnings'));assert.ok(copy.includes('001'));assert.ok(copy.includes(actual.submissionCount+' agents'));
-  assert.ok(!copy.includes(actual.metadata.title));assert.ok(!copy.includes('Gross'));assert.ok(!copy.includes('submissions'));assert.ok(!copy.includes('Due '));assert.ok(!copy.includes('TASK /'));assert.ok(!copy.includes('since last month'));
+  assert.ok(!copy.includes(actual.metadata.title));assert.ok(!copy.includes('Gross'));assert.ok(!copy.includes('submissions'));assert.ok(!copy.includes('Due '));assert.ok(!copy.includes('TASK /'));assert.ok(copy.includes('since last month'));assert.ok(!copy.includes('Paid on-chain'));
   assert.equal(await card.locator('[data-active="true"]').count(),actual.submissionCount);
   assert.equal(await card.locator('select,button').count(),0); // All Time is a label, not a fake dropdown.
   const link=card.getByRole('link',{name:'Detail: '+actual.metadata.title});assert.equal(await link.count(),1);assert.ok((await link.getAttribute('href')).endsWith('/1'));
@@ -34,7 +34,7 @@ try{
  for(const [name,patch]of [['zero',{submissionCount:0,phase:'Open'}],['single',{submissionCount:1}],['maximum',{submissionCount:64}],['unknown',{submissionCount:undefined,amountUnavailable:true}],['large-payout',{payout:'123456789012345678901234567890123456'}]]){
   const task={...actual,...patch},context=await browser.newContext({viewport:{width:320,height:1000}}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/api/marketplace**',route=>route.fulfill({json:{...data,tasks:[task]}}));await page.goto(base,{waitUntil:'domcontentloaded',timeout:120000});const card=page.locator('.market-task-card').first();await card.getByText('Availability',{exact:true}).waitFor();
-  const text=await card.innerText();if(name==='unknown')assert.match(text,/Agent count unavailable/);if(name==='zero')assert.match(text,/Not paid yet/);
+  const text=await card.innerText();if(name==='unknown')assert.match(text,/Agent count unavailable/);if(name==='zero')assert.match(text,/Earnings/);
   assert.equal(await card.locator('[data-active="true"]').count(),patch.submissionCount??(name==='unknown'?0:actual.submissionCount));
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.equal(await card.evaluate(el=>el.scrollWidth>el.clientWidth),false);assert.deepEqual(errors,[]);
   reports.push({case:name,width:320,text,pageerrors:errors});await card.screenshot({path:out+'/'+name+'.png',animations:'disabled'});await context.close();

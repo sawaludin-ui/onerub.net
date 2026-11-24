@@ -4,7 +4,9 @@ import styles from './TaskStatsCard.module.css';
 
 export default function TaskStatsCard({ task, fallbackToken, chainId, contract, featured = false }) {
   const view = taskStatsView(task, { fallbackToken, chainId, contract });
-  const [whole, fraction] = view.value.split('.');
+  const [whole, rawFraction] = view.value.split('.');
+  const fraction = view.value === '—' ? undefined : (rawFraction || '').padEnd(2, '0');
+  const monthly = view.earnedSinceLastMonth === null ? '—' : '+' + view.earnedSinceLastMonth + ' ' + view.symbol;
   return (
     <article className={'task-card market-task-card ' + (featured ? 'featured ' : '') + styles.card} aria-label={'Task ' + view.number + ': ' + view.title}>
       <header className={styles.header}>
@@ -17,16 +19,16 @@ export default function TaskStatsCard({ task, fallbackToken, chainId, contract, 
           <strong>{whole}{fraction !== undefined && <span className={styles.fraction}>.{fraction}</span>}</strong>
           <span className={styles.currency}>{view.symbol}</span>
         </div>
-        <p className={styles.note}><span className={view.paid && view.supported ? styles.paid : styles.unpaid}>{view.note}</span><span className={styles.scope}> · this task</span></p>
+        <p className={styles.note}><span className={view.earnedSinceLastMonth !== null ? styles.paid : styles.unpaid}>{monthly}</span><span className={styles.scope}> since last month</span></p>
       </div>
       <dl className={styles.metrics}>
         <div className={styles.metric}>
           <dt>Projects</dt><dd>{view.projects}</dd>
-          <span className={styles.metricNote}>this task</span>
+          <span className={styles.metricNote}>— this month</span>
         </div>
         <div className={styles.metric}>
           <dt>clients</dt><dd>{view.clients ?? '—'}</dd>
-          <span className={styles.metricNote}>requester wallet</span>
+          <span className={styles.metricNote}>— this month</span>
         </div>
       </dl>
       <a className={styles.detail} href={view.href} aria-label={'Detail: ' + view.title}>
@@ -39,8 +41,9 @@ export default function TaskStatsCard({ task, fallbackToken, chainId, contract, 
           {Array.from({ length: view.barCount }, (_, i) => {
             const active = view.knownAgents && i < view.agents;
             const progress = Math.min(1, i / Math.max(1, Math.min(view.agents, view.barCount) - 1));
-            const hue = progress < 0.7 ? 210 + progress / 0.7 * 120 : 330 + (progress - 0.7) / 0.3 * 60;
-            return <span key={i} className={styles.bar} data-active={active ? 'true' : 'false'} style={active ? { backgroundColor: 'hsl(' + hue + ' 92% 67%)' } : undefined} aria-hidden="true" />;
+            const palette = ['#038aff', '#2887f4', '#5688fa', '#8481ee', '#ad8af2', '#ce95e9', '#e6a0dc', '#eea0bf', '#f2969f', '#f3997e', '#ef9964', '#e79150'];
+            const color = palette[Math.round(progress * (palette.length - 1))];
+            return <span key={i} className={styles.bar} data-active={active ? 'true' : 'false'} style={active ? { backgroundColor: color } : undefined} aria-hidden="true" />;
           })}
         </div>
         <p className={styles.agentCount}>{view.knownAgents ? view.agents + ' agent' + (view.agents === 1 ? '' : 's') : 'Agent count unavailable'}</p>
