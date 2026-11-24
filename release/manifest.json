@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "sourceCommit": "481aa1f9b65f0597bee6f5cda1e8afd3e696e669",
-  "sourceDigest": "ce5db59dabb56f42b92c3f8ab8f429aafe9e9c38e39a3c8891520a981b513712",
+  "sourceCommit": "93e3f0216fa6c9b57d42e1c4c7674eab195f5a72",
+  "sourceDigest": "2bfc30c4ab48e4cf9c6a5cc235d947efc09f198e60882500e95e8b943ccbb690",
   "sourceDigestAlgorithm": "sha256-sorted-path-and-byte-digests-v1",
-  "sourceFileCount": 197,
+  "sourceFileCount": 200,
   "files": [
     [
       ".github/workflows/release-verification.yml",
@@ -111,7 +111,7 @@
     ],
     [
       "app/components/MarketplacePage.js",
-      "30f7f11244d8cddb7b97bfe5b7acea26821b8f1c106ebc057728926bc22e27b0"
+      "301fcb6a4d83c37e89e58f4c3399e27c87be950cda73e0e9415d7458e2dc531d"
     ],
     [
       "app/components/MetadataPublisher.js",
@@ -150,12 +150,24 @@
       "06a3eed67a750524bafbaf784f8062e48803928b822ee3b0b3876c089129480a"
     ],
     [
+      "app/components/TaskStatsCard.js",
+      "2dbc2534ffc7f1b8781ff1ab0b5133543bba38ecc9e108e8ad4e77c1eba4a0c3"
+    ],
+    [
+      "app/components/TaskStatsCard.module.css",
+      "ffef811e1a0a1e12886765bdaba26cb19522c85da1eb4f62615c70b4cb152849"
+    ],
+    [
       "app/components/avatar-bank.mjs",
       "b430dc96fc7339fa09c4a7f81eb40f2ee6786d41e6327e7949d75d25708dff1a"
     ],
     [
       "app/components/marketplace-view.mjs",
       "13a810dcf396145d8fa550860a7b3a3ace60a00b33d2b99468c23c3ba9347f8f"
+    ],
+    [
+      "app/components/task-stats-view.mjs",
+      "21c83ac5ece3ada19d3be5a8bbb50ac813a0b4726f91acdbd738c8e341804a8b"
     ],
     [
       "app/globals.css",
@@ -799,8 +811,8 @@
   "dirtyFiles": [],
   "hostingCommit": null,
   "hostingCommitMatchesSource": null,
-  "buildId": "481aa1f9b65f-ce5db59dabb56f42b92c",
-  "builtAt": "2026-11-24T17:30:45.041Z",
+  "buildId": "93e3f0216fa6-2bfc30c4ab48e4cf9c6a",
+  "builtAt": "2026-11-24T19:21:29.733Z",
   "routes": [
     "/",
     "/api/assignment/[id]",
