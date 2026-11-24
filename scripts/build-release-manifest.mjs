@@ -28,7 +28,8 @@ function git(root, args) {
 const safePath = name => /^[a-zA-Z0-9_./@()[\] -]+$/.test(name) && !name.split('/').some(p => p.startsWith('.') && !['.github'].includes(p)) && !/(^|\/)(secrets?|credentials?)(\/|\.)/i.test(name) && !/\.(pem|key|dpapi)$/i.test(name);
 // Keep the digest to files that the hosting build actually uploads (.vercelignore excludes the rest).
 const HOSTING_SKIPPED_SCRIPT = /^scripts\/(art\/|deploy[^/]*\.mjs$|preflight-deploy\.mjs$|recover-deployment\.mjs$|provision[^/]*\.mjs$|verify[^/]*\.mjs$|marketplace-recovery\.mjs$|secure-local-credentials\.ps1$)/;
-const runtimePath = name => safePath(name) && (/^(app|lib|public|contracts)\//.test(name) || /^scripts\//.test(name) && !HOSTING_SKIPPED_SCRIPT.test(name) || /^(package(-lock)?\.json|next\.config\.[cm]?js|jsconfig\.json|vercel\.json|\.github\/workflows\/release-verification\.yml)$/.test(name));
+const runtimePath = name => safePath(name) && (/^(app|lib|public|contracts)\//.test(name) || /^scripts\//.test(name) && !HOSTING_SKIPPED_SCRIPT.test(name) || /^(package(-lock)?\.json|next\.config\.[cm]?js|jsconfig\.json|\.github\/workflows\/release-verification\.yml)$/.test(name));
+// vercel.json is rewritten by the hosting builder before it runs, so it cannot be byte-verified there.
 const SKIP = new Set(['node_modules', '.next', '.git', '.local', '.vercel', 'artifacts', '.agents']);
 // Honour .vercelignore so the digest covers exactly what the hosting build receives.
 function vercelIgnore(root) {
@@ -101,7 +102,7 @@ export function verifyFrozenManifest({ root = defaultRoot, env = process.env } =
     if (!fs.existsSync(path.join(root, name))) throw Error('Frozen manifest file is missing from the workspace: ' + name);
     if (fileHash(root, name) !== digest) throw Error('Release workspace file changed after the frozen manifest: ' + name);
   }
-  for (const entry of ['package.json', 'next.config.mjs', 'vercel.json']) {
+  for (const entry of ['package.json', 'next.config.mjs']) {
     if (!manifest.files.some(([name]) => name === entry)) throw Error('Frozen manifest omits the build entry ' + entry);
   }
   if (digestFiles(manifest.files) !== manifest.sourceDigest) throw Error('Frozen release manifest digest is inconsistent');
