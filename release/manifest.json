@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "sourceCommit": "f720b9ad54f5bcd9b70278ebe3d8ddb55cb8dc00",
-  "sourceDigest": "711d5ad8063adb81238b2bd1c56ffbad359bdd9b1e495e12f45b755d83041eb9",
+  "sourceCommit": "481aa1f9b65f0597bee6f5cda1e8afd3e696e669",
+  "sourceDigest": "ce5db59dabb56f42b92c3f8ab8f429aafe9e9c38e39a3c8891520a981b513712",
   "sourceDigestAlgorithm": "sha256-sorted-path-and-byte-digests-v1",
   "sourceFileCount": 197,
   "files": [
@@ -91,7 +91,7 @@
     ],
     [
       "app/api/release/route.js",
-      "b78f019e78b10f9e3aeb9ccf2ad2e67f7f08c968cd31e153d6c2dbabfde8111b"
+      "48504f32adedb1a0234ceaed19f5b7d7748cf8af5eb6f758fb707702bf365294"
     ],
     [
       "app/api/tasks/route.js",
@@ -799,8 +799,8 @@
   "dirtyFiles": [],
   "hostingCommit": null,
   "hostingCommitMatchesSource": null,
-  "buildId": "f720b9ad54f5-711d5ad8063adb81238b",
-  "builtAt": "2026-11-24T17:30:10.184Z",
+  "buildId": "481aa1f9b65f-ce5db59dabb56f42b92c",
+  "builtAt": "2026-11-24T17:30:45.041Z",
   "routes": [
     "/",
     "/api/assignment/[id]",
