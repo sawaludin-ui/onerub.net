@@ -10,6 +10,16 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const defaultRoot = fileURLToPath(new URL('../', import.meta.url));
 const FROZEN = 'release/manifest.json';
 const sha256 = value => createHash('sha256').update(value).digest('hex');
+// Hash normalised line endings so a CRLF checkout and the LF hosting snapshot agree.
+function sourceHash(buffer) {
+  if (buffer.includes(0)) return sha256(buffer);
+  const text = buffer.toString('utf8');
+  return /�/.test(text) ? sha256(buffer) : sha256(Buffer.from(text.replace(/\r\n/g, '\n'), 'utf8'));
+}
+const fileHash = (root, name) => {
+  const file = path.join(root, name);
+  return fs.existsSync(file) ? sourceHash(fs.readFileSync(file)) : null;
+};
 function git(root, args) {
   const result = spawnSync('git', ['-C', root, ...args], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, windowsHide: true });
   if (result.error || result.status !== 0) return null;
@@ -46,8 +56,7 @@ function walk(root, prefix = '') {
 const digestFiles = files => sha256(JSON.stringify(files.map(([name, digest]) => [name, digest])));
 function fileDigest(root, names) {
   return sha256(JSON.stringify(names.map(name => {
-    const file = path.join(root, name);
-    return [name, fs.existsSync(file) ? sha256(fs.readFileSync(file)) : null];
+    return [name, fileHash(root, name)];
   })));
 }
 export function createReleaseManifest({ root = defaultRoot, env = process.env, builtAt = new Date().toISOString() } = {}) {
@@ -59,7 +68,7 @@ export function createReleaseManifest({ root = defaultRoot, env = process.env, b
   const dirtyPaths = [...new Set([...changed, ...untracked])].filter(runtimePath).sort();
   const ignored = vercelIgnore(root);
   const names = [...new Set([...tracked, ...untracked])].filter(name => runtimePath(name) && !ignored(name)).sort();
-  const files = names.map(name => [name, fs.existsSync(path.join(root, name)) ? sha256(fs.readFileSync(path.join(root, name))) : null]);
+  const files = names.map(name => [name, fileHash(root, name)]);
   const sourceDigest = digestFiles(files);
   const routes = names.filter(n => /^app\/.*\/(route|page)\.[cm]?[jt]sx?$/.test(n) || /^app\/(page|route)\.[jt]sx?$/.test(n)).filter(n => fs.existsSync(path.join(root, n))).map(n => {
     const route = n.replace(/^app/, '').replace(/\/(page|route)\.[cm]?[jt]sx?$/, '').replace(/\/\([^/]+\)/g, '');
@@ -89,9 +98,8 @@ export function verifyFrozenManifest({ root = defaultRoot, env = process.env } =
   // Every reviewed file must exist byte-identical. Extra hosting-only files cannot affect the
   // reviewed entry points without changing one of these listed files.
   for (const [name, digest] of manifest.files) {
-    const file = path.join(root, name);
-    if (!fs.existsSync(file)) throw Error('Frozen manifest file is missing from the workspace: ' + name);
-    if (sha256(fs.readFileSync(file)) !== digest) throw Error('Release workspace file changed after the frozen manifest: ' + name);
+    if (!fs.existsSync(path.join(root, name))) throw Error('Frozen manifest file is missing from the workspace: ' + name);
+    if (fileHash(root, name) !== digest) throw Error('Release workspace file changed after the frozen manifest: ' + name);
   }
   for (const entry of ['package.json', 'next.config.mjs', 'vercel.json']) {
     if (!manifest.files.some(([name]) => name === entry)) throw Error('Frozen manifest omits the build entry ' + entry);
