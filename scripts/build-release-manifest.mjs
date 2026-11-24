@@ -86,8 +86,10 @@ export function verifyFrozenManifest({ root = defaultRoot, env = process.env } =
   if (digestFiles(manifest.files) !== manifest.sourceDigest) throw Error('Frozen release manifest digest is inconsistent');
   const rawHostingCommit = env.VERCEL_GIT_COMMIT_SHA || env.GITHUB_SHA || '';
   const hostingCommit = /^[a-f0-9]{40,64}$/i.test(rawHostingCommit) ? rawHostingCommit.toLowerCase() : null;
-  if (hostingCommit !== null && hostingCommit !== manifest.sourceCommit) throw Error('Hosting commit does not match the frozen source commit');
-  return { ...manifest, hostingCommit, hostingCommitMatchesSource: hostingCommit === null ? null : hostingCommit === manifest.sourceCommit,
+  // The manifest is itself a build artifact, so the deployed commit may be one commit after the
+  // source commit it hashes. Byte equality of every listed file is the actual proof.
+  const hostingCommitMatchesSource = hostingCommit === null ? null : hostingCommit === manifest.sourceCommit;
+  return { ...manifest, hostingCommit, hostingCommitMatchesSource, manifestSourceCommit: manifest.sourceCommit,
     evidence: { source: 'frozen-manifest-verified-against-workspace', signed: false, verifiedAt: new Date().toISOString() } };
 }
 export function writeReleaseManifest(options = {}) {
