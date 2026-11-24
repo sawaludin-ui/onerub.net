@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "sourceCommit": "252e739afdc636e6efd8a55539ac768e7b930f4c",
-  "sourceDigest": "d0194d78b238a2f7d281db4284c6373ed3f90353ec31659caa4724bf0f464d1e",
+  "sourceCommit": "f720b9ad54f5bcd9b70278ebe3d8ddb55cb8dc00",
+  "sourceDigest": "711d5ad8063adb81238b2bd1c56ffbad359bdd9b1e495e12f45b755d83041eb9",
   "sourceDigestAlgorithm": "sha256-sorted-path-and-byte-digests-v1",
-  "sourceFileCount": 198,
+  "sourceFileCount": 197,
   "files": [
     [
       ".github/workflows/release-verification.yml",
@@ -735,7 +735,7 @@
     ],
     [
       "scripts/build-release-manifest.mjs",
-      "bbabe659e60eddaa229c299f1a0b934a75f9cd9f989a4d33e9cf9c9fb3d3d889"
+      "e68af56072de04c71f68637c595a2cbaa63aa6b91b4bd65e32d285eeb4e11dbe"
     ],
     [
       "scripts/compile-marketplace-v2.mjs",
@@ -792,10 +792,6 @@
     [
       "scripts/test-chain/package.json",
       "d39cd0cde0e24e01e4a904ab15db8e8aa3e5e18e8a8794a4c47d834c17770f82"
-    ],
-    [
-      "vercel.json",
-      "d288b3e37cf2b8e5cf2f17d1bfee3049752e3f3b6a8f1b17944334596beafd2d"
     ]
   ],
   "dirty": false,
@@ -803,8 +799,8 @@
   "dirtyFiles": [],
   "hostingCommit": null,
   "hostingCommitMatchesSource": null,
-  "buildId": "252e739afdc6-d0194d78b238a2f7d281",
-  "builtAt": "2026-11-24T17:29:49.437Z",
+  "buildId": "f720b9ad54f5-711d5ad8063adb81238b",
+  "builtAt": "2026-11-24T17:30:10.184Z",
   "routes": [
     "/",
     "/api/assignment/[id]",
