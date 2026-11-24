@@ -1,0 +1,23 @@
+name: Marketplace automatic review
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: onerub-production-review
+  cancel-in-progress: false
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Drain bounded review jobs
+        env:
+          ONERUB_AUTOMATION_SECRET: ${{ secrets.ONERUB_AUTOMATION_SECRET }}
+        run: node scripts/run-automation-scheduler.mjs
