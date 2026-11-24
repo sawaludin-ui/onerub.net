@@ -3,10 +3,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const source=fs.readFileSync(new URL('../app/components/MarketplacePage.js',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('../app/globals.css',import.meta.url),'utf8');
-test('compact previews preserve the full title DOM and accessible detail navigation',()=>{
- assert.ok(source.includes('<h3 className="market-task-title" title={title(task)}>{title(task)}</h3>'));
- assert.ok(source.includes('Detail: $'+'{title(task)}'));
- assert.match(css,/text-overflow: ellipsis/);assert.match(css,/white-space: nowrap/);assert.match(css,/[.]market-task-card [{] min-height: 0/);
+test('stats cards replace compact previews while keeping the full title in accessible navigation',()=>{
+ const card=fs.readFileSync(new URL('../app/components/TaskStatsCard.js',import.meta.url),'utf8');
+ assert.ok(source.includes('<TaskStatsCard'));
+ assert.ok(card.includes("aria-label={'Detail: ' + view.title}"));
+ assert.ok(card.includes("aria-label={'Task ' + view.number + ': ' + view.title}"));
+ assert.match(css,/text-overflow: ellipsis/);assert.match(css,/white-space: nowrap/);
 });
 test('full brief remains available through native disclosure and proofs remain mounted',()=>{
  assert.ok(source.includes('<summary>Read full task brief</summary>'));

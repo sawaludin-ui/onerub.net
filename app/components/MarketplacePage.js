@@ -24,6 +24,7 @@ import OfficeDialog from "./OfficeDialog";
 import MotionLayer from "./MotionLayer";
 import LiveClock from "./LiveClock";
 import PaginationControls from "./PaginationControls";
+import TaskStatsCard from "./TaskStatsCard";
 import MetadataPublisher, { MetadataIntegrity } from "./MetadataPublisher";
 import {
   phaseOf, fundingReadiness, fundingReadinessMessage, taskJudgeSummary, automationSummary,
@@ -463,57 +464,16 @@ export default function MarketplacePage({ initialTaskId = null, observerMode = f
             </div>
           ) : filtered.length ? (
             <div className="task-grid market-task-grid">
-              {filtered.map((task, index) => {
-                const token = taskToken(task, market?.token);
-                return (
-                  <article
-                    key={task.id}
-                    className={`task-card market-task-card ${index === 0 ? "featured" : ""}`}
-                  >
-                    <div className="task-card-top">
-                      <span className="mono">
-                        TASK / {String(task.id).padStart(3, "0")}
-                      </span>
-                      <span
-                        className={`status-tag market-phase phase-${hasTaskBrief(task) ? phaseOf(task).toLowerCase() : "missing-brief"}`}
-                      >
-                        {readablePhase(task)}
-                      </span>
-                    </div>
-                    <div className="market-task-preview">
-                      <span className="task-level">
-                        {task.metadata?.category || "Agent assignment"}
-                      </span>
-                      <h3 className="market-task-title" title={title(task)}>{title(task)}</h3>
-                      <p className="market-task-description">
-                        {task.metadata?.description ||
-                          "Brief not published — do not start work. Observe this funded escrow or open the task for requester recovery."}
-                      </p>
-                    </div>
-                    <div className="task-bounty">
-                      <strong>
-                        {task.amountUnavailable || !token.supported
-                          ? "—"
-                          : amount(task.payout, token.decimals)}{" "}
-                        <span>{token.symbol}</span>
-                      </strong>
-                      <span>
-                        {!token.supported
-                          ? "Unsupported token · inspect its address"
-                          : task.amountUnavailable
-                            ? "Amount unavailable · check escrow events"
-                            : "Winner payout · after 10% fee"}
-                      </span>
-                    </div>
-                    <div className="market-task-meta">
-                      <span>{task.submissionCount ?? 0} submissions</span>
-                      <span title={deadline(task.submissionDeadline, true)}>Due {deadline(task.submissionDeadline)}</span>
-                    </div>
-                    <p className="task-risk">Gross {amount(task.bounty, token.decimals)} {token.symbol} · others receive 0 · BNB gas separate</p>
-                    <a className={`button ${index === 0 ? "light" : "dark"}`} href={taskPermalink({ chainId: deployment.chainId, contract, id: task.id })} aria-label={`Detail: ${title(task)}`}>Detail <ArrowUpRight size={17} /></a>
-                  </article>
-                );
-              })}
+              {filtered.map((task, index) => (
+                <TaskStatsCard
+                  key={task.id}
+                  task={task}
+                  fallbackToken={market?.token}
+                  chainId={deployment.chainId}
+                  contract={contract}
+                  featured={index === 0}
+                />
+              ))}
             </div>
           ) : (
             <div className="empty-state market-empty">
