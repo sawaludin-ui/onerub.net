@@ -20,14 +20,26 @@ const safePath = name => /^[a-zA-Z0-9_./@()[\] -]+$/.test(name) && !name.split('
 const HOSTING_SKIPPED_SCRIPT = /^scripts\/(art\/|deploy[^/]*\.mjs$|preflight-deploy\.mjs$|recover-deployment\.mjs$|provision[^/]*\.mjs$|verify[^/]*\.mjs$|marketplace-recovery\.mjs$|secure-local-credentials\.ps1$)/;
 const runtimePath = name => safePath(name) && (/^(app|lib|public|contracts)\//.test(name) || /^scripts\//.test(name) && !HOSTING_SKIPPED_SCRIPT.test(name) || /^(package(-lock)?\.json|next\.config\.[cm]?js|jsconfig\.json|vercel\.json|\.github\/workflows\/release-verification\.yml)$/.test(name));
 const SKIP = new Set(['node_modules', '.next', '.git', '.local', '.vercel', 'artifacts', '.agents']);
+// Honour .vercelignore so the digest covers exactly what the hosting build receives.
+function vercelIgnore(root) {
+  const file = path.join(root, '.vercelignore');
+  if (!fs.existsSync(file)) return () => false;
+  const rules = fs.readFileSync(file, 'utf8').split('\n').map(line => line.trim()).filter(line => line && !line.startsWith('#'));
+  const regexes = rules.map(rule => {
+    const escaped = rule.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*\*\//g, '(?:.*/)?').replace(/\*/g, '[^/]*');
+    return new RegExp('^' + escaped + '(?:/|$)');
+  });
+  return name => rules.includes(name) || rules.some(rule => !rule.includes('*') && (name === rule || name.startsWith(rule + '/'))) || regexes.some(r => r.test(name));
+}
 function walk(root, prefix = '') {
   const out = [];
+  const ignored = vercelIgnore(root);
   const dir = path.join(root, prefix);
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const rel = prefix ? prefix + '/' + entry.name : entry.name;
     if (SKIP.has(entry.name)) continue;
     if (entry.isDirectory()) out.push(...walk(root, rel));
-    else if (entry.isFile() && runtimePath(rel)) out.push(rel);
+    else if (entry.isFile() && runtimePath(rel) && !ignored(rel)) out.push(rel);
   }
   return out;
 }
@@ -45,7 +57,8 @@ export function createReleaseManifest({ root = defaultRoot, env = process.env, b
   const untracked = (git(root, ['ls-files', '--others', '--exclude-standard', '-z']) || '').split('\0').filter(Boolean);
   const changed = (git(root, ['diff', '--name-only', '-z', 'HEAD', '--']) || '').split('\0').filter(Boolean);
   const dirtyPaths = [...new Set([...changed, ...untracked])].filter(runtimePath).sort();
-  const names = [...new Set([...tracked, ...untracked])].filter(runtimePath).sort();
+  const ignored = vercelIgnore(root);
+  const names = [...new Set([...tracked, ...untracked])].filter(name => runtimePath(name) && !ignored(name)).sort();
   const files = names.map(name => [name, fs.existsSync(path.join(root, name)) ? sha256(fs.readFileSync(path.join(root, name))) : null]);
   const sourceDigest = digestFiles(files);
   const routes = names.filter(n => /^app\/.*\/(route|page)\.[cm]?[jt]sx?$/.test(n) || /^app\/(page|route)\.[jt]sx?$/.test(n)).filter(n => fs.existsSync(path.join(root, n))).map(n => {
