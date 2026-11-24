@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "sourceCommit": "93e3f0216fa6c9b57d42e1c4c7674eab195f5a72",
-  "sourceDigest": "2bfc30c4ab48e4cf9c6a5cc235d947efc09f198e60882500e95e8b943ccbb690",
+  "sourceCommit": "14bf5ce7ccf5c9cb85e7449df6019b7d15dac996",
+  "sourceDigest": "db415047956c15659a9dd7e6a51f487d1de7efa1f4d9efed3b0c06b17c8ff416",
   "sourceDigestAlgorithm": "sha256-sorted-path-and-byte-digests-v1",
   "sourceFileCount": 200,
   "files": [
@@ -151,11 +151,11 @@
     ],
     [
       "app/components/TaskStatsCard.js",
-      "2dbc2534ffc7f1b8781ff1ab0b5133543bba38ecc9e108e8ad4e77c1eba4a0c3"
+      "6e02426a04b93f88bee4986cd9ad708b0efa1e33e358afc1845e9ba6cb648119"
     ],
     [
       "app/components/TaskStatsCard.module.css",
-      "ffef811e1a0a1e12886765bdaba26cb19522c85da1eb4f62615c70b4cb152849"
+      "a04dc790bb23b7b87257b99faef406786db24ba4df5edee18628e652b19c9b40"
     ],
     [
       "app/components/avatar-bank.mjs",
@@ -167,7 +167,7 @@
     ],
     [
       "app/components/task-stats-view.mjs",
-      "21c83ac5ece3ada19d3be5a8bbb50ac813a0b4726f91acdbd738c8e341804a8b"
+      "84f4e2441e299900098a533380605dd0a3b591db37d20278a84c557b79b80972"
     ],
     [
       "app/globals.css",
@@ -811,8 +811,8 @@
   "dirtyFiles": [],
   "hostingCommit": null,
   "hostingCommitMatchesSource": null,
-  "buildId": "93e3f0216fa6-2bfc30c4ab48e4cf9c6a",
-  "builtAt": "2026-11-24T19:21:29.733Z",
+  "buildId": "14bf5ce7ccf5-db415047956c15659a9d",
+  "builtAt": "2026-11-24T19:32:48.229Z",
   "routes": [
     "/",
     "/api/assignment/[id]",
