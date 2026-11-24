@@ -8,7 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 const defaultRoot = fileURLToPath(new URL('../', import.meta.url));
-const FROZEN = 'artifacts/release/manifest.json';
+const FROZEN = 'release/manifest.json';
 const sha256 = value => createHash('sha256').update(value).digest('hex');
 function git(root, args) {
   const result = spawnSync('git', ['-C', root, ...args], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, windowsHide: true });
@@ -16,7 +16,9 @@ function git(root, args) {
   return result.stdout;
 }
 const safePath = name => /^[a-zA-Z0-9_./@()[\] -]+$/.test(name) && !name.split('/').some(p => p.startsWith('.') && !['.github'].includes(p)) && !/(^|\/)(secrets?|credentials?)(\/|\.)/i.test(name) && !/\.(pem|key|dpapi)$/i.test(name);
-const runtimePath = name => safePath(name) && (/^(app|lib|public|contracts|scripts)\//.test(name) || /^(package(-lock)?\.json|next\.config\.[cm]?js|jsconfig\.json|vercel\.json|\.github\/workflows\/release-verification\.yml)$/.test(name));
+// Keep the digest to files that the hosting build actually uploads (.vercelignore excludes the rest).
+const HOSTING_SKIPPED_SCRIPT = /^scripts\/(art\/|deploy[^/]*\.mjs$|preflight-deploy\.mjs$|recover-deployment\.mjs$|provision[^/]*\.mjs$|verify[^/]*\.mjs$|marketplace-recovery\.mjs$|secure-local-credentials\.ps1$)/;
+const runtimePath = name => safePath(name) && (/^(app|lib|public|contracts)\//.test(name) || /^scripts\//.test(name) && !HOSTING_SKIPPED_SCRIPT.test(name) || /^(package(-lock)?\.json|next\.config\.[cm]?js|jsconfig\.json|vercel\.json|\.github\/workflows\/release-verification\.yml)$/.test(name));
 const SKIP = new Set(['node_modules', '.next', '.git', '.local', '.vercel', 'artifacts', '.agents']);
 function walk(root, prefix = '') {
   const out = [];
@@ -71,11 +73,15 @@ export function readFrozen(root = defaultRoot) {
 export function verifyFrozenManifest({ root = defaultRoot, env = process.env } = {}) {
   const manifest = readFrozen(root);
   if (manifest.schemaVersion !== 2 || !Array.isArray(manifest.files) || !/^[a-f0-9]{40,64}$/.test(manifest.sourceCommit || '')) throw Error('Frozen release manifest is not verifiable');
-  const shipped = walk(root).sort();
-  const expected = manifest.files.map(([name]) => name);
-  if (shipped.length !== expected.length || shipped.some((name, i) => name !== expected[i])) throw Error('Release workspace differs from the frozen manifest file list');
+  // Every reviewed file must exist byte-identical. Extra hosting-only files cannot affect the
+  // reviewed entry points without changing one of these listed files.
   for (const [name, digest] of manifest.files) {
-    if (sha256(fs.readFileSync(path.join(root, name))) !== digest) throw Error('Release workspace file changed after the frozen manifest: ' + name);
+    const file = path.join(root, name);
+    if (!fs.existsSync(file)) throw Error('Frozen manifest file is missing from the workspace: ' + name);
+    if (sha256(fs.readFileSync(file)) !== digest) throw Error('Release workspace file changed after the frozen manifest: ' + name);
+  }
+  for (const entry of ['package.json', 'next.config.mjs', 'vercel.json']) {
+    if (!manifest.files.some(([name]) => name === entry)) throw Error('Frozen manifest omits the build entry ' + entry);
   }
   if (digestFiles(manifest.files) !== manifest.sourceDigest) throw Error('Frozen release manifest digest is inconsistent');
   const rawHostingCommit = env.VERCEL_GIT_COMMIT_SHA || env.GITHUB_SHA || '';

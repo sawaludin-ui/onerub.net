@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 const nextConfig = {
   async generateBuildId() {
-    return JSON.parse(readFileSync(new URL('./artifacts/release/manifest.json', import.meta.url), 'utf8')).buildId;
+    return JSON.parse(readFileSync(new URL('./release/manifest.json', import.meta.url), 'utf8')).buildId;
   },
   poweredByHeader: false,
   async headers() {
