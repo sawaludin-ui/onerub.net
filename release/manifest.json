@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "sourceCommit": "4ad938a4e54b9e80e6427815228a6b7ac293c216",
-  "sourceDigest": "1c404cce9300cc56d16e04978a81ddeb17c0554d3b2510680a45fc0e3c60a538",
+  "sourceCommit": "4e2c5cf7ffbcd16daaaf0c8c2ad0630fc67d097f",
+  "sourceDigest": "03897bdce8b2d569dac4625ff68a58a037b2f418e05d35e70a8d64665bae5334",
   "sourceDigestAlgorithm": "sha256-sorted-path-and-byte-digests-v1",
-  "sourceFileCount": 199,
+  "sourceFileCount": 198,
   "files": [
     [
       ".github/workflows/release-verification.yml",
@@ -658,10 +658,6 @@
       "8321f577e16180b92791d479eddff2f2d103b6cb11b2b2463943190bb3cab51d"
     ],
     [
-      "public/reference/dayos-reference.jpg",
-      "de8bf97b96586a014e643f5258b33dc44e27c44a2057c0ab860133f5bb69d4db"
-    ],
-    [
       "public/sculpture/dayos-dreamina-loop.mp4",
       "915e2115e5fb42e5418df9e2b055fe405f70a6453b760ee256282a462a90defc"
     ],
@@ -739,7 +735,7 @@
     ],
     [
       "scripts/build-release-manifest.mjs",
-      "0d684116188ff350e8e390b36daa19582746aa70d6d3dbfdf13aba54a9702f09"
+      "72a9076a3d89fa7ff1a1742462bf9cc7323f5abcb265bc0d3869d0a853dc8323"
     ],
     [
       "scripts/compile-marketplace-v2.mjs",
@@ -807,8 +803,8 @@
   "dirtyFiles": [],
   "hostingCommit": null,
   "hostingCommitMatchesSource": null,
-  "buildId": "4ad938a4e54b-1c404cce9300cc56d16e",
-  "builtAt": "2026-11-24T17:28:41.213Z",
+  "buildId": "4e2c5cf7ffbc-03897bdce8b2d569dac4",
+  "builtAt": "2026-11-24T17:29:22.411Z",
   "routes": [
     "/",
     "/api/assignment/[id]",
