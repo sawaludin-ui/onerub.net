@@ -6,8 +6,8 @@ const css=fs.readFileSync(new URL('../app/globals.css',import.meta.url),'utf8');
 test('stats cards replace compact previews while keeping the full title in accessible navigation',()=>{
  const card=fs.readFileSync(new URL('../app/components/TaskStatsCard.js',import.meta.url),'utf8');
  assert.ok(source.includes('<TaskStatsCard'));
- assert.ok(card.includes("aria-label={'Detail: ' + view.title}"));
- assert.ok(card.includes("aria-label={'Task ' + view.number + ': ' + view.title}"));
+ assert.ok(card.includes('aria-label={"Detail: " + task.title}'));
+ assert.ok(card.includes("statistics card"));
  assert.match(css,/text-overflow: ellipsis/);assert.match(css,/white-space: nowrap/);
 });
 test('full brief remains available through native disclosure and proofs remain mounted',()=>{

@@ -2,45 +2,36 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { taskStatsView } from '../app/components/task-stats-view.mjs';
-const chainId=56, contract='0x0D33DD09131aC17827fA165D70daAAB4DBfC299a';
+import { buildAvailabilitySegments, getSpectrumColor, extractTaskDigits, formatAgentCountLabel } from '../app/components/provided-task-stats.mjs';
+const chainId=56,contract='0x0D33DD09131aC17827fA165D70daAAB4DBfC299a';
 const token={address:'0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',symbol:'USDC',decimals:18,supported:true};
-const task={id:'1',phase:'Settled',token:token.address,requester:'0x607cF25614065179a9238705E03E6590C082F56d',payout:'900000000000000000',submissionCount:14,metadata:{title:'Private report never rendered in the card'}};
+const task={id:'1',phase:'Settled',token:token.address,payout:'900000000000000000',submissionCount:14,submissionDeadline:1795528800,metadata:{title:'Teka-Teki 7 Rumah',description:'Public brief'}};
 const view=t=>taskStatsView(t,{fallbackToken:token,chainId,contract});
-test('actual settled card keeps bounty units, one project/requester and distinct committed workers',()=>{
- const v=view(task);assert.equal(v.value,'0.9');assert.equal(v.symbol,'USDC');assert.equal(v.projects,1);assert.equal(v.clients,1);assert.equal(v.agents,14);assert.equal(v.number,'001');assert.equal(v.note,'Paid on-chain');assert.equal(v.barCount,30);
- assert.equal(v.href,'/tasks/56/'+contract.toLowerCase()+'/1');
+test('ZIP adapter uses live payout, count and WIB deadline without demo identities',()=>{
+ const v=view(task);assert.equal(v.payoutAmount,'0.9');assert.equal(v.payoutCurrency,'USDC');assert.equal(v.submissionsCount,14);assert.equal(v.agentsEntered,14);assert.equal(v.taskNumber,'01');assert.equal(v.dueDatePrimary,'24 Nov');assert.equal(v.dueYear,'2026');assert.equal(v.dueTimeLabel,'21:00 WIB');assert.deepEqual(v.agents,[]);assert.equal(v.href,'/tasks/56/'+contract.toLowerCase()+'/1');assert.equal(v.payoutHighlight,'Winner payout');assert.equal(v.totalAgentSlots,30);
 });
-test('unpaid phases never claim future bounty was earned',()=>{
- for(const phase of ['Open','Review','Expired','Refunded','Cancelled']){const v=view({...task,phase});assert.equal(v.value,'0');assert.equal(v.paid,false);assert.equal(v.note,'Not paid yet');}
+test('unknown count, amount and deadline stay unknown',()=>{
+ assert.equal(view({...task,amountUnavailable:true}).payoutAmount,'—');assert.equal(view({...task,token:'0x'+'ab'.repeat(20)}).payoutAmount,'—');
+ for(const submissionCount of [undefined,null,'',-1,1.5,'invalid',Infinity]){const v=view({...task,submissionCount});assert.equal(v.knownAgents,false);assert.equal(v.agentsEntered,0);assert.equal(v.submissionsCount,'—');}
+ for(const submissionDeadline of [undefined,null,0,NaN,Infinity,'invalid'])assert.equal(view({...task,submissionDeadline}).dueTimeLabel,'Unavailable');
 });
-test('unknown amounts, unsupported tokens and counts never fabricate a metric',()=>{
- assert.equal(view({...task,amountUnavailable:true}).value,'—');assert.equal(view({...task,token:'0x'+'ab'.repeat(20)}).value,'—');
- for(const submissionCount of [undefined,null,"",-1,1.5,'garbage',Infinity]){const v=view({...task,submissionCount});assert.equal(v.knownAgents,false);assert.equal(v.agents,0);}
- assert.equal(view({...task,requester:undefined}).clients,null);assert.equal(view({...task,requester:'0x'+'0'.repeat(40)}).clients,null);
+test('ZIP original color interpolation endpoints and inactive color are unchanged',()=>{
+ assert.equal(getSpectrumColor(0,14),'rgb(10, 132, 255)');assert.equal(getSpectrumColor(13,14),'rgb(244, 114, 92)');assert.equal(getSpectrumColor(0,1),'rgb(10, 132, 255)');const s=buildAvailabilitySegments(14,30);assert.equal(s.length,30);assert.equal(s.filter(x=>x.isActive).length,14);assert.equal(s[14].color,'#38383A');
 });
-test('agent chart is bounded and shows exact text for zero, one, and maximum entrants',()=>{
- for(const n of [0,1,14,30,64]){const v=view({...task,submissionCount:n});assert.equal(v.agents,n);assert.equal(v.barCount,Math.max(30,n));}
- assert.equal(view({...task,submissionCount:10000}).barCount,64);
+test('ZIP bars handle zero, one, maximum and missing inputs',()=>{
+ for(const n of [0,1,14,30,64]){const v=view({...task,submissionCount:n}),s=buildAvailabilitySegments(v.agentsEntered,v.totalAgentSlots);assert.equal(s.filter(x=>x.isActive).length,n);assert.ok(s.length<=64);}
+ assert.equal(buildAvailabilitySegments(NaN,NaN).length,30);assert.equal(buildAvailabilitySegments(10000,10000).length,64);assert.equal(formatAgentCountLabel(1),'1 agent');assert.equal(formatAgentCountLabel(14),'14 agents');assert.equal(extractTaskDigits('TASK / 001'),'001');
 });
-test('change is a standalone presentation with native Detail link and no new side effects',()=>{
+test('ZIP component preserves 3D, speckles, typography and native Detail',()=>{
+ const component=fs.readFileSync(new URL('../app/components/TaskStatsCard.js',import.meta.url),'utf8');const css=fs.readFileSync(new URL('../app/components/TaskStatsCard.module.css',import.meta.url),'utf8');
+ for(const value of ['<article','href={detailHref}','aria-label={"Detail: " + task.title}','perspective(1000px)','onPointerMove','viewBox="0 0 328 76"','Worker','max-w-[376px]','text-[48px]','text-[44px]','fillOpacity="0.14"'])assert.ok(component.includes(value),value);
+ for(const value of ['fetch(','setInterval','Math.random','signTransaction','since last month','All Time','requester wallet'])assert.ok(!component.includes(value),value);
+ for(const value of ['scope','TaskCardInter','prefers-reduced-motion',':global'])assert.ok(css.includes(value),value);
+});
+test('all original ZIP style classes and26speckles are preserved verbatim',()=>{
+ const design=JSON.parse(fs.readFileSync(new URL('./fixtures/provided-task-card-design.json',import.meta.url),'utf8'));
  const component=fs.readFileSync(new URL('../app/components/TaskStatsCard.js',import.meta.url),'utf8');
- const css=fs.readFileSync(new URL('../app/components/TaskStatsCard.module.css',import.meta.url),'utf8');
- assert.match(component,/<article/);assert.match(component,/<a className={styles.detail} href={view.href}/);assert.match(component,/All Time/);assert.match(component,/aria-label={view.knownAgents/);
- assert.doesNotMatch(component,/fetch[(]|useEffect|setInterval|Math[.]random|signTransaction|5 this month|3 this month/);
- assert.doesNotMatch(component,/TASK [/]|Winner payout|Gross |submissions<|market-task-title|market-task-description|task[.]metadata/);
- assert.match(component,/since last month/);assert.doesNotMatch(component,/requester wallet|[·] this task/);
- assert.match(css,/padding: 13px 12px 12px/);assert.match(css,/font-size: 40px/);assert.match(css,/min-block-size: 400px/);
- assert.match(css,/container-type: inline-size/);assert.match(css,/.detail:focus-visible/);assert.doesNotMatch(css,/@keyframes|animation:/);
+ for(const className of design.classNames)assert.ok(component.includes(className),className);
+ for(const shape of design.shapes)assert.ok(component.includes(shape),shape);
+ assert.equal(design.shapes.length,26);
 });
-test('since-last-month amount is backed by the actual settled deadline, not fabricated monthly growth',()=>{
- const at=Math.floor(Date.parse('2026-11-25T02:12:00+07:00')/1000);
- const opts={fallbackToken:token,chainId,contract,nowSec:at};
- const recent={...task,submissionDeadline:Math.floor(Date.parse('2026-11-24T21:00:00+07:00')/1000)};
- assert.equal(taskStatsView(recent,opts).earnedSinceLastMonth,'0.9');
- assert.equal(taskStatsView({...recent,phase:'Open'},opts).earnedSinceLastMonth,'0');
- assert.equal(taskStatsView({...recent,submissionDeadline:at+86400},opts).earnedSinceLastMonth,null);
- assert.equal(taskStatsView({...recent,submissionDeadline:1},opts).earnedSinceLastMonth,null);
- assert.equal(taskStatsView({...recent,submissionDeadline:undefined},opts).earnedSinceLastMonth,null);
- assert.equal(taskStatsView({...recent,amountUnavailable:true},opts).earnedSinceLastMonth,null);
-});
-

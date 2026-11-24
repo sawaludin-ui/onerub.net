@@ -1,57 +1,798 @@
-/* Reference proportions: 270px panel, 400px height, 12px gutters; isolated to this card. */
-.card.card.card {
-  container-type: inline-size;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-  min-inline-size: 0;
-  inline-size: 100%;
-  max-inline-size: 270px;
-  min-block-size: 400px;
-  padding: 13px 12px 12px;
-  gap: 0;
-  border: 1px solid rgb(255 255 255 / 8%);
-  border-radius: 21px;
-  background: linear-gradient(180deg, #3a3a3a 0%, #2c2c2c 42%, #1b1b1b 74%, #141414 100%);
-  color: #f7f7f7;
-  font-family: Arial, Helvetica, sans-serif;
-  overflow: hidden;
-}
-.header { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-block-size: 30px; }
-.card .heading { margin: 0; font: 400 18px/22px Arial, Helvetica, sans-serif; letter-spacing: -.02em; }
-.period { display: inline-flex; align-items: center; justify-content: center; min-inline-size: 76px; min-block-size: 30px; padding: 6px 9px; border: 1px solid #626262; border-radius: 9px; background: rgb(255 255 255 / 5%); color: #f1f1f1; font-size: 12px; line-height: 16px; flex: none; }
-.earnings { margin-block-start: 12px; min-inline-size: 0; }
-.label { display: block; font-size: 12px; line-height: 17px; color: #ededed; }
-.amount { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px; margin-block-start: 3px; min-inline-size: 0; }
-.amount strong { color: #fafafa; font-size: 40px; line-height: 44px; font-weight: 700; letter-spacing: -.035em; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
-.fraction { color: #888; }
-.currency { color: #b1b1b1; font-size: 12px; line-height: 16px; }
-.card .note { margin: 4px 0 0; font-size: 10px; line-height: 14px; color: #c3c3c3; }
-.paid { color: #56c96a; }
-.unpaid { color: #bcbcbc; }
-.scope { color: #d0d0d0; }
-.metrics { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding: 0; margin: 16px 0 8px; }
-.metric { display: grid; grid-template-columns: max-content minmax(0, 1fr); grid-template-rows: 27px 12px; align-items: baseline; column-gap: 4px; row-gap: 1px; padding: 8px 9px 7px; border-radius: 14px; background: #3f3f3f; min-inline-size: 0; }
-.metric dt { grid-column: 2; grid-row: 1; font-size: 12px; line-height: 16px; color: #c4c4c4; }
-.metric dd { grid-column: 1; grid-row: 1; margin: 0; font-size: 26px; line-height: 27px; letter-spacing: -.03em; color: #f7f7f7; }
-.metricNote { grid-column: 1 / -1; font-size: 10px; line-height: 12px; color: #aaa; }
-.detail { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; min-block-size: 74px; padding: 12px 10px; border-radius: 13px; background: #f0f0f0; color: #161616; text-decoration: none; }
-.number { font-size: 26px; line-height: 31px; letter-spacing: -.035em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.detailLabel { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; line-height: 20px; }
-.detail:focus-visible { outline: 3px solid #80c5ff; outline-offset: 3px; }
-.detail:hover { background: #fff; }
-.availability { margin-block-start: auto; padding-block-start: 22px; min-inline-size: 0; }
-.bars { display: flex; gap: 3px; inline-size: 100%; block-size: 34px; margin-block-start: 4px; }
-.bar { display: block; flex: 1 1 0; min-inline-size: 0; block-size: 100%; border-radius: 3px; background: #474747; }
-.card .agentCount { margin: 5px 0 0; font-size: 10px; line-height: 14px; color: #b6b6b6; }
-@container (max-width: 235px) {
-  .metric { padding-inline: 8px; column-gap: 3px; }
-  .metric dt { font-size: 11px; }
-  .bars { gap: 2px; }
-}
-@media (forced-colors: active) {
-  .bar { border: 1px solid CanvasText; }
-  .bar[data-active="true"] { background: Highlight; forced-color-adjust: none; }
-}
+/* Generated from authoritative ZIP TaskStatsCard.tsx with official Tailwind CSS 4.3.3. Source SHA256: 15d339f0b5c4e841c4b60be59fe7ae12a777f1afa39692006d6c29599d694bc2 */ /* All utilities retain original class names. Only scope is a CSS-module local export. No document reset, @property registrations or global theme. */
+@font-face { font-family: "TaskCardInter"; src: url("/fonts/task-card-inter-latin.woff2") format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; }
+.scope, .scope :global(*), .scope::before, .scope::after, .scope :global(*)::before, .scope :global(*)::after { --tw-rotate-x: initial; --tw-rotate-y: initial; --tw-rotate-z: initial; --tw-skew-x: initial; --tw-skew-y: initial; --tw-border-style: solid; --tw-gradient-position: initial; --tw-gradient-from: #0000; --tw-gradient-via: #0000; --tw-gradient-to: #0000; --tw-gradient-stops: initial; --tw-gradient-via-stops: initial; --tw-gradient-from-position: 0%; --tw-gradient-via-position: 50%; --tw-gradient-to-position: 100%; --tw-leading: initial; --tw-font-weight: initial; --tw-tracking: initial; --tw-ordinal: initial; --tw-slashed-zero: initial; --tw-numeric-figure: initial; --tw-numeric-spacing: initial; --tw-numeric-fraction: initial; --tw-shadow: 0 0 #0000; --tw-shadow-color: initial; --tw-shadow-alpha: 100%; --tw-inset-shadow: 0 0 #0000; --tw-inset-shadow-color: initial; --tw-inset-shadow-alpha: 100%; --tw-ring-color: initial; --tw-ring-shadow: 0 0 #0000; --tw-inset-ring-color: initial; --tw-inset-ring-shadow: 0 0 #0000; --tw-ring-inset: initial; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-offset-shadow: 0 0 #0000; --tw-duration: initial; --tw-ease: initial; --tw-scale-x: 1; --tw-scale-y: 1; --tw-scale-z: 1; --tw-outline-style: solid; } /* Scoped official Tailwind theme (layer flattened locally). */
+.scope {
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+      "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+      "Segoe UI Symbol", "Noto Color Emoji";
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
+    --color-white: #fff;
+    --spacing: 0.25rem;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --leading-snug: 1.375;
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --default-transition-duration: 150ms;
+    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    --default-font-family: var(--font-sans);
+    --default-mono-font-family: var(--font-mono);
+  } /* Scoped official Tailwind base (layer flattened locally). */
+.scope:global(*),
+.scope :global(*),
+.scope:global(::after),
+.scope :global(::after),
+.scope:global(::before),
+.scope :global(::before),
+.scope:global(::backdrop),
+.scope :global(::backdrop),
+.scope:global(::file-selector-button),
+.scope :global(::file-selector-button) {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0 solid;
+  }
+.scope {
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    tab-size: 4;
+    font-family: var(--default-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");
+    font-feature-settings: var(--default-font-feature-settings, normal);
+    font-variation-settings: var(--default-font-variation-settings, normal);
+    -webkit-tap-highlight-color: transparent;
+  }
+.scope:global(hr),
+.scope :global(hr) {
+    height: 0;
+    color: inherit;
+    border-top-width: 1px;
+  }
+.scope:global(abbr:where([title])),
+.scope :global(abbr:where([title])) {
+    -webkit-text-decoration: underline dotted;
+    text-decoration: underline dotted;
+  }
+.scope:global(h1),
+.scope :global(h1),
+.scope:global(h2),
+.scope :global(h2),
+.scope:global(h3),
+.scope :global(h3),
+.scope:global(h4),
+.scope :global(h4),
+.scope:global(h5),
+.scope :global(h5),
+.scope:global(h6),
+.scope :global(h6) {
+    font-size: inherit;
+    font-weight: inherit;
+  }
+.scope:global(a),
+.scope :global(a) {
+    color: inherit;
+    -webkit-text-decoration: inherit;
+    text-decoration: inherit;
+  }
+.scope:global(b),
+.scope :global(b),
+.scope:global(strong),
+.scope :global(strong) {
+    font-weight: bolder;
+  }
+.scope:global(code),
+.scope :global(code),
+.scope:global(kbd),
+.scope :global(kbd),
+.scope:global(samp),
+.scope :global(samp),
+.scope:global(pre),
+.scope :global(pre) {
+    font-family: var(--default-mono-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+    font-feature-settings: var(--default-mono-font-feature-settings, normal);
+    font-variation-settings: var(--default-mono-font-variation-settings, normal);
+    font-size: 1em;
+  }
+.scope:global(small),
+.scope :global(small) {
+    font-size: 80%;
+  }
+.scope:global(sub),
+.scope :global(sub),
+.scope:global(sup),
+.scope :global(sup) {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+  }
+.scope:global(sub),
+.scope :global(sub) {
+    bottom: -0.25em;
+  }
+.scope:global(sup),
+.scope :global(sup) {
+    top: -0.5em;
+  }
+.scope:global(table),
+.scope :global(table) {
+    text-indent: 0;
+    border-color: inherit;
+    border-collapse: collapse;
+  }
+.scope:global(:-moz-focusring:where(:not(iframe))),
+.scope :global(:-moz-focusring:where(:not(iframe))) {
+    outline: auto;
+  }
+.scope:global(progress),
+.scope :global(progress) {
+    vertical-align: baseline;
+  }
+.scope:global(summary),
+.scope :global(summary) {
+    display: list-item;
+  }
+.scope:global(ol),
+.scope :global(ol),
+.scope:global(ul),
+.scope :global(ul),
+.scope:global(menu),
+.scope :global(menu) {
+    list-style: none;
+  }
+.scope:global(img),
+.scope :global(img),
+.scope:global(svg),
+.scope :global(svg),
+.scope:global(video),
+.scope :global(video),
+.scope:global(canvas),
+.scope :global(canvas),
+.scope:global(audio),
+.scope :global(audio),
+.scope:global(iframe),
+.scope :global(iframe),
+.scope:global(embed),
+.scope :global(embed),
+.scope:global(object),
+.scope :global(object) {
+    display: block;
+    vertical-align: middle;
+  }
+.scope:global(img),
+.scope :global(img),
+.scope:global(video),
+.scope :global(video) {
+    max-width: 100%;
+    height: auto;
+  }
+.scope:global(button),
+.scope :global(button),
+.scope:global(input),
+.scope :global(input),
+.scope:global(select),
+.scope :global(select),
+.scope:global(optgroup),
+.scope :global(optgroup),
+.scope:global(textarea),
+.scope :global(textarea),
+.scope:global(::file-selector-button),
+.scope :global(::file-selector-button) {
+    font: inherit;
+    font-feature-settings: inherit;
+    font-variation-settings: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    border-radius: 0;
+    background-color: transparent;
+    opacity: 1;
+  }
+.scope:global(:where(select:is([multiple], [size])) optgroup),
+.scope :global(:where(select:is([multiple], [size])) optgroup) {
+    font-weight: bolder;
+  }
+.scope:global(:where(select:is([multiple], [size])) optgroup option),
+.scope :global(:where(select:is([multiple], [size])) optgroup option) {
+    padding-inline-start: 20px;
+  }
+.scope:global(::file-selector-button),
+.scope :global(::file-selector-button) {
+    margin-inline-end: 4px;
+  }
+.scope:global(::placeholder),
+.scope :global(::placeholder) {
+    opacity: 1;
+  }
+@supports (not (-webkit-appearance: -apple-pay-button))  or (contain-intrinsic-size: 1px) {
+    .scope:global(::placeholder),
+.scope :global(::placeholder) {
+      color: currentcolor;
+      @supports (color: color-mix(in lab, red, red)) {
+        color: color-mix(in oklab, currentcolor 50%, transparent);
+      }
+    }
+  }
+.scope:global(textarea),
+.scope :global(textarea) {
+    resize: vertical;
+  }
+.scope:global(::-webkit-search-decoration),
+.scope :global(::-webkit-search-decoration) {
+    -webkit-appearance: none;
+  }
+.scope:global(::-webkit-date-and-time-value),
+.scope :global(::-webkit-date-and-time-value) {
+    min-height: 1lh;
+    text-align: inherit;
+  }
+.scope:global(::-webkit-datetime-edit),
+.scope :global(::-webkit-datetime-edit) {
+    display: inline-flex;
+  }
+.scope:global(::-webkit-datetime-edit-fields-wrapper),
+.scope :global(::-webkit-datetime-edit-fields-wrapper) {
+    padding: 0;
+  }
+.scope:global(::-webkit-datetime-edit),
+.scope :global(::-webkit-datetime-edit),
+.scope:global(::-webkit-datetime-edit-year-field),
+.scope :global(::-webkit-datetime-edit-year-field),
+.scope:global(::-webkit-datetime-edit-month-field),
+.scope :global(::-webkit-datetime-edit-month-field),
+.scope:global(::-webkit-datetime-edit-day-field),
+.scope :global(::-webkit-datetime-edit-day-field),
+.scope:global(::-webkit-datetime-edit-hour-field),
+.scope :global(::-webkit-datetime-edit-hour-field),
+.scope:global(::-webkit-datetime-edit-minute-field),
+.scope :global(::-webkit-datetime-edit-minute-field),
+.scope:global(::-webkit-datetime-edit-second-field),
+.scope :global(::-webkit-datetime-edit-second-field),
+.scope:global(::-webkit-datetime-edit-millisecond-field),
+.scope :global(::-webkit-datetime-edit-millisecond-field),
+.scope:global(::-webkit-datetime-edit-meridiem-field),
+.scope :global(::-webkit-datetime-edit-meridiem-field) {
+    padding-block: 0;
+  }
+.scope:global(::-webkit-calendar-picker-indicator),
+.scope :global(::-webkit-calendar-picker-indicator) {
+    line-height: 1;
+  }
+.scope:global(:-moz-ui-invalid),
+.scope :global(:-moz-ui-invalid) {
+    box-shadow: none;
+  }
+.scope:global(button),
+.scope :global(button),
+.scope:global(input:where([type="button"], [type="reset"], [type="submit"])),
+.scope :global(input:where([type="button"], [type="reset"], [type="submit"])),
+.scope:global(::file-selector-button),
+.scope :global(::file-selector-button) {
+    appearance: button;
+  }
+.scope:global(::-webkit-inner-spin-button),
+.scope :global(::-webkit-inner-spin-button),
+.scope:global(::-webkit-outer-spin-button),
+.scope :global(::-webkit-outer-spin-button) {
+    height: auto;
+  }
+.scope:global([hidden]:where(:not([hidden="until-found"]))),
+.scope :global([hidden]:where(:not([hidden="until-found"]))) {
+    display: none !important;
+  } /* Scoped official Tailwind utilities (layer flattened locally). */
+.scope, .scope :global(*) { font-family: inherit; font-size: inherit; font-weight: inherit; line-height: inherit; letter-spacing: inherit; text-transform: none; }
+.scope { font-family: "TaskCardInter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif; font-size: 16px; font-weight: 400; line-height: 1.5; letter-spacing: normal; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; min-inline-size: 0; container: provided-task-card / inline-size; }
+.scope:global(.pointer-events-none),
+.scope :global(.pointer-events-none) {
+    pointer-events: none;
+  }
+.scope:global(.absolute),
+.scope :global(.absolute) {
+    position: absolute;
+  }
+.scope:global(.relative),
+.scope :global(.relative) {
+    position: relative;
+  }
+.scope:global(.inset-0),
+.scope :global(.inset-0) {
+    inset: 0px;
+  }
+.scope:global(.z-10),
+.scope :global(.z-10) {
+    z-index: 10;
+  }
+.scope:global(.mt-1),
+.scope :global(.mt-1) {
+    margin-top: var(--spacing);
+  }
+.scope:global(.mt-2),
+.scope :global(.mt-2) {
+    margin-top: calc(var(--spacing) * 2);
+  }
+.scope:global(.mt-2\.5),
+.scope :global(.mt-2\.5) {
+    margin-top: calc(var(--spacing) * 2.5);
+  }
+.scope:global(.mt-3\.5),
+.scope :global(.mt-3\.5) {
+    margin-top: calc(var(--spacing) * 3.5);
+  }
+.scope:global(.mt-5),
+.scope :global(.mt-5) {
+    margin-top: calc(var(--spacing) * 5);
+  }
+.scope:global(.mb-2\.5),
+.scope :global(.mb-2\.5) {
+    margin-bottom: calc(var(--spacing) * 2.5);
+  }
+.scope:global(.ml-2),
+.scope :global(.ml-2) {
+    margin-left: calc(var(--spacing) * 2);
+  }
+.scope:global(.flex),
+.scope :global(.flex) {
+    display: flex;
+  }
+.scope:global(.grid),
+.scope :global(.grid) {
+    display: grid;
+  }
+.scope:global(.inline-flex),
+.scope :global(.inline-flex) {
+    display: inline-flex;
+  }
+.scope:global(.h-4),
+.scope :global(.h-4) {
+    height: calc(var(--spacing) * 4);
+  }
+.scope:global(.h-8),
+.scope :global(.h-8) {
+    height: calc(var(--spacing) * 8);
+  }
+.scope:global(.h-full),
+.scope :global(.h-full) {
+    height: 100%;
+  }
+.scope:global(.min-h-\[40px\]),
+.scope :global(.min-h-\[40px\]) {
+    min-height: 40px;
+  }
+.scope:global(.w-4),
+.scope :global(.w-4) {
+    width: calc(var(--spacing) * 4);
+  }
+.scope:global(.w-full),
+.scope :global(.w-full) {
+    width: 100%;
+  }
+.scope:global(.max-w-\[376px\]),
+.scope :global(.max-w-\[376px\]) {
+    max-width: 376px;
+  }
+.scope:global(.flex-1),
+.scope :global(.flex-1) {
+    flex: 1;
+  }
+.scope:global(.shrink-0),
+.scope :global(.shrink-0) {
+    flex-shrink: 0;
+  }
+.scope:global(.transform),
+.scope :global(.transform) {
+    transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
+  }
+.scope:global(.cursor-pointer),
+.scope :global(.cursor-pointer) {
+    cursor: pointer;
+  }
+.scope:global(.grid-cols-2),
+.scope :global(.grid-cols-2) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+.scope:global(.flex-col),
+.scope :global(.flex-col) {
+    flex-direction: column;
+  }
+.scope:global(.items-baseline),
+.scope :global(.items-baseline) {
+    align-items: baseline;
+  }
+.scope:global(.items-center),
+.scope :global(.items-center) {
+    align-items: center;
+  }
+.scope:global(.justify-between),
+.scope :global(.justify-between) {
+    justify-content: space-between;
+  }
+.scope:global(.justify-center),
+.scope :global(.justify-center) {
+    justify-content: center;
+  }
+.scope:global(.justify-end),
+.scope :global(.justify-end) {
+    justify-content: flex-end;
+  }
+.scope:global(.gap-1\.5),
+.scope :global(.gap-1\.5) {
+    gap: calc(var(--spacing) * 1.5);
+  }
+.scope:global(.gap-3),
+.scope :global(.gap-3) {
+    gap: calc(var(--spacing) * 3);
+  }
+.scope:global(.gap-4),
+.scope :global(.gap-4) {
+    gap: calc(var(--spacing) * 4);
+  }
+.scope:global(.gap-\[3\.5px\]),
+.scope :global(.gap-\[3\.5px\]) {
+    gap: 3.5px;
+  }
+.scope:global(.overflow-hidden),
+.scope :global(.overflow-hidden) {
+    overflow: hidden;
+  }
+.scope:global(.rounded-\[4px\]),
+.scope :global(.rounded-\[4px\]) {
+    border-radius: 4px;
+  }
+.scope:global(.rounded-\[10px\]),
+.scope :global(.rounded-\[10px\]) {
+    border-radius: 10px;
+  }
+.scope:global(.rounded-\[12px\]),
+.scope :global(.rounded-\[12px\]) {
+    border-radius: 12px;
+  }
+.scope:global(.rounded-\[16px\]),
+.scope :global(.rounded-\[16px\]) {
+    border-radius: 16px;
+  }
+.scope:global(.rounded-\[18px\]),
+.scope :global(.rounded-\[18px\]) {
+    border-radius: 18px;
+  }
+.scope:global(.rounded-\[28px\]),
+.scope :global(.rounded-\[28px\]) {
+    border-radius: 28px;
+  }
+.scope:global(.border),
+.scope :global(.border) {
+    border-style: var(--tw-border-style);
+    border-width: 1px;
+  }
+.scope:global(.border-white\/\[0\.06\]),
+.scope :global(.border-white\/\[0\.06\]) {
+    border-color: color-mix(in srgb, #fff 6%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in oklab, var(--color-white) 6%, transparent);
+    }
+  }
+.scope:global(.border-white\/\[0\.12\]),
+.scope :global(.border-white\/\[0\.12\]) {
+    border-color: color-mix(in srgb, #fff 12%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in oklab, var(--color-white) 12%, transparent);
+    }
+  }
+.scope:global(.border-x-white\/\[0\.08\]),
+.scope :global(.border-x-white\/\[0\.08\]) {
+    border-inline-color: color-mix(in srgb, #fff 8%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-inline-color: color-mix(in oklab, var(--color-white) 8%, transparent);
+    }
+  }
+.scope:global(.border-t-white\/\[0\.18\]),
+.scope :global(.border-t-white\/\[0\.18\]) {
+    border-top-color: color-mix(in srgb, #fff 18%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-top-color: color-mix(in oklab, var(--color-white) 18%, transparent);
+    }
+  }
+.scope:global(.border-b-\[\#0D0D0F\]),
+.scope :global(.border-b-\[\#0D0D0F\]) {
+    border-bottom-color: #0D0D0F;
+  }
+.scope:global(.bg-\[\#2C2C2E\]),
+.scope :global(.bg-\[\#2C2C2E\]) {
+    background-color: #2C2C2E;
+  }
+.scope:global(.bg-\[\#18181B\]),
+.scope :global(.bg-\[\#18181B\]) {
+    background-color: #18181B;
+  }
+.scope:global(.bg-\[\#28282A\]),
+.scope :global(.bg-\[\#28282A\]) {
+    background-color: #28282A;
+  }
+.scope:global(.bg-\[\#F2F2F4\]),
+.scope :global(.bg-\[\#F2F2F4\]) {
+    background-color: #F2F2F4;
+  }
+.scope:global(.bg-gradient-to-b),
+.scope :global(.bg-gradient-to-b) {
+    --tw-gradient-position: to bottom in oklab;
+    background-image: linear-gradient(var(--tw-gradient-stops));
+  }
+.scope:global(.from-\[\#2A2A2E\]),
+.scope :global(.from-\[\#2A2A2E\]) {
+    --tw-gradient-from: #2A2A2E;
+    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+  }
+.scope:global(.via-\[\#212123\]),
+.scope :global(.via-\[\#212123\]) {
+    --tw-gradient-via: #212123;
+    --tw-gradient-via-stops: var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-via) var(--tw-gradient-via-position), var(--tw-gradient-to) var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-via-stops);
+  }
+.scope:global(.to-\[\#19191B\]),
+.scope :global(.to-\[\#19191B\]) {
+    --tw-gradient-to: #19191B;
+    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+  }
+.scope:global(.stroke-\[2\]),
+.scope :global(.stroke-\[2\]) {
+    stroke-width: 2;
+  }
+.scope:global(.p-6),
+.scope :global(.p-6) {
+    padding: calc(var(--spacing) * 6);
+  }
+.scope:global(.px-3\.5),
+.scope :global(.px-3\.5) {
+    padding-inline: calc(var(--spacing) * 3.5);
+  }
+.scope:global(.px-4),
+.scope :global(.px-4) {
+    padding-inline: calc(var(--spacing) * 4);
+  }
+.scope:global(.px-5),
+.scope :global(.px-5) {
+    padding-inline: calc(var(--spacing) * 5);
+  }
+.scope:global(.py-1\.5),
+.scope :global(.py-1\.5) {
+    padding-block: calc(var(--spacing) * 1.5);
+  }
+.scope:global(.py-2),
+.scope :global(.py-2) {
+    padding-block: calc(var(--spacing) * 2);
+  }
+.scope:global(.py-3\.5),
+.scope :global(.py-3\.5) {
+    padding-block: calc(var(--spacing) * 3.5);
+  }
+.scope:global(.py-\[18px\]),
+.scope :global(.py-\[18px\]) {
+    padding-block: 18px;
+  }
+.scope:global(.font-mono),
+.scope :global(.font-mono) {
+    font-family: var(--font-mono);
+  }
+.scope:global(.text-\[11px\]),
+.scope :global(.text-\[11px\]) {
+    font-size: 11px;
+  }
+.scope:global(.text-\[12\.5px\]),
+.scope :global(.text-\[12\.5px\]) {
+    font-size: 12.5px;
+  }
+.scope:global(.text-\[12px\]),
+.scope :global(.text-\[12px\]) {
+    font-size: 12px;
+  }
+.scope:global(.text-\[13\.5px\]),
+.scope :global(.text-\[13\.5px\]) {
+    font-size: 13.5px;
+  }
+.scope:global(.text-\[13px\]),
+.scope :global(.text-\[13px\]) {
+    font-size: 13px;
+  }
+.scope:global(.text-\[24px\]),
+.scope :global(.text-\[24px\]) {
+    font-size: 24px;
+  }
+.scope:global(.text-\[34px\]),
+.scope :global(.text-\[34px\]) {
+    font-size: 34px;
+  }
+.scope:global(.text-\[44px\]),
+.scope :global(.text-\[44px\]) {
+    font-size: 44px;
+  }
+.scope:global(.text-\[48px\]),
+.scope :global(.text-\[48px\]) {
+    font-size: 48px;
+  }
+.scope:global(.leading-\[1\.04\]),
+.scope :global(.leading-\[1\.04\]) {
+    --tw-leading: 1.04;
+    line-height: 1.04;
+  }
+.scope:global(.leading-none),
+.scope :global(.leading-none) {
+    --tw-leading: 1;
+    line-height: 1;
+  }
+.scope:global(.leading-snug),
+.scope :global(.leading-snug) {
+    --tw-leading: var(--leading-snug);
+    line-height: var(--leading-snug);
+  }
+.scope:global(.font-medium),
+.scope :global(.font-medium) {
+    --tw-font-weight: var(--font-weight-medium);
+    font-weight: var(--font-weight-medium);
+  }
+.scope:global(.font-normal),
+.scope :global(.font-normal) {
+    --tw-font-weight: var(--font-weight-normal);
+    font-weight: var(--font-weight-normal);
+  }
+.scope:global(.font-semibold),
+.scope :global(.font-semibold) {
+    --tw-font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-semibold);
+  }
+.scope:global(.tracking-\[-0\.02em\]),
+.scope :global(.tracking-\[-0\.02em\]) {
+    --tw-tracking: -0.02em;
+    letter-spacing: -0.02em;
+  }
+.scope:global(.tracking-\[-0\.03em\]),
+.scope :global(.tracking-\[-0\.03em\]) {
+    --tw-tracking: -0.03em;
+    letter-spacing: -0.03em;
+  }
+.scope:global(.whitespace-nowrap),
+.scope :global(.whitespace-nowrap) {
+    white-space: nowrap;
+  }
+.scope:global(.text-\[\#4ADE80\]),
+.scope :global(.text-\[\#4ADE80\]) {
+    color: #4ADE80;
+  }
+.scope:global(.text-\[\#6E6E73\]),
+.scope :global(.text-\[\#6E6E73\]) {
+    color: #6E6E73;
+  }
+.scope:global(.text-\[\#8E8E93\]),
+.scope :global(.text-\[\#8E8E93\]) {
+    color: #8E8E93;
+  }
+.scope:global(.text-\[\#111113\]),
+.scope :global(.text-\[\#111113\]) {
+    color: #111113;
+  }
+.scope:global(.text-\[\#A1A1AA\]),
+.scope :global(.text-\[\#A1A1AA\]) {
+    color: #A1A1AA;
+  }
+.scope:global(.text-\[\#C7C7CC\]),
+.scope :global(.text-\[\#C7C7CC\]) {
+    color: #C7C7CC;
+  }
+.scope:global(.text-\[\#D1D1D6\]),
+.scope :global(.text-\[\#D1D1D6\]) {
+    color: #D1D1D6;
+  }
+.scope:global(.text-\[\#E5E5E7\]),
+.scope :global(.text-\[\#E5E5E7\]) {
+    color: #E5E5E7;
+  }
+.scope:global(.text-\[\#F5F5F7\]),
+.scope :global(.text-\[\#F5F5F7\]) {
+    color: #F5F5F7;
+  }
+.scope:global(.text-white),
+.scope :global(.text-white) {
+    color: var(--color-white);
+  }
+.scope:global(.tabular-nums),
+.scope :global(.tabular-nums) {
+    --tw-numeric-spacing: tabular-nums;
+    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);
+  }
+.scope:global(.opacity-60),
+.scope :global(.opacity-60) {
+    opacity: 60%;
+  }
+.scope:global(.shadow-\[0_3px_8px_rgba\(0\,0\,0\,0\.2\)\]),
+.scope :global(.shadow-\[0_3px_8px_rgba\(0\,0\,0\,0\.2\)\]) {
+    --tw-shadow: 0 3px 8px var(--tw-shadow-color, rgba(0,0,0,0.2));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+.scope:global(.shadow-\[inset_0_1px_0_rgba\(255\,255\,255\,0\.05\)\,0_4px_10px_rgba\(0\,0\,0\,0\.2\)\]),
+.scope :global(.shadow-\[inset_0_1px_0_rgba\(255\,255\,255\,0\.05\)\,0_4px_10px_rgba\(0\,0\,0\,0\.2\)\]) {
+    --tw-shadow: inset 0 1px 0 var(--tw-shadow-color, rgba(255,255,255,0.05)), 0 4px 10px var(--tw-shadow-color, rgba(0,0,0,0.2));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+.scope:global(.shadow-\[inset_0_1px_0_rgba\(255\,255\,255\,0\.08\)\]),
+.scope :global(.shadow-\[inset_0_1px_0_rgba\(255\,255\,255\,0\.08\)\]) {
+    --tw-shadow: inset 0 1px 0 var(--tw-shadow-color, rgba(255,255,255,0.08));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+.scope:global(.shadow-\[inset_0_1px_0_rgba\(255\,255\,255\,0\.16\)\,inset_0_-2px_6px_rgba\(0\,0\,0\,0\.45\)\,0_10px_0_\#131315\,0_26px_42px_-8px_rgba\(0\,0\,0\,0\.42\)\,0_44px_72px_-16px_rgba\(0\,0\,0\,0\.34\)\]),
+.scope :global(.shadow-\[inset_0_1px_0_rgba\(255\,255\,255\,0\.16\)\,inset_0_-2px_6px_rgba\(0\,0\,0\,0\.45\)\,0_10px_0_\#131315\,0_26px_42px_-8px_rgba\(0\,0\,0\,0\.42\)\,0_44px_72px_-16px_rgba\(0\,0\,0\,0\.34\)\]) {
+    --tw-shadow: inset 0 1px 0 var(--tw-shadow-color, rgba(255,255,255,0.16)), inset 0 -2px 6px var(--tw-shadow-color, rgba(0,0,0,0.45)), 0 10px 0 var(--tw-shadow-color, #131315), 0 26px 42px -8px var(--tw-shadow-color, rgba(0,0,0,0.42)), 0 44px 72px -16px var(--tw-shadow-color, rgba(0,0,0,0.34));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+.scope:global(.shadow-\[inset_0_1px_0_rgba\(255\,255\,255\,0\.95\)\,0_6px_16px_rgba\(0\,0\,0\,0\.28\)\]),
+.scope :global(.shadow-\[inset_0_1px_0_rgba\(255\,255\,255\,0\.95\)\,0_6px_16px_rgba\(0\,0\,0\,0\.28\)\]) {
+    --tw-shadow: inset 0 1px 0 var(--tw-shadow-color, rgba(255,255,255,0.95)), 0 6px 16px var(--tw-shadow-color, rgba(0,0,0,0.28));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+.scope:global(.transition-all),
+.scope :global(.transition-all) {
+    transition-property: all;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+.scope:global(.transition-opacity),
+.scope :global(.transition-opacity) {
+    transition-property: opacity;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+.scope:global(.transition-transform),
+.scope :global(.transition-transform) {
+    transition-property: transform, translate, scale, rotate;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+.scope:global(.duration-150),
+.scope :global(.duration-150) {
+    --tw-duration: 150ms;
+    transition-duration: 150ms;
+  }
+.scope:global(.duration-200),
+.scope :global(.duration-200) {
+    --tw-duration: 200ms;
+    transition-duration: 200ms;
+  }
+.scope:global(.ease-out),
+.scope :global(.ease-out) {
+    --tw-ease: var(--ease-out);
+    transition-timing-function: var(--ease-out);
+  }
+.scope:global(.will-change-transform),
+.scope :global(.will-change-transform) {
+    will-change: transform;
+  }
+@media (hover: hover) {
+    .scope:global(.hover\:scale-y-110:hover),
+.scope :global(.hover\:scale-y-110:hover) {
+      --tw-scale-y: 110%;
+      scale: var(--tw-scale-x) var(--tw-scale-y);
+    }
+    .scope:global(.hover\:bg-\[\#27272A\]:hover),
+.scope :global(.hover\:bg-\[\#27272A\]:hover) {
+      background-color: #27272A;
+    }
+  }
+.scope:global(.focus-visible\:outline-2:focus-visible),
+.scope :global(.focus-visible\:outline-2:focus-visible) {
+    outline-style: var(--tw-outline-style);
+    outline-width: 2px;
+  }
+.scope:global(.focus-visible\:outline-offset-2:focus-visible),
+.scope :global(.focus-visible\:outline-offset-2:focus-visible) {
+    outline-offset: 2px;
+  }
+.scope:global(.focus-visible\:outline-\[\#18181B\]:focus-visible),
+.scope :global(.focus-visible\:outline-\[\#18181B\]:focus-visible) {
+    outline-color: #18181B;
+  }
+.scope:global(.active\:scale-\[0\.98\]:active),
+.scope :global(.active\:scale-\[0\.98\]:active) {
+    scale: 0.98;
+  }
+.scope > :global(.mt-5) > :global(.items-baseline) { flex-wrap: wrap; }
+.scope > :global(.mt-5) > :global(.items-baseline) > span { min-inline-size: 0; max-inline-size: 100%; overflow-wrap: anywhere; }
+@container provided-task-card (max-width: 325px) { .scope :global(.grid-cols-2) > * { min-inline-size: 0; padding-inline: 10px; } .scope :global(.grid-cols-2) :global(.items-baseline) { flex-wrap: wrap; row-gap: 5px; } .scope :global(.grid-cols-2) :global(.whitespace-nowrap) { white-space: normal; overflow-wrap: anywhere; } .scope > :global(.mt-5) > :global(.items-baseline) { flex-wrap: wrap; } .scope > :global(.mt-5) > :global(.items-baseline) > span { min-inline-size: 0; max-inline-size: 100%; overflow-wrap: anywhere; } }
+@media (prefers-reduced-motion: reduce) { .scope:global(.transition-transform), .scope :global(.transition-transform) { transition-property: none; will-change: auto; } .scope { transform: none !important; } .scope :global(.hover\:scale-y-110):hover, .scope :global(.active\:scale-\[0\.98\]):active { scale: none; } .scope :global(.transition-all) { transition-property: color, background-color, border-color, outline-color, opacity; } }
+@media (forced-colors: active) { .scope :global([data-active]) { border: 1px solid CanvasText; } .scope :global([data-active="true"]) { background: Highlight !important; forced-color-adjust: none; } .scope :global(button):focus-visible { outline-color: Highlight; } }
