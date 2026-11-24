@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "sourceCommit": "14bf5ce7ccf5c9cb85e7449df6019b7d15dac996",
-  "sourceDigest": "db415047956c15659a9dd7e6a51f487d1de7efa1f4d9efed3b0c06b17c8ff416",
+  "sourceCommit": "9f5d0ac4df40b46ba0da208613a9930936789646",
+  "sourceDigest": "68e5353fd4ecfb8d5a405a5bd2b89190579102f1ec86de262c98731b014a644a",
   "sourceDigestAlgorithm": "sha256-sorted-path-and-byte-digests-v1",
-  "sourceFileCount": 200,
+  "sourceFileCount": 203,
   "files": [
     [
       ".github/workflows/release-verification.yml",
@@ -151,11 +151,11 @@
     ],
     [
       "app/components/TaskStatsCard.js",
-      "6e02426a04b93f88bee4986cd9ad708b0efa1e33e358afc1845e9ba6cb648119"
+      "5d4d15583c205fb490c0d8ad87c124e3f8eab088722b01f97eecdd73eb6b4284"
     ],
     [
       "app/components/TaskStatsCard.module.css",
-      "a04dc790bb23b7b87257b99faef406786db24ba4df5edee18628e652b19c9b40"
+      "c553f37a1b818c1490ec4e9f2e90d0e4160ea45b538d634387a141e581e97661"
     ],
     [
       "app/components/avatar-bank.mjs",
@@ -166,8 +166,12 @@
       "13a810dcf396145d8fa550860a7b3a3ace60a00b33d2b99468c23c3ba9347f8f"
     ],
     [
+      "app/components/provided-task-stats.mjs",
+      "6227fb30daac1695b3d35f8285c5088da9331952bd30a5f08888b0e8d8684fbc"
+    ],
+    [
       "app/components/task-stats-view.mjs",
-      "84f4e2441e299900098a533380605dd0a3b591db37d20278a84c557b79b80972"
+      "76ea0c9aed71c71160eb8a50ba000bfa67543bf8ce85ee3529c306af8644a415"
     ],
     [
       "app/globals.css",
@@ -650,6 +654,14 @@
       "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62"
     ],
     [
+      "public/fonts/task-card-inter-OFL.txt",
+      "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a"
+    ],
+    [
+      "public/fonts/task-card-inter-latin.woff2",
+      "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62"
+    ],
+    [
       "public/legacy-office-skill.md",
       "e9ce93686267bd4d367d8e3defa47e461a337f1ec63e4a3dba98af72adf1f26a"
     ],
@@ -811,8 +823,8 @@
   "dirtyFiles": [],
   "hostingCommit": null,
   "hostingCommitMatchesSource": null,
-  "buildId": "14bf5ce7ccf5-db415047956c15659a9d",
-  "builtAt": "2026-11-24T19:32:48.229Z",
+  "buildId": "9f5d0ac4df40-68e5353fd4ecfb8d5a40",
+  "builtAt": "2026-11-24T20:24:30.938Z",
   "routes": [
     "/",
     "/api/assignment/[id]",
