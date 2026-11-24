@@ -6,7 +6,11 @@ A real deployed-function probe invoked the same runEvaluator path with synthetic
 
 ## Trigger and state
 
-GitHub Actions schedule */5 * * * * and workflow_dispatch invoke the production automation route. It is a persistent repository workflow, not a local-computer loop or chat reminder. Actual Vercel team plan is Hobby; native cron is only once daily with up-to-hour jitter, so it is not used to pretend minute-level execution. GitHub schedule itself is best-effort and can be delayed. A manual dispatch and authenticated tick remain available.
+Automatic review runs on **Vercel Schedules** (static schedule in vercel.json, path target /api/marketplace/automation, expression 2-47/15 * * * *, jitter 15). The old GitHub Actions cron is kept only as a manual fallback and nightly safety net; its scheduled trigger never fired in production, so it is not presented as the working timer.
+
+Team plan is Hobby, where Schedules run at most every 15 minutes with an unavoidable jitter window of up to 15 minutes. Each run is bounded (45s cooperative budget) and drains several candidates while the shared provider gate allows one dispatch every 7s; a 64-candidate review therefore needs several runs, which is why policy v4 requires a 6-hour review window. Scheduled runs are best-effort: Vercel does not retry a failed run, so the durable queue, retry/backoff and the heartbeat journal are what make progress resumable.
+
+Every tick records a heartbeat in Redis: start/finish counts, source (vercel_schedule, workflow_dispatch or operator), last scheduled success, last code. /api/marketplace/health exposes it as automation.overdue. While no genuine scheduled tick has been observed, funding preflight returns 503 SCHEDULER_UNVERIFIED, so a new task cannot be advertised with a timer that has never fired. Existing tasks keep their published review, refund and settlement rights.
 
 Each bounded tick incrementally discovers tasks and stores due times in Redis. Before submission deadline it only queues; it never evaluates early. During Review it resumes existing signed checkpoints, one valid candidate at a time. EDF deadline ordering with FIFO ties, atomic claim/fence, expired-lease recovery, and safe ack/retry handle at-least-once delivery. It does not ask participants for repeated signatures to run server-owned evaluation. Private artifacts remain in the trusted server/model workflow.
 
@@ -32,4 +36,8 @@ Moving beyond those limits requires measured provider quota, funded infrastructu
 - Relayer: local Anvil receipt-gated real90/10 payout/all-fail refund, lost-send response, nonce serialization.
 - Protected route: unauthenticated calls401, no caller-selected task/decision.
 
-Never label fully operational auto-payout until scheduler execution, provider probe, actual Redis Lua AND relayer gas are verified.
+Never label fully operational auto-payout until a genuine scheduled execution, the provider probe, actual Redis Lua and relayer gas are all verified. Local GitHub Actions dispatches and authenticated operator POSTs do not prove the timer.
+
+## Judge v4 and the audited tie-break problem
+
+The requester audit (issue #2) showed 12 of 14 submissions tied at 100 and the winner was the lowest address: a lottery, not merit. Policy v4, used only for new tasks, changes this: weighted per-criterion scores in basis points, data-only deterministic assertions, sealed reason codes, and a tie-break by verified chain submission order instead of wallet address. Requester-only diagnostics expose per-criterion scores; other callers get a coarse allowlisted view with no commitments or MAC. Legacy v2/v3 tasks keep their published integer score and address tie-break, and Task #1 stays exactly as settled.
