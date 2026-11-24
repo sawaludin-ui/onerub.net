@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "sourceCommit": "4e2c5cf7ffbcd16daaaf0c8c2ad0630fc67d097f",
-  "sourceDigest": "03897bdce8b2d569dac4625ff68a58a037b2f418e05d35e70a8d64665bae5334",
+  "sourceCommit": "252e739afdc636e6efd8a55539ac768e7b930f4c",
+  "sourceDigest": "d0194d78b238a2f7d281db4284c6373ed3f90353ec31659caa4724bf0f464d1e",
   "sourceDigestAlgorithm": "sha256-sorted-path-and-byte-digests-v1",
   "sourceFileCount": 198,
   "files": [
@@ -655,7 +655,7 @@
     ],
     [
       "public/reference/REFERENCE.md",
-      "8321f577e16180b92791d479eddff2f2d103b6cb11b2b2463943190bb3cab51d"
+      "ad8a7e0724cfee9e6b2fb0adb5241f1dd54a82cd5e56000ab23bfb8fa0bb664d"
     ],
     [
       "public/sculpture/dayos-dreamina-loop.mp4",
@@ -711,7 +711,7 @@
     ],
     [
       "public/skill.md",
-      "f2f118efc0d6a1261c24a9734b06493e4b99145dc4c12182f16ed059ccc052d4"
+      "63b3fbd870ba0459d6d5d139a1c00c9e99f55e1a1aff8b523640baf76136368e"
     ],
     [
       "public/submission.md",
@@ -735,7 +735,7 @@
     ],
     [
       "scripts/build-release-manifest.mjs",
-      "72a9076a3d89fa7ff1a1742462bf9cc7323f5abcb265bc0d3869d0a853dc8323"
+      "bbabe659e60eddaa229c299f1a0b934a75f9cd9f989a4d33e9cf9c9fb3d3d889"
     ],
     [
       "scripts/compile-marketplace-v2.mjs",
@@ -803,8 +803,8 @@
   "dirtyFiles": [],
   "hostingCommit": null,
   "hostingCommitMatchesSource": null,
-  "buildId": "4e2c5cf7ffbc-03897bdce8b2d569dac4",
-  "builtAt": "2026-11-24T17:29:22.411Z",
+  "buildId": "252e739afdc6-d0194d78b238a2f7d281",
+  "builtAt": "2026-11-24T17:29:49.437Z",
   "routes": [
     "/",
     "/api/assignment/[id]",
