@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "sourceCommit": "9f5d0ac4df40b46ba0da208613a9930936789646",
-  "sourceDigest": "68e5353fd4ecfb8d5a405a5bd2b89190579102f1ec86de262c98731b014a644a",
+  "sourceCommit": "1225752bd42901a1e46e26e7d6d5a5e796c3a1ca",
+  "sourceDigest": "73b15420b406ff6127befe7570238850d7c5e03493cf77e4bba61d9dc8b3f782",
   "sourceDigestAlgorithm": "sha256-sorted-path-and-byte-digests-v1",
-  "sourceFileCount": 203,
+  "sourceFileCount": 207,
   "files": [
     [
       ".github/workflows/release-verification.yml",
@@ -64,6 +64,10 @@
     [
       "app/api/marketplace/tasks/[id]/metadata/route.js",
       "8fa61994b18ae92fd8e14d4bd3fdaa7eaf46737036e8b0ec3db93cfbd44e154a"
+    ],
+    [
+      "app/api/marketplace/tasks/[id]/participants/route.js",
+      "d12861fb06b5ca6ced0f08b707c920e703293cf7b7b175b865da999b3091c096"
     ],
     [
       "app/api/marketplace/tasks/[id]/receipt/route.js",
@@ -151,11 +155,11 @@
     ],
     [
       "app/components/TaskStatsCard.js",
-      "5d4d15583c205fb490c0d8ad87c124e3f8eab088722b01f97eecdd73eb6b4284"
+      "c9dc84b592a7f0e53b4e16b1364c5ea355b38baf97ff459689eb350b8ac40fe7"
     ],
     [
       "app/components/TaskStatsCard.module.css",
-      "c553f37a1b818c1490ec4e9f2e90d0e4160ea45b538d634387a141e581e97661"
+      "0c48b8bc134852ff5681a7a08f5ddc5c5202f4845c0cc80920419790f8df93da"
     ],
     [
       "app/components/avatar-bank.mjs",
@@ -170,8 +174,16 @@
       "6227fb30daac1695b3d35f8285c5088da9331952bd30a5f08888b0e8d8684fbc"
     ],
     [
+      "app/components/task-participants-client.mjs",
+      "9854ce3ff106350500f1aa515058c735e2fb798f8dcd368cb9efdfa784b4cb65"
+    ],
+    [
       "app/components/task-stats-view.mjs",
       "76ea0c9aed71c71160eb8a50ba000bfa67543bf8ce85ee3529c306af8644a415"
+    ],
+    [
+      "app/components/useTaskParticipants.js",
+      "1af4f740ffe5ba4c557d4f2056a57135d45bf35a396e4d8161c7b9a8332a63e7"
     ],
     [
       "app/globals.css",
@@ -320,6 +332,10 @@
     [
       "lib/marketplace-ops.mjs",
       "2bf12c206f97e01c2674c263892e440c524318b05b110d28f450a5dc431b7574"
+    ],
+    [
+      "lib/marketplace-participants.mjs",
+      "30873f9fff2ca3fd0cf8c15602e491281f8ae0f210f1d25e06172c39cec895a0"
     ],
     [
       "lib/marketplace-policy.mjs",
@@ -823,8 +839,8 @@
   "dirtyFiles": [],
   "hostingCommit": null,
   "hostingCommitMatchesSource": null,
-  "buildId": "9f5d0ac4df40-68e5353fd4ecfb8d5a40",
-  "builtAt": "2026-11-24T20:24:30.938Z",
+  "buildId": "1225752bd429-73b15420b406ff6127be",
+  "builtAt": "2026-11-25T00:36:28.153Z",
   "routes": [
     "/",
     "/api/assignment/[id]",
@@ -842,6 +858,7 @@
     "/api/marketplace/tasks/[id]/delivery",
     "/api/marketplace/tasks/[id]/evaluate",
     "/api/marketplace/tasks/[id]/metadata",
+    "/api/marketplace/tasks/[id]/participants",
     "/api/marketplace/tasks/[id]/receipt",
     "/api/marketplace/tasks/[id]/upload",
     "/api/office",
