@@ -1,5 +1,7 @@
 // Adapted directly from the supplied task-001-stats-card.zip; layout/utility classes retained.
-import { useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useTaskParticipants } from './useTaskParticipants';
+import { participantLabel, participantTime, shortWallet } from './task-participants-client.mjs';
 import { ArrowUpRight } from 'lucide-react';
 import { taskStatsView } from './task-stats-view.mjs';
 import styles from './TaskStatsCard.module.css';
@@ -9,9 +11,20 @@ import {
   formatAgentCountLabel,
 } from './provided-task-stats.mjs';
 
-function ProvidedTaskStatsCard({ task, detailHref }) {
+function ProvidedTaskStatsCard({ task, detailHref, participants, loadParticipants }) {
   const [hoveredSlot, setHoveredSlot] = useState(null);
   const [tilt, setTilt] = useState(null);
+  const [focusSlot, setFocusSlot] = useState(0);
+  const workerRef = useRef(null);
+  const tooltipId = useId();
+  useEffect(() => {
+    if (hoveredSlot === null) return;
+    const dismiss = event => { if (!workerRef.current?.contains(event.target)) setHoveredSlot(null); };
+    const escape = event => { if (event.key === 'Escape') setHoveredSlot(null); };
+    document.addEventListener('pointerdown', dismiss);
+    document.addEventListener('keydown', escape);
+    return () => { document.removeEventListener('pointerdown', dismiss); document.removeEventListener('keydown', escape); };
+  }, [hoveredSlot]);
 
   const segments = useMemo(
     () => buildAvailabilitySegments(task.agentsEntered, task.totalAgentSlots),
@@ -28,10 +41,19 @@ function ProvidedTaskStatsCard({ task, detailHref }) {
     [task.agentsEntered, task.knownAgents]
   );
 
-  const hoveredAgent =
-    hoveredSlot !== null && hoveredSlot < task.agents.length
-      ? task.agents[hoveredSlot]
-      : null;
+  const selected = hoveredSlot !== null && hoveredSlot < task.agentsEntered ? hoveredSlot : null;
+  const hoveredAgent = selected !== null ? participants.rows[selected] : null;
+  const selectedLabel = selected !== null ? participantLabel(participants, selected) : '';
+  const selectSlot = index => { setHoveredSlot(index); loadParticipants(); };
+  const moveFocus = event => {
+    if (event.key === 'Escape') { setHoveredSlot(null); event.preventDefault(); event.stopPropagation(); return; }
+    const keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
+    if (!keys.includes(event.key)) return;
+    const buttons = [...event.currentTarget.parentElement.querySelectorAll('button[data-active="true"]')];
+    const at = buttons.indexOf(event.currentTarget);
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : Math.max(0, Math.min(buttons.length - 1, at + (event.key === 'ArrowRight' ? 1 : -1)));
+    event.preventDefault(); setFocusSlot(next); buttons[next]?.focus();
+  };
 
   const handlePointerMove = (event) => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -179,42 +201,60 @@ function ProvidedTaskStatsCard({ task, detailHref }) {
         </a>
       </div>
 
-      {/* Worker Section: Segmented Bar for .ai Agents Entered */}
-      <div className="relative z-10 mt-5">
+      {/* Worker bars retain the ZIP design; only public confirmed identities are loaded on interest. */}
+      <div ref={workerRef} className="relative z-10 mt-5" onPointerEnter={loadParticipants} onFocusCapture={loadParticipants}
+        onPointerLeave={() => { if (!workerRef.current?.contains(document.activeElement)) setHoveredSlot(null); }}
+        onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget) && !event.currentTarget.matches(":hover")) setHoveredSlot(null); }}>
         <div className="mb-2.5 flex items-center justify-between">
           <h2 className="text-[13.5px] font-normal text-[#E5E5E7]">
             Worker
           </h2>
-          {hoveredAgent && (
-            <span className="font-mono text-[11px] text-[#A1A1AA] tabular-nums">
-              {hoveredAgent.handle}
+          {selected !== null && (
+            <span className={styles.hoverName} data-agent-label title={hoveredAgent?.wallet || selectedLabel}>
+              <span className="font-mono text-[11px] text-[#A1A1AA] tabular-nums">{selectedLabel}</span>
             </span>
           )}
         </div>
 
         <div
           className="flex h-8 items-center gap-[3.5px]"
-          role="img"
+          role="group"
           aria-label={task.knownAgents ? `${task.agentsEntered} AI agent submissions` : "Agent count unavailable"}
           data-testid="availability-bars"
         >
-          {segments.map((segment) => (
-            <div
-              key={segment.index}
+          {segments.map(segment => {
+            const Tag = segment.isActive ? 'button' : 'div';
+            const row = segment.isActive ? participants.rows[segment.index] : null;
+            const label = row ? (row.agentId || shortWallet(row.wallet)) + ', wallet ' + row.wallet + ', submitted ' + participantTime(row.submittedAt) : participantLabel(participants, segment.index);
+            return <Tag key={segment.index}
+              type={segment.isActive ? 'button' : undefined}
               data-active={segment.isActive ? 'true' : 'false'}
-              onMouseEnter={() => setHoveredSlot(segment.index)}
-              onMouseLeave={() => setHoveredSlot(null)}
-              className="h-full flex-1 rounded-[4px] transition-transform duration-150 hover:scale-y-110"
-              style={{ backgroundColor: segment.color }}
-              title={
-                segment.isActive && task.agents[segment.index]
-                  ? `${task.agents[segment.index].handle} (${task.agents[segment.index].status})`
-                  : `Agent ${segment.index + 1}: ${segment.isActive ? "Submitted" : "Not filled"}`
-              }
-            />
-          ))}
+              data-submission-ordinal={segment.isActive ? segment.index + 1 : undefined}
+              data-agent-wallet={row?.wallet}
+              tabIndex={segment.isActive ? segment.index === Math.min(focusSlot, task.agentsEntered - 1) ? 0 : -1 : undefined}
+              aria-hidden={!segment.isActive ? true : undefined}
+              aria-label={segment.isActive ? 'Submission #' + (segment.index + 1) + ': ' + label : undefined}
+              aria-expanded={segment.isActive ? selected === segment.index : undefined}
+              aria-controls={selected === segment.index ? tooltipId : undefined}
+              onPointerEnter={() => segment.isActive ? selectSlot(segment.index) : setHoveredSlot(null)}
+              onFocus={() => { if (segment.isActive) { setFocusSlot(segment.index); selectSlot(segment.index); } }}
+              onClick={() => { if (segment.isActive) selectSlot(segment.index); }}
+              onKeyDown={segment.isActive ? moveFocus : undefined}
+              className={"h-full flex-1 rounded-[4px] transition-transform duration-150 hover:scale-y-110 " + styles.barControl}
+              style={{ backgroundColor: segment.color }} />;
+          })}
         </div>
 
+        {selected !== null && (
+          <div id={tooltipId} role="tooltip" data-participant-hint className={styles.participantTooltip}>
+            <strong>{selectedLabel}</strong>
+            <span>Submission #{selected + 1}{hoveredAgent ? ' · ' + participantTime(hoveredAgent.submittedAt) : ''}</span>
+            {hoveredAgent ? <>
+              <span className={styles.wallet}>{hoveredAgent.wallet}</span>
+              <small>{hoveredAgent.identityStatus === 'resolved' ? 'Current .ai at block ' + participants.readBlock : hoveredAgent.identityStatus === 'unregistered' ? 'No .ai registered at this snapshot' : '.ai resolution temporarily unavailable'}</small>
+            </> : <small>{participants.status === 'error' ? 'Hover or tap again to retry.' : participants.status === 'ready' ? 'Waiting for a confirmed chain snapshot.' : 'Reading public submission order and Agent ID…'}</small>}
+          </div>
+        )}
         <p className="mt-2.5 text-[12.5px] font-normal text-[#8E8E93] tabular-nums">
           {agentSummary}
         </p>
@@ -224,5 +264,6 @@ function ProvidedTaskStatsCard({ task, detailHref }) {
 }
 export default function TaskStatsCard({ task, fallbackToken, chainId, contract }) {
   const view = taskStatsView(task, { fallbackToken, chainId, contract });
-  return <ProvidedTaskStatsCard task={view} detailHref={view.href} />;
+  const participants = useTaskParticipants({ id: task.id, chainId, contract, count: view.agentsEntered });
+  return <ProvidedTaskStatsCard task={view} detailHref={view.href} participants={participants} loadParticipants={participants.load} />;
 }

@@ -796,3 +796,13 @@
 @container provided-task-card (max-width: 325px) { .scope :global(.grid-cols-2) > * { min-inline-size: 0; padding-inline: 10px; } .scope :global(.grid-cols-2) :global(.items-baseline) { flex-wrap: wrap; row-gap: 5px; } .scope :global(.grid-cols-2) :global(.whitespace-nowrap) { white-space: normal; overflow-wrap: anywhere; } .scope > :global(.mt-5) > :global(.items-baseline) { flex-wrap: wrap; } .scope > :global(.mt-5) > :global(.items-baseline) > span { min-inline-size: 0; max-inline-size: 100%; overflow-wrap: anywhere; } }
 @media (prefers-reduced-motion: reduce) { .scope:global(.transition-transform), .scope :global(.transition-transform) { transition-property: none; will-change: auto; } .scope { transform: none !important; } .scope :global(.hover\:scale-y-110):hover, .scope :global(.active\:scale-\[0\.98\]):active { scale: none; } .scope :global(.transition-all) { transition-property: color, background-color, border-color, outline-color, opacity; } }
 @media (forced-colors: active) { .scope :global([data-active]) { border: 1px solid CanvasText; } .scope :global([data-active="true"]) { background: Highlight !important; forced-color-adjust: none; } .scope :global(button):focus-visible { outline-color: Highlight; } }
+/* Supplemental public participant details only. Original ZIP geometry/classes stay unchanged. */
+.scope .barControl { min-inline-size: 0; border: 0; padding: 0; margin: 0; appearance: none; }
+.scope button.barControl { cursor: help; }
+.scope button.barControl:focus-visible { outline: 2px solid #f5f5f7; outline-offset: 2px; scale: 1 1.1; }
+.scope .hoverName { min-inline-size: 0; max-inline-size: calc(100% - 64px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scope .participantTooltip { position: absolute; inset-inline: 0; bottom: 100%; z-index: 30; display: grid; gap: 5px; padding: 12px; border: 1px solid #505055; border-radius: 12px; background: #161619; color: #e5e5e7; box-shadow: 0 8px 24px rgb(0 0 0 / .35); max-block-size: min(240px, 70vh); overflow: auto; font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
+.scope .participantTooltip strong { font-size: 13px; font-weight: 600; color: #f5f5f7; }
+.scope .participantTooltip small { font-size: 10px; color: #a1a1aa; }
+.scope .wallet { font-family: var(--font-mono); font-size: 10px; user-select: text; overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) { .scope button.barControl:focus-visible { scale: none; } }

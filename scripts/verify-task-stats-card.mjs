@@ -21,7 +21,8 @@ try{
   const copy=await card.innerText();assert.ok(copy.includes('Paid'));assert.ok(copy.includes('Worker'));assert.ok(copy.includes('Earnings'));assert.ok(copy.includes('01'));assert.ok(copy.includes(actual.submissionCount+' agents'));
   assert.ok(!copy.includes(actual.metadata.title));assert.ok(!copy.includes('Gross'));assert.ok(copy.includes('submissions'));assert.ok(copy.includes('Due '));assert.ok(!copy.includes('TASK /'));assert.ok(!copy.includes('since last month'));assert.ok(copy.includes('Winner payout'));
   assert.equal(await card.locator('[data-active="true"]').count(),actual.submissionCount);
-  assert.equal(await card.locator('select,button').count(),0); // All Time is a label, not a fake dropdown.
+  assert.equal(await card.locator('select').count(),0);
+  assert.equal(await card.locator('button[data-active="true"]').count(),actual.submissionCount); // Worker bars are accessible controls; Detail remains the original link.
   const link=card.getByRole('link',{name:'Detail: '+actual.metadata.title});assert.equal(await link.count(),1);assert.ok((await link.getAttribute('href')).endsWith('/1'));
   await card.scrollIntoViewIfNeeded();await card.screenshot({path:out+'/card-'+width+'.png',animations:'disabled'});
   const measure=await card.evaluate(el=>({width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height,background:getComputedStyle(el).backgroundImage,overflow:el.scrollWidth>el.clientWidth,docOverflow:document.documentElement.scrollWidth>innerWidth}));assert.equal(measure.overflow,false);assert.equal(measure.docOverflow,false);
